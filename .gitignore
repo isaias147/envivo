@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# flyers de prueba generados por scripts/seed-eventos.mjs --png
+/scripts/flyers-prueba/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
