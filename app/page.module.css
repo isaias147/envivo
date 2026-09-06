@@ -199,79 +199,8 @@
   line-height: 1.6;
 }
 
-.fichaCab {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-
-.mini {
-  width: 64px;
-  height: 80px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--noche-3);
-}
-.mini img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.horaGrande {
-  margin-bottom: 6px;
-  font-family: var(--fuente-titulo);
-  font-weight: 800;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--laton);
-}
-.horaGrande span {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--hueso-tenue);
-}
-
-.nombre {
-  font-family: var(--fuente-titulo);
-  font-weight: 700;
-  font-size: 17px;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-}
-
-.sede {
-  margin-top: 5px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--hueso-tenue);
-}
-
-.tiras {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 11px;
-}
-.tira {
-  padding: 3px 9px;
-  border-radius: 4px;
-  background: var(--noche-3);
-  color: var(--hueso);
-  font-size: 11.5px;
-}
-.tira.libre {
-  background: rgba(95, 214, 160, 0.15);
-  color: var(--cana);
-}
-.tira.serie {
-  background: rgba(255, 182, 39, 0.14);
-  color: var(--laton);
-}
+/* La tarjeta en sí vive en components/TarjetaEvento.module.css:
+   es la misma en el mapa y en la lista. */
 
 /* ---------- aviso de error ---------- */
 .aviso {

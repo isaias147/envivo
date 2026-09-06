@@ -139,3 +139,51 @@ export function horaCali(iso: string): { hhmm: string; periodo: string } {
   const periodo = buscar("dayPeriod").replace(/[^a-zA-Z]/g, "").toLowerCase();
   return { hhmm: `${buscar("hour")}:${buscar("minute") || "00"}`, periodo };
 }
+
+/**
+ * Fecha larga en hora de Cali para los encabezados de la lista y el
+ * detalle: "Sábado, 5 de septiembre". Sirve además como clave de grupo
+ * (dos días distintos nunca producen el mismo texto dentro del tope de
+ * 3 meses de la app).
+ */
+export function fechaLargaCali(iso: string): string {
+  const texto = new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(iso));
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/** Quita un "@" inicial de un usuario de Instagram o TikTok. */
+export function sinArroba(usuario: string): string {
+  return usuario.replace(/^@+/, "").trim();
+}
+
+/**
+ * Enlace de WhatsApp con el mensaje ya escrito. El número es el del
+ * local u organizador (nunca el del artista). Se le dejan solo dígitos;
+ * si viene con 10 (celular colombiano sin indicativo), se le antepone 57.
+ */
+export function enlaceWhatsapp(numero: string, titulo: string): string {
+  const digitos = numero.replace(/\D/g, "");
+  const conPais = digitos.length === 10 ? `57${digitos}` : digitos;
+  const texto = `Hola, vi "${titulo}" en EnVivo y quiero preguntar por el evento.`;
+  return `https://wa.me/${conPais}?text=${encodeURIComponent(texto)}`;
+}
+
+/**
+ * Enlace `geo:` que abre la app de mapas del teléfono en el punto del
+ * evento. En escritorio normalmente no hace nada; es una acción pensada
+ * para el móvil.
+ */
+export function enlaceComoLlegar(
+  lat: number,
+  lng: number,
+  etiqueta?: string | null,
+): string {
+  const punto = `${lat},${lng}`;
+  const consulta = etiqueta ? `${punto}(${encodeURIComponent(etiqueta)})` : punto;
+  return `geo:${punto}?q=${consulta}`;
+}

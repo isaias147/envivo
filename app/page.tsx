@@ -7,13 +7,13 @@ import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
   GRANADA_CALI,
-  horaCali,
   RADIOS_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
   type RadioKm,
 } from "@/lib/eventos";
+import TarjetaEvento from "@/components/TarjetaEvento";
 import styles from "./page.module.css";
 
 // El mapa se carga solo en el navegador (Leaflet necesita `window`).
@@ -199,49 +199,15 @@ export default function Home() {
 }
 
 function FichaInferior({ evento }: { evento: EventoPublico | null }) {
-  if (!evento) {
-    return (
-      <div className={styles.ficha}>
+  return (
+    <div className={styles.ficha}>
+      {evento ? (
+        <TarjetaEvento evento={evento} />
+      ) : (
         <p className={styles.fichaVacia}>
           Toca un pin para ver de qué se trata. Los pines en verde son gratis.
         </p>
-      </div>
-    );
-  }
-
-  const { hhmm, periodo } = horaCali(evento.starts_at);
-  const precio = evento.is_free
-    ? "Gratis"
-    : evento.price_label ?? "Entrada paga";
-
-  return (
-    <Link href={`/evento/${evento.id}`} className={styles.ficha}>
-      <div className={styles.fichaCab}>
-        <div className={styles.mini}>
-          {evento.flyer_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={evento.flyer_url} alt="" />
-          )}
-        </div>
-        <div>
-          <div className={styles.horaGrande}>
-            {hhmm} <span>{periodo.toUpperCase()}</span>
-          </div>
-          <h3 className={styles.nombre}>{evento.title}</h3>
-          {evento.venue_name && <p className={styles.sede}>{evento.venue_name}</p>}
-          <div className={styles.tiras}>
-            <span
-              className={`${styles.tira} ${evento.is_free ? styles.libre : ""}`}
-            >
-              {precio}
-            </span>
-            {evento.es_serie && (
-              <span className={`${styles.tira} ${styles.serie}`}>Serie</span>
-            )}
-            {evento.type && <span className={styles.tira}>{evento.type}</span>}
-          </div>
-        </div>
-      </div>
-    </Link>
+      )}
+    </div>
   );
 }
