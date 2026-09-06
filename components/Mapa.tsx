@@ -60,13 +60,15 @@ const ICONO_UBICACION = L.divIcon({
 
 /**
  * El pin del mockup: una etiqueta con hora + nombre y un pie.
- * Hueso normal, verde si es gratis, latón si está seleccionado.
+ * Índigo normal, verde si es gratis, latón si está seleccionado.
  */
 function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   const { hhmm } = horaCali(ev.starts_at);
   const nombre =
     ev.title.length > 20 ? `${ev.title.slice(0, 20).trim()}…` : ev.title;
-  const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#F4F1E8";
+  const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#161A3D";
+  // Sobre latón o verde el texto va índigo; sobre el índigo normal, hueso.
+  const texto = activo || ev.is_free ? "#161A3D" : "#F4F1E8";
   const tamHora = activo ? 13 : 11.5;
   const tamNombre = activo ? 12 : 11;
   const anchoMax = activo ? 168 : 132;
@@ -78,7 +80,7 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
                 display:flex;flex-direction:column;align-items:center;cursor:pointer;">
       <div style="font-family:var(--fuente-titulo),sans-serif;font-weight:700;
                   font-size:${tamHora}px;letter-spacing:-.01em;background:${fondo};
-                  color:#161A3D;padding:${pad};border-radius:5px;display:flex;
+                  color:${texto};padding:${pad};border-radius:5px;display:flex;
                   align-items:baseline;gap:6px;max-width:${anchoMax}px;
                   box-shadow:0 2px 8px rgba(0,0,0,.35);">
         <span>${escaparHtml(hhmm)}</span>
