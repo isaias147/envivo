@@ -9,6 +9,8 @@
 // - El flyer es obligatorio y se sube al bucket `flyers`.
 // - Al enviar, inserta en `events` con status 'pendiente' (una fila por
 //   fecha si es serie, agrupadas por `series_id`, con tope de 3 meses).
+// - Antes de insertar, `hay_choque` revisa cada fecha; si choca, se abre
+//   la hoja inferior con "Cambiar solo esa fecha" / "Escoger otro día".
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -62,6 +64,27 @@ const NOMBRE_DIA = [
   "viernes",
   "sábado",
 ];
+
+/** "Jueves 17 de septiembre" a partir de "YYYY-MM-DD" (hora de Cali). */
+function fechaLarga(ymd: string): string {
+  const t = new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${ymd}T12:00:00-05:00`));
+  return (t.charAt(0).toUpperCase() + t.slice(1)).replace(",", "");
+}
+
+/** "8:00 PM" a partir de un ISO con zona. */
+function horaBonita(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(iso));
+}
 
 /** "jueves" · "martes y jueves" · "lunes, miércoles y viernes". */
 function listaDias(dias: number[]): string {
@@ -127,6 +150,16 @@ type Enviado = {
   serieTexto: string | null;
 };
 
+// Choque detectado por hay_choque: alimenta la hoja inferior y sus dos salidas.
+type Choque = {
+  titulo: string; // nombre del evento que ya existe
+  horaExistente: string; // "8:00 PM"
+  diaNombre: string; // "jueves" — día de la fecha propia que choca
+  fechaTexto: string; // "Jueves 17 de septiembre · 1 de 13 fechas"
+  fechas: string[]; // todas las fechas (YYYY-MM-DD) que se iban a publicar
+  colisiones: string[]; // subconjunto de `fechas` que choca con algo
+};
+
 export default function PublicarNuevo() {
   // bifurcación
   const [serie, setSerie] = useState(false);
@@ -168,6 +201,8 @@ export default function PublicarNuevo() {
   const [enviado, setEnviado] = useState<Enviado | null>(null);
   // Nº de fechas pendiente de confirmar (series de más de 40).
   const [confirmarN, setConfirmarN] = useState<number | null>(null);
+  // Choque pendiente de resolver: mientras no sea null, se ve la hoja inferior.
+  const [choque, setChoque] = useState<Choque | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -230,23 +265,28 @@ export default function PublicarNuevo() {
   function cambiarSerie(v: boolean) {
     setSerie(v);
     setConfirmarN(null);
+    setChoque(null);
   }
   function cambiarFecha(v: string) {
     setFecha(v);
     setConfirmarN(null);
+    setChoque(null);
   }
   function cambiarHasta(v: string) {
     setHasta(v);
     setConfirmarN(null);
+    setChoque(null);
   }
   function cambiarCadaDias(v: 7 | 14) {
     setCadaDias(v);
     setConfirmarN(null);
+    setChoque(null);
   }
 
   function toggleDia(d: number) {
     if (d === dowPrimera) return; // el día de la primera fecha no se quita
     setConfirmarN(null);
+    setChoque(null);
     setDiasSemana((prev) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
     );
@@ -385,6 +425,96 @@ export default function PublicarNuevo() {
       }
     }
 
+    // Fechas reales a publicar: una sola, o todas las de la serie en orden.
+    const fechas = serie ? fechasSerie : [fecha];
+
+    // Antes de insertar nada, preguntarle a Supabase si alguna de esas fechas
+    // choca con otro evento del mismo WhatsApp, mismo lugar y misma hora.
+    setEnviando(true);
+    let choqueEncontrado: Choque | null;
+    try {
+      choqueEncontrado = await buscarChoque(fechas);
+    } catch {
+      setError(
+        "No pudimos revisar si la fecha se cruza con otro evento tuyo. Intenta de nuevo.",
+      );
+      setEnviando(false);
+      return;
+    }
+    if (choqueEncontrado) {
+      // No insertamos: mostramos la hoja inferior y esperamos a que el usuario
+      // decida entre "Cambiar solo esa fecha" y "Escoger otro día".
+      setConfirmarN(null);
+      setChoque(choqueEncontrado);
+      setEnviando(false);
+      return;
+    }
+
+    await publicar(fechas);
+  }
+
+  /**
+   * Consulta `hay_choque` para cada fecha, en orden. Devuelve los datos de la
+   * hoja inferior si alguna choca (reportando la primera colisión), o null si
+   * están todas libres.
+   */
+  async function buscarChoque(fechas: string[]): Promise<Choque | null> {
+    const wa = whatsapp.trim();
+    const colisiones: string[] = [];
+    let existente: { title: string; starts_at: string } | null = null;
+
+    for (const ymd of fechas) {
+      const { data, error: errRpc } = await supabase.rpc("hay_choque", {
+        p_whatsapp: wa,
+        p_lat: punto.lat,
+        p_lng: punto.lng,
+        p_starts: isoCali(ymd, hora),
+      });
+      if (errRpc) throw errRpc;
+      if (data && data.length > 0) {
+        colisiones.push(ymd);
+        if (!existente) {
+          existente = { title: data[0].title, starts_at: data[0].starts_at };
+        }
+      }
+    }
+
+    if (!existente) return null;
+
+    const primera = colisiones[0];
+    const indice = fechas.indexOf(primera) + 1;
+    return {
+      titulo: existente.title,
+      horaExistente: horaBonita(existente.starts_at),
+      diaNombre: NOMBRE_DIA[dowCali(primera)],
+      fechaTexto: serie
+        ? `${fechaLarga(primera)} · ${indice} de ${fechas.length} fechas`
+        : fechaLarga(primera),
+      fechas,
+      colisiones,
+    };
+  }
+
+  /**
+   * Sube el flyer e inserta una fila por cada fecha recibida (todas con el
+   * mismo `series_id` si es serie). Se llama sin choques, o con la serie ya
+   * recortada desde la hoja inferior. Al terminar muestra la pantalla de
+   * "enviado".
+   */
+  async function publicar(fechas: string[]) {
+    if (!flyer) {
+      setError("El flyer es obligatorio.");
+      setEnviando(false);
+      return;
+    }
+    if (fechas.length === 0) {
+      setError("No quedan fechas para publicar. Ajusta la serie.");
+      setEnviando(false);
+      return;
+    }
+    const titulo = nombre.trim();
+    const reelUrl = normalizarReel(reel) || null;
+
     setEnviando(true);
     try {
       // 1. Subir el flyer al bucket `flyers`.
@@ -411,7 +541,6 @@ export default function PublicarNuevo() {
           : monto.trim();
 
       const seriesId = serie ? crypto.randomUUID() : null;
-      const fechas = serie ? fechasSerie : [fecha];
 
       const base = {
         title: titulo,
@@ -934,6 +1063,62 @@ export default function PublicarNuevo() {
         )}
         {error && <p className={styles.error}>{error}</p>}
       </div>
+
+      {choque && (
+        <div
+          className={styles.velo}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ya tienes un evento a esa hora"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setChoque(null);
+          }}
+        >
+          <div className={styles.hoja}>
+            <h3>Ya tienes algo ese {choque.diaNombre}</h3>
+            <p>
+              Se cruza con «{choque.titulo}», a la misma hora y en el mismo
+              lugar.
+              {serie && choque.colisiones.length < choque.fechas.length
+                ? " Puedes dejar esa fecha por fuera y publicar el resto de la serie."
+                : " Cambia la fecha o la hora para no repetirte."}
+            </p>
+            <div className={styles.choca}>
+              <div className={styles.chocaHora}>{choque.horaExistente}</div>
+              <div>
+                <b>{choque.titulo}</b>
+                <small>{choque.fechaTexto}</small>
+              </div>
+            </div>
+            {serie && choque.colisiones.length < choque.fechas.length && (
+              <button
+                type="button"
+                className={styles.enviar}
+                style={{ marginTop: 0 }}
+                disabled={enviando}
+                onClick={() => {
+                  const quedan = choque.fechas.filter(
+                    (f) => !choque.colisiones.includes(f),
+                  );
+                  setChoque(null);
+                  publicar(quedan);
+                }}
+              >
+                {choque.colisiones.length === 1
+                  ? "Cambiar solo esa fecha"
+                  : `Quitar esas ${choque.colisiones.length} fechas y publicar`}
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.fantasma}
+              onClick={() => setChoque(null)}
+            >
+              Escoger otro día
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

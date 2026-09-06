@@ -442,3 +442,62 @@
 .volverMapa:hover {
   color: var(--hueso);
 }
+
+/* ---------- hoja inferior de choque ---------- */
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(9, 11, 30, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.hoja {
+  width: 100%;
+  max-width: 440px;
+  background: var(--noche-2);
+  border-top: 1px solid var(--linea);
+  border-radius: 18px 18px 0 0;
+  padding: 22px 20px calc(24px + env(safe-area-inset-bottom));
+}
+.hoja h3 {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-bottom: 9px;
+}
+.hoja p {
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.choca {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.chocaHora {
+  flex-shrink: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--laton);
+  letter-spacing: -0.02em;
+}
+.choca b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.choca small {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+}
