@@ -137,7 +137,7 @@
 /* ---------- tarjeta ---------- */
 
 .tarjeta {
-  border: 1px solid var(--linea);
+  composes: cristal from global;
   border-radius: 12px;
   padding: 18px;
   margin-top: 18px;

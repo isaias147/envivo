@@ -18,6 +18,13 @@
   /* Líneas */
   --linea: rgba(244, 241, 232, 0.14);
 
+  /* Cristal: superficies flotantes translúcidas (barras, paneles, tarjetas).
+     Nunca para botones de acción ni estados activos: esos van en latón sólido. */
+  --cristal-fondo: rgba(22, 26, 61, 0.38);
+  --cristal-blur: blur(20px) saturate(180%);
+  --cristal-borde: 1px solid rgba(244, 241, 232, 0.14);
+  --cristal-sombra: 0 8px 32px rgba(0, 0, 0, 0.28);
+
   /* Tipografía (las carga next/font en layout.tsx) */
   --fuente-titulo: var(--font-archivo), system-ui, sans-serif;
   --fuente-cuerpo: var(--font-instrument), system-ui, sans-serif;
@@ -61,4 +68,14 @@ button {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Clase utilitaria de superficie de cristal. Los módulos CSS la reutilizan
+   con `composes: cristal from global`. */
+.cristal {
+  background: var(--cristal-fondo);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
+  border: var(--cristal-borde);
+  box-shadow: var(--cristal-sombra);
 }

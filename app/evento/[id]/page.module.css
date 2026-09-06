@@ -14,15 +14,13 @@
 }
 
 .volver {
+  composes: cristal from global;
   position: absolute;
   top: 16px;
   left: 16px;
   z-index: 5;
   padding: 8px 14px;
-  border: 1px solid var(--linea);
   border-radius: 100px;
-  background: rgba(22, 26, 61, 0.82);
-  backdrop-filter: blur(6px);
   color: var(--hueso);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
@@ -131,10 +129,13 @@
 
 /* ---------- acciones ---------- */
 .acciones {
+  composes: cristal from global;
   display: flex;
   flex-direction: column;
   gap: 9px;
   margin-top: 22px;
+  padding: 14px;
+  border-radius: 14px;
 }
 
 .wa {

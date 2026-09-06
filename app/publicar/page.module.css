@@ -75,7 +75,7 @@
 
 /* ---------- "Mis eventos": cápsula de cristal arriba a la derecha ---------- */
 .misEventos {
-  composes: cristal;
+  composes: cristal from global;
   position: absolute;
   top: calc(env(safe-area-inset-top) + 12px);
   right: 16px;
@@ -91,7 +91,7 @@
 
 /* ---------- filtros de tiempo: cápsula de cristal ---------- */
 .reel {
-  composes: cristal;
+  composes: cristal from global;
   position: absolute;
   top: calc(env(safe-area-inset-top) + 58px);
   left: 16px;

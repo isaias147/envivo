@@ -74,7 +74,9 @@
 .marco select,
 .marco textarea {
   width: 100%;
-  background: var(--noche-2);
+  background: var(--cristal-fondo);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--linea);
   color: var(--hueso);
   font-family: var(--fuente-cuerpo);
@@ -128,9 +130,11 @@
 .op {
   flex: 1;
   text-align: center;
-  background: var(--noche-2);
+  background: var(--cristal-fondo);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--linea);
-  color: var(--hueso-tenue);
+  color: var(--hueso);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13px;
@@ -278,7 +282,9 @@
   padding: 10px 0;
   border: 1px solid var(--linea);
   border-radius: 8px;
-  background: var(--noche-2);
+  background: var(--cristal-fondo);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
   color: var(--hueso-tenue);
   font-family: var(--fuente-titulo);
   font-weight: 700;
