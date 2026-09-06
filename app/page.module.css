@@ -1,83 +1,18 @@
 /* ===== EnVivo · pantalla / (mapa) ===== */
-/* Sigue envivo-pantallas-usuario.html, pero a pantalla completa. */
+/* Mapa a pantalla completa; los controles flotan encima con efecto cristal. */
 
 .pantalla {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   height: 100dvh;
   background: var(--noche);
   overflow: hidden;
 }
 
-/* ---------- barra superior ---------- */
-.top {
-  flex-shrink: 0;
-  padding: 18px 18px 0;
-}
-
-.marca {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.marca b {
-  font-family: var(--fuente-titulo);
-  font-weight: 800;
-  font-size: 19px;
-  letter-spacing: -0.03em;
-}
-.marca b i {
-  color: var(--laton);
-  font-style: normal;
-}
-
-.verLista {
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--hueso-tenue);
-  padding: 6px 0;
-}
-.verLista:hover {
-  color: var(--hueso);
-}
-
-.reel {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  padding-bottom: 14px;
-  scrollbar-width: none;
-}
-.reel::-webkit-scrollbar {
-  display: none;
-}
-
-.filtro {
-  border: 1px solid var(--linea);
-  background: transparent;
-  color: var(--hueso-tenue);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0;
-  padding: 7px 14px;
-  border-radius: 100px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.filtro[aria-pressed="true"] {
-  background: var(--hueso);
-  color: var(--noche);
-  border-color: var(--hueso);
-  font-weight: 600;
-}
-
-/* ---------- mapa ---------- */
+/* ---------- mapa al fondo ---------- */
 .lienzo {
-  position: relative;
-  flex: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
 }
 
@@ -89,12 +24,11 @@
   background: #1a1f47;
   font-family: var(--fuente-cuerpo);
 }
-.lienzo :global(.leaflet-control-attribution) {
-  background: rgba(22, 26, 61, 0.7);
-  color: var(--hueso-tenue);
-}
-.lienzo :global(.leaflet-control-attribution a) {
-  color: var(--hueso-tenue);
+
+/* OSM Bright es un mapa claro: se invierte solo el panel de tiles para
+   volverlo oscuro (los pines y controles quedan intactos). */
+.lienzo :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
 }
 
 .mapaCargando {
@@ -108,21 +42,145 @@
   font-size: 13px;
 }
 
-/* Botón discreto: reaparece cuando el punto se movió de la ubicación real.
-   Mismo estilo que el botón "Volver" del mockup de detalle. */
-.volverUbicacion {
+/* ---------- efecto cristal: común a todos los controles flotantes ---------- */
+.cristal {
+  background: rgba(22, 26, 61, 0.38);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(244, 241, 232, 0.14);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* ---------- marca: sobre el mapa, sin fondo ---------- */
+.marca {
   position: absolute;
-  top: 12px;
+  top: calc(env(safe-area-inset-top) + 16px);
+  left: 16px;
+  z-index: 500;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  color: var(--hueso);
+  text-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.55),
+    0 0 3px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+/* ---------- "Ver lista": cápsula de cristal arriba a la derecha ---------- */
+.verLista {
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: 16px;
+  z-index: 500;
+  padding: 9px 16px;
+  border-radius: 100px;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
+/* ---------- filtros de tiempo: cápsula de cristal ---------- */
+.reel {
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 58px);
+  left: 16px;
+  z-index: 500;
+  display: inline-flex;
+  gap: 4px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border-radius: 100px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.reel::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  border: none;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 7px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filtro[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}
+
+/* ---------- radio: vertical, centrado en el lado derecho ---------- */
+.radioCol {
+  composes: cristal;
+  position: absolute;
   right: 12px;
-  z-index: 400;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 100px;
+}
+.radioTitulo {
+  margin-bottom: 2px;
+  font-family: var(--fuente-cuerpo);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hueso-tenue);
+}
+.km {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.km[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+}
+
+/* ---------- volver a mi ubicación (aparece si se movió el punto) ---------- */
+.volverUbicacion {
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 106px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border: 1px solid var(--linea);
   border-radius: 100px;
-  background: rgba(22, 26, 61, 0.82);
-  backdrop-filter: blur(6px);
   color: var(--hueso);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
@@ -130,79 +188,98 @@
   letter-spacing: 0;
   cursor: pointer;
 }
-.volverUbicacion:hover {
-  border-color: var(--hueso-tenue);
-}
 .volverUbicacion svg {
   width: 13px;
   height: 13px;
   color: var(--laton);
 }
 
-.radioCinta {
+/* ---------- pie: barra de precio + tarjeta del evento ---------- */
+.pie {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 400;
+  z-index: 500;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 14px 18px 16px;
-  background: linear-gradient(to top, var(--noche) 62%, transparent);
+  gap: 12px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
   pointer-events: none;
 }
-.radioCinta > * {
+
+.precioBarra {
+  composes: cristal;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 100px;
   pointer-events: auto;
 }
-.radioCinta span {
-  margin-right: 2px;
-  font-size: 12px;
-  color: var(--hueso-tenue);
-}
-
-.km {
-  min-width: 44px;
-  padding: 6px 8px;
-  border: 1px solid var(--linea);
-  border-radius: 6px;
-  background: rgba(22, 26, 61, 0.6);
-  color: var(--hueso-tenue);
+.precio {
+  border: none;
+  background: transparent;
+  color: var(--hueso);
   font-family: var(--fuente-cuerpo);
-  font-size: 12px;
+  font-weight: 500;
+  font-size: 13px;
   letter-spacing: 0;
+  padding: 8px 16px;
+  border-radius: 100px;
+  white-space: nowrap;
   cursor: pointer;
 }
-.km[aria-pressed="true"] {
-  border-color: var(--laton);
-  color: var(--laton);
+.precio[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
 }
 
-/* ---------- ficha inferior ---------- */
 .ficha {
-  display: block;
-  flex-shrink: 0;
-  min-height: 132px;
-  padding: 16px 18px 20px;
-  border-top: 1px solid var(--linea);
-  background: var(--noche);
-}
-
-.fichaVacia {
-  padding-top: 8px;
-  color: var(--hueso-tenue);
-  font-size: 13px;
-  line-height: 1.6;
+  width: calc(100% - 16px);
+  max-height: 46dvh;
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid var(--linea);
+  border-radius: 18px;
+  background: var(--noche-2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
 }
 
 /* La tarjeta en sí vive en components/TarjetaEvento.module.css:
    es la misma en el mapa y en la lista. */
 
+/* ---------- atribución de Leaflet ---------- */
+.atribucion {
+  position: absolute;
+  right: 8px;
+  bottom: calc(env(safe-area-inset-bottom) + 4px);
+  z-index: 400;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: rgba(22, 26, 61, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap;
+  text-align: right;
+  font-size: 9px;
+  line-height: 1.2;
+  color: var(--hueso-tenue);
+  pointer-events: none;
+}
+
 /* ---------- aviso de error ---------- */
 .aviso {
-  flex-shrink: 0;
-  padding: 10px 18px;
-  background: rgba(255, 94, 91, 0.12);
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 150px);
+  left: 16px;
+  right: 16px;
+  z-index: 500;
+  padding: 8px 12px;
+  border-radius: 12px;
   color: var(--coral);
   font-size: 12.5px;
   text-align: center;

@@ -218,6 +218,7 @@ export default function Mapa({
       center={[centro.lat, centro.lng]}
       zoom={zoom}
       zoomControl={false}
+      attributionControl={false}
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer

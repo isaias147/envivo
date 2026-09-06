@@ -1,83 +1,19 @@
 /* ===== EnVivo · pantalla /publicar (mapa del organizador) ===== */
-/* Igual que la pantalla del mapa, pero el pie es un botón "Publicar
-   evento". Sigue "0 · Inicio del organizador" de
-   envivo-pantallas-organizador.html. */
+/* Igual que la pantalla del mapa: mapa a pantalla completa y controles
+   flotantes con efecto cristal. El pie es el botón "Publicar evento". */
 
 .pantalla {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   height: 100dvh;
   background: var(--noche);
   overflow: hidden;
 }
 
-.top {
-  flex-shrink: 0;
-  padding: 18px 18px 0;
-}
-
-.marca {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.marca b {
-  font-family: var(--fuente-titulo);
-  font-weight: 800;
-  font-size: 19px;
-  letter-spacing: -0.03em;
-}
-.marca b i {
-  color: var(--laton);
-  font-style: normal;
-}
-
-.misEventos {
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--hueso-tenue);
-  padding: 6px 0;
-}
-.misEventos:hover {
-  color: var(--hueso);
-}
-
-.reel {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  padding-bottom: 14px;
-  scrollbar-width: none;
-}
-.reel::-webkit-scrollbar {
-  display: none;
-}
-
-.filtro {
-  border: 1px solid var(--linea);
-  background: transparent;
-  color: var(--hueso-tenue);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0;
-  padding: 7px 14px;
-  border-radius: 100px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.filtro[aria-pressed="true"] {
-  background: var(--hueso);
-  color: var(--noche);
-  border-color: var(--hueso);
-  font-weight: 600;
-}
-
+/* ---------- mapa al fondo ---------- */
 .lienzo {
-  position: relative;
-  flex: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
 }
 
@@ -89,12 +25,11 @@
   background: #1a1f47;
   font-family: var(--fuente-cuerpo);
 }
-.lienzo :global(.leaflet-control-attribution) {
-  background: rgba(22, 26, 61, 0.7);
-  color: var(--hueso-tenue);
-}
-.lienzo :global(.leaflet-control-attribution a) {
-  color: var(--hueso-tenue);
+
+/* OSM Bright es un mapa claro: se invierte solo el panel de tiles para
+   volverlo oscuro (los pines y controles quedan intactos). */
+.lienzo :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
 }
 
 .mapaCargando {
@@ -108,14 +43,106 @@
   font-size: 13px;
 }
 
-.fab {
+/* ---------- efecto cristal: común a todos los controles flotantes ---------- */
+.cristal {
+  background: rgba(22, 26, 61, 0.38);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(244, 241, 232, 0.14);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* ---------- marca: sobre el mapa, sin fondo ---------- */
+.marca {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  z-index: 400;
+  top: calc(env(safe-area-inset-top) + 16px);
+  left: 16px;
+  z-index: 500;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+  color: var(--hueso);
+  text-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.55),
+    0 0 3px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+/* ---------- "Mis eventos": cápsula de cristal arriba a la derecha ---------- */
+.misEventos {
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: 16px;
+  z-index: 500;
+  padding: 9px 16px;
+  border-radius: 100px;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
+/* ---------- filtros de tiempo: cápsula de cristal ---------- */
+.reel {
+  composes: cristal;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 58px);
+  left: 16px;
+  z-index: 500;
+  display: inline-flex;
+  gap: 4px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border-radius: 100px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.reel::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  border: none;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 7px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filtro[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}
+
+/* ---------- pie flotante: botón publicar ---------- */
+.pie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 500;
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 24px);
+  pointer-events: none;
+}
+
+.fab {
+  display: block;
+  pointer-events: auto;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--laton);
   color: #231a00;
   font-family: var(--fuente-titulo);
@@ -124,4 +151,23 @@
   letter-spacing: -0.01em;
   text-align: center;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- atribución de Leaflet ---------- */
+.atribucion {
+  position: absolute;
+  right: 8px;
+  bottom: calc(env(safe-area-inset-bottom) + 4px);
+  z-index: 400;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: rgba(22, 26, 61, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap;
+  text-align: right;
+  font-size: 9px;
+  line-height: 1.2;
+  color: var(--hueso-tenue);
+  pointer-events: none;
 }

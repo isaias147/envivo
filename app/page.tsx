@@ -14,6 +14,7 @@ import {
   type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
+import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import styles from "./page.module.css";
 
 // El mapa se carga solo en el navegador (Leaflet necesita `window`).
@@ -28,10 +29,19 @@ const FILTROS: { id: Filtro; etiqueta: string }[] = [
   { id: "proximos", etiqueta: "Próximos" },
 ];
 
+// Filtro de precio: se combina con el de tiempo. "todo" no filtra nada.
+type Precio = "todo" | "gratis" | "cover";
+const PRECIOS: { id: Precio; etiqueta: string }[] = [
+  { id: "todo", etiqueta: "Todo" },
+  { id: "gratis", etiqueta: "Gratis" },
+  { id: "cover", etiqueta: "Con cover" },
+];
+
 export default function Home() {
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("hoy");
+  const [precio, setPrecio] = useState<Precio>("todo");
   const [radioKm, setRadioKm] = useState<RadioKm>(3);
   // `centro` = punto de referencia del mapa (movible).
   // `gps` = ubicación real del navegador, si la concedió.
@@ -99,24 +109,30 @@ export default function Home() {
     };
   }, []);
 
-  // Eventos que pasan el filtro de fecha y caen dentro del radio.
+  // Eventos que pasan el filtro de fecha + precio y caen dentro del radio.
   const visibles = useMemo(() => {
     const { desde, hasta } = rangoFiltro(filtro);
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
+      if (precio === "gratis" && !ev.is_free) return false;
+      if (precio === "cover" && ev.is_free) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
       return dentroDeCaja(ev, centro, radioKm);
     });
-  }, [eventos, filtro, centro, radioKm]);
+  }, [eventos, filtro, precio, centro, radioKm]);
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
 
-  // Cambiar de filtro o de radio cierra la ficha abierta (como el mockup).
+  // Cambiar de filtro, precio o radio cierra la ficha abierta.
   function cambiarFiltro(f: Filtro) {
     setFiltro(f);
+    setSeleccionadoId(null);
+  }
+  function cambiarPrecio(p: Precio) {
+    setPrecio(p);
     setSeleccionadoId(null);
   }
   function cambiarRadio(km: RadioKm) {
@@ -126,34 +142,7 @@ export default function Home() {
 
   return (
     <div className={styles.pantalla}>
-      <header className={styles.top}>
-        <div className={styles.marca}>
-          <b>
-            En<i>Vivo</i>
-          </b>
-          <Link href="/lista" className={styles.verLista}>
-            Ver lista
-          </Link>
-        </div>
-        <div className={styles.reel}>
-          {FILTROS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={styles.filtro}
-              aria-pressed={filtro === f.id}
-              onClick={() => cambiarFiltro(f.id)}
-            >
-              {f.etiqueta}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {error && (
-        <p className={styles.aviso}>No se pudieron cargar los eventos: {error}</p>
-      )}
-
+      {/* El mapa a pantalla completa, detrás de todo. */}
       <div className={styles.lienzo}>
         <Mapa
           eventos={visibles}
@@ -164,50 +153,93 @@ export default function Home() {
           onSeleccionar={setSeleccionadoId}
           onMoverCentro={moverCentro}
         />
-        {gps && movido && (
+      </div>
+
+      {/* Marca: directamente sobre el mapa, arriba a la izquierda. */}
+      <div className={styles.marca}>
+        En<i>Vivo</i>
+      </div>
+
+      {/* "Ver lista": cápsula de cristal, arriba a la derecha. */}
+      <Link href="/lista" className={styles.verLista}>
+        Ver lista
+      </Link>
+
+      {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
+      <div className={styles.reel}>
+        {FILTROS.map((f) => (
           <button
+            key={f.id}
             type="button"
-            className={styles.volverUbicacion}
-            onClick={volverAMiUbicacion}
+            className={styles.filtro}
+            aria-pressed={filtro === f.id}
+            onClick={() => cambiarFiltro(f.id)}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-            </svg>
-            Volver a mi ubicación
+            {f.etiqueta}
           </button>
-        )}
-        <div className={styles.radioCinta}>
-          <span>Radio</span>
-          {RADIOS_KM.map((km) => (
+        ))}
+      </div>
+
+      {/* Radio: vertical, centrado en el lado derecho. */}
+      <div className={styles.radioCol}>
+        <span className={styles.radioTitulo}>km</span>
+        {RADIOS_KM.map((km) => (
+          <button
+            key={km}
+            type="button"
+            className={styles.km}
+            aria-pressed={radioKm === km}
+            onClick={() => cambiarRadio(km)}
+          >
+            {km}
+          </button>
+        ))}
+      </div>
+
+      {gps && movido && (
+        <button
+          type="button"
+          className={styles.volverUbicacion}
+          onClick={volverAMiUbicacion}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+          </svg>
+          Volver a mi ubicación
+        </button>
+      )}
+
+      {error && (
+        <p className={styles.aviso}>
+          No se pudieron cargar los eventos: {error}
+        </p>
+      )}
+
+      {/* Pie: barra de precio centrada; sube cuando aparece la tarjeta. */}
+      <div className={styles.pie}>
+        <div className={styles.precioBarra}>
+          {PRECIOS.map((p) => (
             <button
-              key={km}
+              key={p.id}
               type="button"
-              className={styles.km}
-              aria-pressed={radioKm === km}
-              onClick={() => cambiarRadio(km)}
+              className={styles.precio}
+              aria-pressed={precio === p.id}
+              onClick={() => cambiarPrecio(p.id)}
             >
-              {km} km
+              {p.etiqueta}
             </button>
           ))}
         </div>
+        {seleccionado && (
+          <div className={styles.ficha}>
+            <TarjetaEvento evento={seleccionado} />
+          </div>
+        )}
       </div>
 
-      <FichaInferior evento={seleccionado} />
-    </div>
-  );
-}
-
-function FichaInferior({ evento }: { evento: EventoPublico | null }) {
-  return (
-    <div className={styles.ficha}>
-      {evento ? (
-        <TarjetaEvento evento={evento} />
-      ) : (
-        <p className={styles.fichaVacia}>
-          Toca un pin para ver de qué se trata. Los pines en verde son gratis.
-        </p>
-      )}
+      {/* Atribución de Leaflet: obligatoria, discreta, esquina inferior derecha. */}
+      <p className={styles.atribucion}>{TILES_ATRIBUCION}</p>
     </div>
   );
 }

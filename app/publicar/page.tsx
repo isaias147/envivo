@@ -16,6 +16,7 @@ import {
   type EventoPublico,
   type Filtro,
 } from "@/lib/eventos";
+import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import styles from "./page.module.css";
 
 const Mapa = dynamic(() => import("@/components/Mapa"), {
@@ -87,30 +88,7 @@ export default function Publicar() {
 
   return (
     <div className={styles.pantalla}>
-      <header className={styles.top}>
-        <div className={styles.marca}>
-          <b>
-            En<i>Vivo</i>
-          </b>
-          <Link href="/mis-eventos" className={styles.misEventos}>
-            Mis eventos
-          </Link>
-        </div>
-        <div className={styles.reel}>
-          {FILTROS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={styles.filtro}
-              aria-pressed={filtro === f.id}
-              onClick={() => setFiltro(f.id)}
-            >
-              {f.etiqueta}
-            </button>
-          ))}
-        </div>
-      </header>
-
+      {/* El mapa a pantalla completa, detrás de todo. */}
       <div className={styles.lienzo}>
         <Mapa
           eventos={visibles}
@@ -121,10 +99,42 @@ export default function Publicar() {
           onSeleccionar={() => {}}
           onMoverCentro={moverCentro}
         />
+      </div>
+
+      {/* Marca: directamente sobre el mapa, arriba a la izquierda. */}
+      <div className={styles.marca}>
+        En<i>Vivo</i>
+      </div>
+
+      {/* "Mis eventos": cápsula de cristal, arriba a la derecha. */}
+      <Link href="/mis-eventos" className={styles.misEventos}>
+        Mis eventos
+      </Link>
+
+      {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
+      <div className={styles.reel}>
+        {FILTROS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={styles.filtro}
+            aria-pressed={filtro === f.id}
+            onClick={() => setFiltro(f.id)}
+          >
+            {f.etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {/* Pie flotante: botón de publicar. */}
+      <div className={styles.pie}>
         <Link href="/publicar/nuevo" className={styles.fab}>
           Publicar evento
         </Link>
       </div>
+
+      {/* Atribución de Leaflet: obligatoria, discreta, esquina inferior derecha. */}
+      <p className={styles.atribucion}>{TILES_ATRIBUCION}</p>
     </div>
   );
 }
