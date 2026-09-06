@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EnVivo · Panel del administrador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#161A3D;--noche-2:#1F2453;--noche-3:#2A3068;
+  --laton:#FFB627;--coral:#FF5E5B;--cana:#5FD6A0;
+  --hueso:#F4F1E8;--hueso-tenue:#A7A9C4;--linea:rgba(244,241,232,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0D0F26;font-family:'Instrument Sans',system-ui,sans-serif;color:var(--hueso);padding:40px 20px 80px;-webkit-font-smoothing:antialiased}
+.taller{max-width:1120px;margin:0 auto}
+.taller-cab{margin-bottom:32px;max-width:62ch}
+.taller-cab h1{font-family:Archivo,sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em}
+.taller-cab p{color:var(--hueso-tenue);font-size:14px;line-height:1.7;margin-top:8px}
+.slot-nom{font-size:12px;color:var(--hueso-tenue);margin-bottom:10px}
+
+.pantalla{background:var(--noche);border:1px solid var(--linea);border-radius:16px;overflow:hidden;margin-bottom:40px}
+.barra{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--linea);flex-wrap:wrap;gap:12px}
+.marca{font-family:Archivo,sans-serif;font-weight:800;font-size:17px;letter-spacing:-.03em}
+.marca i{color:var(--laton);font-style:normal}
+.marca em{font-style:normal;color:var(--hueso-tenue);font-weight:400;font-size:13px;font-family:'Instrument Sans',sans-serif;margin-left:9px}
+.pestanas{display:flex;gap:7px}
+.p{border:1px solid var(--linea);background:transparent;color:var(--hueso-tenue);font-family:inherit;font-size:13px;padding:7px 14px;border-radius:100px;cursor:pointer;white-space:nowrap}
+.p[aria-pressed="true"]{background:var(--hueso);color:var(--noche);border-color:var(--hueso);font-weight:600}
+.p b{font-family:inherit;font-weight:700;margin-left:5px}
+
+.cola{padding:8px 22px 26px}
+.vacio{text-align:center;padding:60px 20px;color:var(--hueso-tenue);font-size:14px;line-height:1.7}
+.vacio b{display:block;font-family:Archivo,sans-serif;font-weight:800;font-size:19px;color:var(--hueso);margin-bottom:8px;letter-spacing:-.02em}
+
+.tarjeta{border:1px solid var(--linea);border-radius:12px;padding:18px;margin-top:18px;display:flex;gap:18px;flex-wrap:wrap}
+.tarjeta.fusion{border-color:rgba(255,182,39,.45);background:rgba(255,182,39,.05)}
+.flyer{width:104px;height:130px;border-radius:8px;overflow:hidden;flex-shrink:0}
+.flyer svg{width:100%;height:100%;display:block}
+.cuerpo{flex:1;min-width:250px}
+.linea-alta{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:5px}
+.hora{font-family:Archivo,sans-serif;font-weight:800;font-size:21px;color:var(--laton);letter-spacing:-.03em}
+.cuando{font-size:12.5px;color:var(--hueso-tenue)}
+.cuerpo h3{font-family:Archivo,sans-serif;font-weight:700;font-size:17px;letter-spacing:-.02em;line-height:1.25}
+.desc{font-size:13px;color:#CFCCC2;line-height:1.6;margin-top:8px;max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.t{font-size:11.5px;padding:3px 9px;border-radius:4px;background:var(--noche-3);color:var(--hueso)}
+.t.libre{background:rgba(95,214,160,.15);color:var(--cana)}
+.t.serie{background:rgba(255,182,39,.14);color:var(--laton)}
+.t.alerta{background:rgba(255,94,91,.14);color:var(--coral)}
+.quien{font-size:12.5px;color:var(--hueso-tenue);margin-top:12px;line-height:1.7;border-top:1px solid var(--linea);padding-top:11px}
+.quien b{color:var(--hueso);font-weight:500}
+.quien a{color:var(--laton);text-decoration:none}
+.fechas{font-size:12px;color:var(--hueso-tenue);margin-top:9px;line-height:1.7}
+.fechas span{display:inline-block;background:var(--noche-2);border-radius:4px;padding:2px 7px;margin:2px 4px 2px 0}
+.mapita{width:132px;height:130px;border-radius:8px;overflow:hidden;position:relative;flex-shrink:0;border:1px solid var(--linea)}
+.mapita svg{position:absolute;inset:0;width:100%;height:100%}
+.mapita .pin{position:absolute;left:50%;top:52%;transform:translate(-50%,-100%);width:9px;height:9px;border-radius:50%;background:var(--laton)}
+.acciones{display:flex;gap:9px;align-items:flex-start;flex-wrap:wrap;margin-top:16px}
+.si{background:var(--cana);color:#0A2B1C;border:0;font-family:Archivo,sans-serif;font-weight:700;font-size:13.5px;padding:11px 20px;border-radius:8px;cursor:pointer}
+.no{background:transparent;border:1px solid var(--linea);color:var(--hueso-tenue);font-family:inherit;font-size:13.5px;padding:11px 18px;border-radius:8px;cursor:pointer}
+.no:hover{border-color:var(--coral);color:var(--coral)}
+.mezcla{background:var(--laton);color:#231A00;border:0;font-family:Archivo,sans-serif;font-weight:700;font-size:13.5px;padding:11px 20px;border-radius:8px;cursor:pointer}
+.ver{background:transparent;border:1px solid var(--linea);color:var(--hueso);font-family:inherit;font-size:13.5px;padding:11px 18px;border-radius:8px;cursor:pointer}
+.ver:hover{border-color:var(--hueso-tenue)}
+.aviso-fusion{font-size:12.5px;color:var(--laton);line-height:1.6;margin-bottom:14px;width:100%}
+.par-fusion{display:flex;gap:14px;flex-wrap:wrap;width:100%}
+.mitad{flex:1;min-width:230px;border:1px solid var(--linea);border-radius:9px;padding:13px}
+.mitad small{font-size:11.5px;color:var(--hueso-tenue);display:block;margin-bottom:7px}
+.mitad b{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;display:block;line-height:1.3}
+.mitad p{font-size:12.5px;color:var(--hueso-tenue);margin-top:5px;line-height:1.6}
+
+/* login */
+.login{max-width:360px;margin:0 auto;padding:56px 26px 60px;text-align:center}
+.login h2{font-family:Archivo,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em;margin:20px 0 8px}
+.login p{font-size:13.5px;color:var(--hueso-tenue);line-height:1.6;margin-bottom:26px}
+.login input{width:100%;background:var(--noche-2);border:1px solid var(--linea);color:var(--hueso);font-family:inherit;font-size:15px;padding:12px;border-radius:8px;margin-bottom:11px;text-align:center;outline:none}
+.login input:focus{border-color:var(--laton)}
+.login button{width:100%;background:var(--laton);color:#231A00;border:0;font-family:Archivo,sans-serif;font-weight:700;font-size:15px;padding:14px;border-radius:9px;cursor:pointer;margin-top:5px}
+.pin{letter-spacing:.5em;font-family:Archivo,sans-serif;font-weight:700}
+@media(max-width:700px){body{padding:22px 12px 50px}.tarjeta{flex-direction:column}.mapita{width:100%;height:96px}}
+</style>
+</head>
+<body>
+<div class="taller">
+  <div class="taller-cab">
+    <h1>EnVivo · panel del administrador</h1>
+    <p>Tu cola de trabajo. Aprueba, rechaza o fusiona duplicados. Prueba los botones: las tarjetas salen de la cola y el contador baja.</p>
+  </div>
+
+  <div class="slot-nom">1 · Entrar</div>
+  <div class="pantalla">
+    <div class="login">
+      <div class="marca">En<i>Vivo</i></div>
+      <h2>Panel de revisión</h2>
+      <p>Solo para el equipo. Entra con tu número y tu clave.</p>
+      <input placeholder="300 123 4567">
+      <input class="pin" type="password" placeholder="••••" maxlength="4">
+      <button>Entrar</button>
+    </div>
+  </div>
+
+  <div class="slot-nom">2 · Cola de aprobación</div>
+  <div class="pantalla">
+    <div class="barra">
+      <div class="marca">En<i>Vivo</i><em>Panel de revisión</em></div>
+      <div class="pestanas">
+        <button class="p" data-t="pend" aria-pressed="true">Por revisar <b id="c-pend">4</b></button>
+        <button class="p" data-t="dup" aria-pressed="false">Duplicados <b id="c-dup">1</b></button>
+        <button class="p" data-t="hoy" aria-pressed="false">Aprobados hoy <b id="c-hoy">6</b></button>
+      </div>
+    </div>
+    <div class="cola" id="cola"></div>
+  </div>
+</div>
+
+<script>
+function fly(c,a,l1,l2,l3){
+  return `<svg viewBox="0 0 208 260" preserveAspectRatio="xMidYMid slice">
+    <rect width="208" height="260" fill="${c}"/><circle cx="170" cy="56" r="40" fill="${a}" opacity=".9"/>
+    <text x="18" y="120" font-size="26" font-weight="800" fill="#FFF3E0" font-family="Archivo,sans-serif">${l1}</text>
+    <text x="18" y="150" font-size="26" font-weight="800" fill="#FFF3E0" font-family="Archivo,sans-serif">${l2}</text>
+    <text x="18" y="180" font-size="26" font-weight="800" fill="#FFF3E0" font-family="Archivo,sans-serif">${l3||''}</text>
+    <rect x="0" y="215" width="208" height="45" fill="${a}" opacity=".16"/></svg>`;
+}
+const mapita=`<svg viewBox="0 0 132 130" preserveAspectRatio="xMidYMid slice"><rect width="132" height="130" fill="#1A1F47"/><g stroke="#242A5C" stroke-width="7"><path d="M-5 44 H137 M-5 96 H137 M46 -5 V135 M100 -5 V135"/></g><g stroke="#212752" stroke-width="3"><path d="M-5 70 H137 M20 -5 V135 M74 -5 V135"/></g></svg><div class="pin"></div>`;
+
+const datos={
+pend:[
+ {f:fly('#B8232F','#FFB627','NOCHE','DE','SALSA'),hora:'9:00 pm',cuando:'Jue 17 sep',n:'Noche de salsa con La Clave',
+  desc:'Orquesta en vivo y pista abierta desde las 9. Ideal si vienes solo o en grupo.',
+  metas:['<span class="t">Música en vivo</span>','<span class="t">Cover $20.000</span>','<span class="t serie">13 fechas</span>'],
+  quien:'Publica <b>Bar La Topa Tolondra</b> · el local · WhatsApp 300 123 4567 · <a href="#">@latopatolondra</a> · <a href="#">reel</a>',
+  fechas:'Serie: <span>17 sep</span><span>24 sep</span><span>1 oct</span><span>8 oct</span><span>+9 más</span>'},
+ {f:fly('#2F6B3A','#FFE066','YOGA','AL','AMANECER'),hora:'6:30 am',cuando:'Sáb 12 sep',n:'Yoga al amanecer',
+  desc:'Sesión suave de una hora en el césped. Lleva tu mat o una toalla grande.',
+  metas:['<span class="t">Recreativo</span>','<span class="t libre">Gratis</span>','<span class="t serie">8 fechas</span>'],
+  quien:'Publica <b>Colectivo Yoga Cali</b> · organizador · WhatsApp 315 887 2210 · <a href="#">@yogacali</a>',
+  fechas:'Serie: <span>12 sep</span><span>19 sep</span><span>26 sep</span><span>+5 más</span>'},
+ {f:fly('#2C2A4A','#F4A259','CINE','AL AIRE','LIBRE'),hora:'7:30 pm',cuando:'Sáb 5 sep',n:'Cine al aire libre: Cinema Paradiso',
+  desc:'Proyección sobre el césped. Trae cobija o silla; hay venta de comida alrededor.',
+  metas:['<span class="t">Cultural</span>','<span class="t libre">Gratis</span>','<span class="t alerta">Local sin registrar</span>'],
+  quien:'Publica <b>Cultura Cali</b> · organizador · WhatsApp 302 445 9080 · <a href="#">@culturacali</a>',
+  fechas:''},
+ {f:fly('#3A3A4A','#9A9AB0','FIESTA','PRIVADA',''),hora:'11:00 pm',cuando:'Sáb 19 sep',n:'Fiesta privada de cumpleaños',
+  desc:'Celebración cerrada, solo invitados con lista.',
+  metas:['<span class="t">Música en vivo</span>','<span class="t alerta">Revisar: parece cerrado al público</span>'],
+  quien:'Publica <b>Andrés M.</b> · organizador · WhatsApp 318 220 4417',
+  fechas:''}
+],
+dup:[{fusion:true}],
+hoy:[]
+};
+
+let tab='pend';
+function tarjeta(d){
+  return `<div class="tarjeta">
+    <div class="flyer">${d.f}</div>
+    <div class="cuerpo">
+      <div class="linea-alta"><span class="hora">${d.hora}</span><span class="cuando">${d.cuando}</span></div>
+      <h3>${d.n}</h3>
+      <p class="desc">${d.desc}</p>
+      <div class="meta">${d.metas.join('')}</div>
+      ${d.fechas?`<p class="fechas">${d.fechas}</p>`:''}
+      <p class="quien">${d.quien}</p>
+      <div class="acciones">
+        <button class="si">Aprobar</button>
+        <button class="no">Rechazar</button>
+        <button class="ver">Otros de este WhatsApp</button>
+      </div>
+    </div>
+    <div class="mapita">${mapita}</div>
+  </div>`;
+}
+function fusion(){
+  return `<div class="tarjeta fusion">
+    <p class="aviso-fusion">Dos publicaciones para el mismo lugar, día y hora. Si son el mismo evento, fusiónalas: queda un solo pin con el artista acreditado y el WhatsApp del local.</p>
+    <div class="par-fusion">
+      <div class="mitad">
+        <small>Publicó el local · hace 2 horas</small>
+        <b>Noche de salsa</b>
+        <p>Bar La Topa Tolondra · Jue 17, 9:00 pm<br>WhatsApp 300 123 4567 · con flyer</p>
+      </div>
+      <div class="mitad">
+        <small>Publicó el artista · hace 5 horas</small>
+        <b>La Clave en La Topa</b>
+        <p>Bar La Topa Tolondra · Jue 17, 9:00 pm<br>Sin WhatsApp · con flyer y reel</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <button class="mezcla">Fusionar en un evento</button>
+      <button class="ver">Son eventos distintos</button>
+      <button class="no">Rechazar los dos</button>
+    </div>
+  </div>`;
+}
+function pinta(){
+  const c=document.getElementById('cola');
+  const lista=datos[tab];
+  if(!lista.length){
+    c.innerHTML=`<div class="vacio"><b>Cola limpia</b>No queda nada por revisar. Los eventos aprobados ya están en el mapa.</div>`;
+    return;
+  }
+  c.innerHTML=lista.map(d=>d.fusion?fusion():tarjeta(d)).join('');
+  c.querySelectorAll('.si,.no,.mezcla').forEach((b,i)=>b.onclick=e=>{
+    const t=e.target.closest('.tarjeta');
+    const idx=[...c.querySelectorAll('.tarjeta')].indexOf(t);
+    datos[tab].splice(idx,1);
+    if(tab==='pend'&&e.target.classList.contains('si'))datos.hoy.push(1);
+    cuenta();pinta();
+  });
+}
+function cuenta(){
+  document.getElementById('c-pend').textContent=datos.pend.length;
+  document.getElementById('c-dup').textContent=datos.dup.length;
+  document.getElementById('c-hoy').textContent=6+datos.hoy.length;
+}
+document.querySelectorAll('.p').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.p').forEach(o=>o.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');tab=b.dataset.t;pinta();
+});
+pinta();cuenta();
+</script>
+</body>
+</html>

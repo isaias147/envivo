@@ -1,0 +1,64 @@
+/* ===== EnVivo · variables globales ===== */
+/* Paleta de "cartelera de concierto" del CLAUDE.md. Fondo índigo, no negro. */
+:root {
+  /* Noche (fondos) */
+  --noche: #161a3d;
+  --noche-2: #1f2453;
+  --noche-3: #2a3068;
+
+  /* Acentos */
+  --laton: #ffb627; /* horas, CTA principal, estado activo. Nada más. */
+  --cana: #5fd6a0; /* gratis, en toda la app */
+  --coral: #ff5e5b;
+
+  /* Texto */
+  --hueso: #f4f1e8;
+  --hueso-tenue: #a7a9c4;
+
+  /* Líneas */
+  --linea: rgba(244, 241, 232, 0.14);
+
+  /* Tipografía (las carga next/font en layout.tsx) */
+  --fuente-titulo: var(--font-archivo), system-ui, sans-serif;
+  --fuente-cuerpo: var(--font-instrument), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  background: var(--noche);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+button {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

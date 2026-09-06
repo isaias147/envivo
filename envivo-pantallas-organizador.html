@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EnVivo · Pantallas del organizador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#161A3D;--noche-2:#1F2453;--noche-3:#2A3068;
+  --laton:#FFB627;--coral:#FF5E5B;--cana:#5FD6A0;
+  --hueso:#F4F1E8;--hueso-tenue:#A7A9C4;--linea:rgba(244,241,232,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0D0F26;font-family:'Instrument Sans',system-ui,sans-serif;color:var(--hueso);padding:40px 20px 80px;-webkit-font-smoothing:antialiased}
+.taller{max-width:1300px;margin:0 auto}
+.taller-cab{margin-bottom:34px;max-width:60ch}
+.taller-cab h1{font-family:Archivo,sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em}
+.taller-cab p{color:var(--hueso-tenue);font-size:14px;line-height:1.7;margin-top:8px}
+.fila{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+.slot{width:340px}
+.slot-nom{font-size:12px;color:var(--hueso-tenue);margin-bottom:10px}
+.tel{width:340px;height:730px;background:var(--noche);border-radius:34px;border:1px solid var(--linea);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.scroll{flex:1;overflow-y:auto;padding:20px 20px 26px;scrollbar-width:thin}
+
+.marca{font-family:Archivo,sans-serif;font-weight:800;font-size:18px;letter-spacing:-.03em;margin-bottom:4px}
+.marca i{color:var(--laton);font-style:normal}
+.ruta{font-size:12px;color:var(--hueso-tenue);margin-bottom:22px}
+h2.tit{font-family:Archivo,sans-serif;font-weight:800;font-size:23px;line-height:1.15;letter-spacing:-.03em;margin-bottom:8px}
+p.bajada{font-size:13.5px;color:var(--hueso-tenue);line-height:1.6;margin-bottom:24px}
+
+label{display:block;font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px;margin-bottom:7px;letter-spacing:-.01em}
+.ayuda{font-size:12px;color:var(--hueso-tenue);line-height:1.5;margin-top:6px}
+input,select,textarea{
+  width:100%;background:var(--noche-2);border:1px solid var(--linea);color:var(--hueso);
+  font-family:inherit;font-size:14px;padding:11px 12px;border-radius:8px;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--laton)}
+input::placeholder,textarea::placeholder{color:#6B7099}
+.campo{margin-bottom:19px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.trio{display:flex;gap:7px}
+.op{
+  flex:1;text-align:center;background:var(--noche-2);border:1px solid var(--linea);color:var(--hueso-tenue);
+  font-family:inherit;font-size:13px;padding:11px 4px;border-radius:8px;cursor:pointer;
+}
+.op[aria-pressed="true"]{background:var(--laton);border-color:var(--laton);color:#231A00;font-weight:600}
+.op.verde[aria-pressed="true"]{background:var(--cana);border-color:var(--cana);color:#0A2B1C}
+
+.mapita{height:126px;border:1px solid var(--linea);border-radius:8px;overflow:hidden;position:relative;background:var(--noche-2)}
+.mapita svg{position:absolute;inset:0;width:100%;height:100%}
+.arrastra{position:absolute;left:50%;top:52%;transform:translate(-50%,-100%);text-align:center}
+.arrastra span{background:var(--laton);color:#231A00;font-family:Archivo,sans-serif;font-weight:700;font-size:11px;padding:4px 9px;border-radius:5px;display:block}
+.arrastra i{display:block;width:1px;height:13px;background:var(--laton);margin:0 auto}
+.pista{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11.5px;color:var(--hueso-tenue);padding:7px;background:rgba(22,26,61,.8)}
+
+.soltar{
+  border:1px dashed rgba(244,241,232,.28);border-radius:8px;padding:22px 14px;text-align:center;cursor:pointer;
+}
+.soltar:hover{border-color:var(--laton)}
+.soltar b{font-family:Archivo,sans-serif;font-weight:700;font-size:13.5px;display:block;margin-bottom:5px}
+.soltar span{font-size:12px;color:var(--hueso-tenue)}
+.subido{display:flex;gap:12px;align-items:center;border:1px solid var(--linea);border-radius:8px;padding:10px}
+.subido .prev{width:44px;height:56px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.subido .prev svg{width:100%;height:100%;display:block}
+.subido p{font-size:13px;font-weight:500}
+.subido small{font-size:12px;color:var(--hueso-tenue)}
+.quitar{margin-left:auto;background:none;border:0;color:var(--hueso-tenue);font-family:inherit;font-size:12px;cursor:pointer;text-decoration:underline}
+
+.caja-serie{border:1px solid rgba(255,182,39,.4);background:rgba(255,182,39,.07);border-radius:9px;padding:14px;margin-bottom:19px}
+.resumen-serie{font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px;color:var(--laton);margin-top:11px;line-height:1.5}
+.aviso-flyer{background:rgba(255,182,39,.1);border-left:2px solid var(--laton);padding:9px 11px;font-size:12px;color:var(--laton);line-height:1.55;margin-top:8px}
+
+.enviar{
+  width:100%;background:var(--laton);color:#231A00;border:0;font-family:Archivo,sans-serif;font-weight:700;
+  font-size:15px;padding:15px;border-radius:9px;cursor:pointer;letter-spacing:-.01em;margin-top:6px;
+}
+.fantasma{
+  width:100%;background:transparent;border:1px solid var(--linea);color:var(--hueso);
+  font-family:inherit;font-size:13.5px;padding:13px;border-radius:9px;cursor:pointer;margin-top:9px;
+}
+.fantasma:hover{border-color:var(--hueso-tenue)}
+.error{font-size:13px;color:var(--coral);margin-top:9px}
+.contador{float:right;font-size:11.5px;color:var(--hueso-tenue);font-family:'Instrument Sans',sans-serif;font-weight:400}
+
+/* choque */
+.velo{position:absolute;inset:0;background:rgba(9,11,30,.72);display:flex;align-items:flex-end;z-index:9}
+.hoja{background:var(--noche-2);border-top:1px solid var(--linea);border-radius:18px 18px 0 0;padding:22px 20px 24px;width:100%}
+.hoja h3{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;letter-spacing:-.025em;margin-bottom:9px;line-height:1.2}
+.hoja p{font-size:13.5px;color:var(--hueso-tenue);line-height:1.6;margin-bottom:16px}
+.choca{border:1px solid var(--linea);border-radius:8px;padding:12px;margin-bottom:16px;display:flex;gap:12px;align-items:center}
+.choca .h{font-family:Archivo,sans-serif;font-weight:800;font-size:17px;color:var(--laton);letter-spacing:-.02em}
+.choca b{font-size:13.5px;font-weight:500;display:block}
+.choca small{font-size:12px;color:var(--hueso-tenue)}
+
+/* enviado */
+.marca-ok{width:52px;height:52px;border-radius:50%;background:rgba(95,214,160,.16);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.marca-ok svg{width:26px;height:26px;stroke:var(--cana);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.tarjeta-res{border:1px solid var(--linea);border-radius:10px;padding:15px;margin:20px 0}
+.tarjeta-res .h{font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:var(--laton);letter-spacing:-.03em}
+.tarjeta-res b{font-family:Archivo,sans-serif;font-weight:700;font-size:15px;display:block;margin:7px 0 4px;line-height:1.25}
+.tarjeta-res small{font-size:12.5px;color:var(--hueso-tenue)}
+.pill-serie{display:inline-block;font-size:11.5px;padding:3px 9px;border-radius:4px;background:rgba(255,182,39,.14);color:var(--laton);margin-top:10px}
+.aviso-local{border:1px solid var(--linea);border-radius:10px;padding:15px;margin-top:20px}
+.aviso-local b{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;display:block;margin-bottom:6px}
+.aviso-local p{font-size:12.5px;color:var(--hueso-tenue);line-height:1.6;margin-bottom:12px}
+.wa-btn{width:100%;background:var(--cana);color:#0A2B1C;border:0;font-family:Archivo,sans-serif;font-weight:700;font-size:14px;padding:13px;border-radius:8px;cursor:pointer}
+
+.mapa-full{flex:1;position:relative;overflow:hidden}
+.mapa-full svg{position:absolute;inset:0;width:100%;height:100%}
+.fab{
+  position:absolute;left:18px;right:18px;bottom:18px;background:var(--laton);color:#231A00;border:0;
+  font-family:Archivo,sans-serif;font-weight:700;font-size:15px;padding:15px;border-radius:10px;cursor:pointer;letter-spacing:-.01em;z-index:5;
+}
+.chinche{position:absolute;transform:translate(-50%,-100%);text-align:center}
+.chinche span{font-family:Archivo,sans-serif;font-weight:700;font-size:11.5px;background:var(--hueso);color:var(--noche);padding:4px 8px;border-radius:5px;display:flex;align-items:baseline;gap:6px;max-width:132px}
+.chinche span em{font-style:normal;font-weight:500;font-family:'Instrument Sans',sans-serif;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78}
+.chinche.g span{background:var(--cana)}
+.chinche i{display:block;width:1px;height:11px;background:var(--hueso);margin:0 auto}
+.chinche.g i{background:var(--cana)}
+.top{padding:18px 18px 0;flex-shrink:0}
+.marca-fila{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.mini-link{font-size:12px;color:var(--hueso-tenue);background:none;border:0;font-family:inherit;cursor:pointer;padding:6px 0}
+.reel-f{display:flex;gap:7px;padding-bottom:14px}
+.f{border:1px solid var(--linea);background:transparent;color:var(--hueso-tenue);font-family:inherit;font-size:13px;padding:7px 14px;border-radius:100px;cursor:pointer}
+.f[aria-pressed="true"]{background:var(--hueso);color:var(--noche);border-color:var(--hueso);font-weight:600}
+.item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--linea);align-items:flex-start}
+.item .prev{width:46px;height:58px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.item .prev svg{width:100%;height:100%;display:block}
+.item b{font-family:Archivo,sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;display:block;letter-spacing:-.015em}
+.item small{font-size:12px;color:var(--hueso-tenue);display:block;margin-top:3px}
+.estado{font-size:11px;padding:3px 8px;border-radius:4px;display:inline-block;margin-top:8px}
+.estado.ok{background:rgba(95,214,160,.15);color:var(--cana)}
+.estado.esp{background:rgba(255,182,39,.14);color:var(--laton)}
+.estado.no{background:rgba(255,94,91,.14);color:var(--coral)}
+.seccion{font-family:Archivo,sans-serif;font-weight:700;font-size:12px;color:var(--hueso-tenue);padding:18px 0 6px;letter-spacing:.02em}
+@media(max-width:760px){body{padding:24px 14px 60px}.slot,.tel{width:100%;max-width:360px}}
+</style>
+</head>
+<body>
+<div class="taller">
+  <div class="taller-cab">
+    <h1>EnVivo · pantallas del organizador</h1>
+    <p>Del mapa al formulario y de vuelta a sus eventos, sin registro. Prueba: cambia a “Se repite” para ver la bifurcación, y envía con la fecha del 17 para disparar el choque.</p>
+  </div>
+
+  <div class="fila">
+    <div class="slot">
+      <div class="slot-nom">0 · Inicio del organizador</div>
+      <div class="tel">
+        <div class="top">
+          <div class="marca-fila"><div class="marca" style="margin:0">En<i>Vivo</i></div><button class="mini-link">Mis eventos</button></div>
+          <div class="reel-f">
+            <button class="f" aria-pressed="true">Esta noche</button>
+            <button class="f" aria-pressed="false">Este finde</button>
+            <button class="f" aria-pressed="false">Próximos</button>
+          </div>
+        </div>
+        <div class="mapa-full">
+          <svg viewBox="0 0 340 460" preserveAspectRatio="xMidYMid slice">
+            <rect width="340" height="460" fill="#1A1F47"/>
+            <g stroke="#242A5C" stroke-width="9"><path d="M-10 130 H350 M-10 300 H350 M96 -10 V470 M232 -10 V470"/></g>
+            <g stroke="#212752" stroke-width="4"><path d="M-10 70 H350 M-10 215 H350 M-10 380 H350 M42 -10 V470 M164 -10 V470 M296 -10 V470"/></g>
+            <path d="M-10 170 Q80 160 168 196 T350 178" stroke="#20305E" stroke-width="11" fill="none"/>
+            <rect x="238" y="312" width="86" height="82" rx="3" fill="#1E2A4E"/>
+            <circle cx="170" cy="235" r="104" fill="#FFB627" opacity=".05"/>
+            <circle cx="170" cy="235" r="104" fill="none" stroke="#FFB627" stroke-width="1" stroke-dasharray="3 6" opacity=".45"/>
+            <circle cx="170" cy="235" r="5.5" fill="#FFB627"/>
+          </svg>
+          <div class="chinche" style="left:33%;top:40%"><span>9:00<em>Salsa con La Clave</em></span><i></i></div>
+          <div class="chinche g" style="left:63%;top:28%"><span>8:00<em>Clase de salsa</em></span><i></i></div>
+          <div class="chinche g" style="left:76%;top:70%"><span>7:30<em>Cine al aire libre</em></span><i></i></div>
+          <div class="chinche" style="left:20%;top:62%"><span>10:00<em>Jam caleña</em></span><i></i></div>
+          <button class="fab">Publicar evento</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="slot-nom">1 · Publicar evento</div>
+      <div class="tel">
+        <div class="scroll">
+          <div class="marca">En<i>Vivo</i></div>
+          <div class="ruta">envivo.app/publicar</div>
+          <h2 class="tit">Publica tu evento</h2>
+          <p class="bajada">Es gratis. Lo revisamos y queda en el mapa el mismo día.</p>
+
+          <div class="campo">
+            <label>¿Es una sola vez o se repite?</label>
+            <div class="trio">
+              <button class="op" id="op-unico" aria-pressed="true">Una sola vez</button>
+              <button class="op" id="op-serie" aria-pressed="false">Se repite</button>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Nombre del evento</label>
+            <input id="nombre" placeholder="Noche de salsa con La Clave">
+          </div>
+
+          <div class="campo">
+            <label>¿Dónde es?</label>
+            <div class="mapita">
+              <svg viewBox="0 0 300 126" preserveAspectRatio="xMidYMid slice">
+                <rect width="300" height="126" fill="#1A1F47"/>
+                <g stroke="#242A5C" stroke-width="7"><path d="M-5 40 H305 M-5 96 H305 M92 -5 V131 M204 -5 V131"/></g>
+                <g stroke="#212752" stroke-width="3"><path d="M-5 68 H305 M44 -5 V131 M150 -5 V131 M256 -5 V131"/></g>
+              </svg>
+              <div class="arrastra"><span>Aquí</span><i></i></div>
+              <div class="pista">Arrastra el pin al punto exacto</div>
+            </div>
+            <input style="margin-top:9px" placeholder="Bar La Topa Tolondra">
+            <p class="ayuda">Escribe cómo lo conoce la gente. Si es un parque o una plaza, descríbelo.</p>
+          </div>
+
+          <div class="campo duo">
+            <div><label id="lbl-fecha">Fecha</label><input type="date" id="fecha" value="2026-09-17"></div>
+            <div><label>Hora</label><input type="time" value="21:00"></div>
+          </div>
+
+          <div class="caja-serie" id="caja-serie" style="display:none">
+            <div class="campo" style="margin-bottom:14px">
+              <label style="color:var(--laton)">¿Cada cuánto?</label>
+              <div class="trio">
+                <button class="op" id="f-sem" aria-pressed="true">Cada semana</button>
+                <button class="op" id="f-qui" aria-pressed="false">Cada 15 días</button>
+              </div>
+            </div>
+            <label style="color:var(--laton)">¿Hasta cuándo?</label>
+            <input type="date" id="hasta" value="2026-12-10">
+            <p class="resumen-serie" id="resumen"></p>
+          </div>
+
+          <div class="campo">
+            <label>Tipo</label>
+            <select>
+              <option>Música en vivo</option><option>Clase o taller</option>
+              <option>Recreativo</option><option>Cultural</option><option>Deportivo</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label>Entrada</label>
+            <div class="trio">
+              <button class="op verde" data-p="0" aria-pressed="false">Gratis</button>
+              <button class="op" data-p="1" aria-pressed="true">Cover</button>
+              <button class="op" data-p="2" aria-pressed="false">Rango</button>
+            </div>
+            <input style="margin-top:9px" id="monto" placeholder="$20.000">
+          </div>
+
+          <div class="campo">
+            <label>Flyer del evento</label>
+            <div class="subido">
+              <div class="prev" id="prev"></div>
+              <div><p>flyer-lclave.jpg</p><small>1,2 MB</small></div>
+              <button class="quitar">Quitar</button>
+            </div>
+            <div class="aviso-flyer" id="aviso-flyer" style="display:none">Súbelo sin fecha impresa: nosotros mostramos cada fecha de la serie.</div>
+          </div>
+
+          <div class="campo">
+            <label>De qué se trata <span class="contador" id="cont">0/200</span></label>
+            <textarea id="desc" rows="3" maxlength="200" placeholder="Orquesta en vivo y pista abierta desde las 9. Ideal si vienes solo o en grupo."></textarea>
+          </div>
+
+          <div class="campo">
+            <label>Link de tu reel o TikTok</label>
+            <input placeholder="instagram.com/reel/…">
+            <p class="ayuda">Opcional. Un video del ambiente convence más que el flyer.</p>
+          </div>
+
+          <div class="campo">
+            <label>¿Quién publica?</label>
+            <div class="trio">
+              <button class="op" data-q="local" aria-pressed="true">El local</button>
+              <button class="op" data-q="org" aria-pressed="false">Organizador</button>
+              <button class="op" data-q="art" aria-pressed="false">Artista</button>
+            </div>
+          </div>
+
+          <div class="campo"><label>Nombre de quien publica</label><input placeholder="Bar La Topa Tolondra"></div>
+
+          <div class="campo">
+            <label id="lbl-wa">WhatsApp para reservas</label>
+            <input placeholder="300 123 4567">
+            <p class="ayuda" id="ayuda-wa">Es el botón principal del evento. Aquí te escribe la gente.</p>
+          </div>
+
+          <div class="campo duo">
+            <div><label>Instagram</label><input placeholder="@latopa"></div>
+            <div><label>TikTok</label><input placeholder="@latopa"></div>
+          </div>
+
+          <button class="enviar" id="enviar">Enviar evento</button>
+          <p class="error" id="error" style="display:none"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="slot-nom">2 · Choque de fecha</div>
+      <div class="tel">
+        <div class="scroll" style="filter:blur(1.5px);opacity:.4">
+          <div class="marca">En<i>Vivo</i></div>
+          <div class="ruta">envivo.app/publicar</div>
+          <h2 class="tit">Publica tu evento</h2>
+          <p class="bajada">Es gratis. Lo revisamos y queda en el mapa el mismo día.</p>
+          <div class="campo"><label>Nombre del evento</label><input value="Noche con artista invitado"></div>
+          <div class="campo duo"><div><label>Fecha</label><input type="date" value="2026-09-17"></div><div><label>Hora</label><input type="time" value="20:00"></div></div>
+        </div>
+        <div class="velo">
+          <div class="hoja">
+            <h3>Ya tienes algo ese jueves</h3>
+            <p>En Escuela Swing Latino, a la misma hora. Puedes cambiar solo esa fecha y dejar el resto de la serie como está.</p>
+            <div class="choca">
+              <div class="h">8:00</div>
+              <div><b>Clase de salsa para principiantes</b><small>Jueves 17 de septiembre · 1 de 13 fechas</small></div>
+            </div>
+            <button class="enviar" style="margin-top:0">Cambiar solo esa fecha</button>
+            <button class="fantasma">Escoger otro día</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="slot-nom">3 · Enviado</div>
+      <div class="tel">
+        <div class="scroll">
+          <div class="marca">En<i>Vivo</i></div>
+          <div class="ruta">envivo.app/publicar</div>
+          <div class="marca-ok" style="margin-top:26px"><svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 7"/></svg></div>
+          <h2 class="tit">Tu evento va en camino</h2>
+          <p class="bajada">Lo revisamos hoy mismo y aparece en el mapa. Te avisamos por WhatsApp cuando esté arriba.</p>
+
+          <div class="tarjeta-res">
+            <div class="h">9:00 PM</div>
+            <b>Noche de salsa con La Clave</b>
+            <small>Bar La Topa Tolondra · Cover $20.000</small>
+            <div class="pill-serie">13 jueves seguidos</div>
+          </div>
+
+          <button class="fantasma" style="margin-top:0">Publicar otro evento</button>
+
+          <div class="aviso-local">
+            <b>La Topa Tolondra no está en EnVivo</b>
+            <p>Avísale para que confirme el evento y su WhatsApp aparezca para reservas. Le llega tu mensaje, no el nuestro.</p>
+            <button class="wa-btn">Avisarle por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slot">
+      <div class="slot-nom">4 · Mis eventos (link personal)</div>
+      <div class="tel">
+        <div class="scroll">
+          <div class="marca">En<i>Vivo</i></div>
+          <div class="ruta">envivo.app/mis-eventos/xK9p…</div>
+          <h2 class="tit">Tus eventos</h2>
+          <p class="bajada">Todo lo que has publicado con el 300 123 4567. Guarda este link: es tu acceso.</p>
+
+          <div class="seccion">En el mapa</div>
+          <div class="item">
+            <div class="prev" id="p1"></div>
+            <div><b>Noche de salsa con La Clave</b><small>Jue 17 sep · 9:00 pm · La Topa Tolondra</small><span class="estado ok">Publicado · 13 fechas</span></div>
+          </div>
+          <div class="item">
+            <div class="prev" id="p2"></div>
+            <div><b>Jam de música caleña</b><small>Vie 11 sep · 10:00 pm · Zaperoco Bar</small><span class="estado ok">Publicado</span></div>
+          </div>
+
+          <div class="seccion">En revisión</div>
+          <div class="item">
+            <div class="prev" id="p3"></div>
+            <div><b>Noche con artista invitado</b><small>Jue 24 sep · 8:00 pm · Escuela Swing Latino</small><span class="estado esp">Lo revisamos hoy</span></div>
+          </div>
+
+          <div class="seccion">No publicado</div>
+          <div class="item" style="border-bottom:0">
+            <div class="prev" id="p4"></div>
+            <div><b>Fiesta privada</b><small>Sáb 19 sep · 11:00 pm</small><span class="estado no">Solo eventos abiertos al público</span></div>
+          </div>
+
+          <button class="enviar" style="margin-top:22px">Publicar otro evento</button>
+          <p class="ayuda" style="text-align:center;margin-top:12px">¿Necesitas cambiar algo? Escríbenos por WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function flyerDemo(){
+  return `<svg viewBox="0 0 120 152" preserveAspectRatio="xMidYMid slice">
+    <rect width="120" height="152" fill="#B8232F"/><circle cx="98" cy="32" r="24" fill="#FFB627" opacity=".9"/>
+    <text x="11" y="70" font-size="17" font-weight="800" fill="#FFE7C2" font-family="Archivo,sans-serif">NOCHE</text>
+    <text x="11" y="88" font-size="17" font-weight="800" fill="#FFE7C2" font-family="Archivo,sans-serif">DE SALSA</text>
+    <text x="11" y="140" font-size="12" font-weight="800" fill="#FFB627" font-family="Archivo,sans-serif">9:00 PM</text></svg>`;
+}
+document.getElementById('prev').innerHTML=flyerDemo();
+function fly(c,t1,t2,a){return `<svg viewBox="0 0 120 152" preserveAspectRatio="xMidYMid slice"><rect width="120" height="152" fill="${c}"/><circle cx="98" cy="32" r="24" fill="${a}" opacity=".9"/><text x="11" y="70" font-size="16" font-weight="800" fill="#FFF3E0" font-family="Archivo,sans-serif">${t1}</text><text x="11" y="88" font-size="16" font-weight="800" fill="#FFF3E0" font-family="Archivo,sans-serif">${t2}</text></svg>`;}
+document.getElementById('p1').innerHTML=fly('#B8232F','NOCHE','DE SALSA','#FFB627');
+document.getElementById('p2').innerHTML=fly('#4A1942','JAM','CALEÑA','#FF7B9C');
+document.getElementById('p3').innerHTML=fly('#1F6F8B','ARTISTA','INVITADO','#FFD166');
+document.getElementById('p4').innerHTML=fly('#3A3A4A','FIESTA','PRIVADA','#9A9AB0');
+
+
+const $=id=>document.getElementById(id);
+let serie=false,frec=7;
+const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+function calc(){
+  if(!serie){$('resumen').textContent='';return;}
+  const a=new Date($('fecha').value+'T12:00'),b=new Date($('hasta').value+'T12:00');
+  if(isNaN(a)||isNaN(b)||b<a){$('resumen').textContent='Elige una fecha final posterior.';return;}
+  const n=Math.floor((b-a)/(86400000*frec))+1;
+  $('resumen').textContent=`Saldrá todos los ${dias[a.getDay()]}: ${n} fechas en el mapa.`;
+}
+function modo(s){
+  serie=s;
+  $('op-unico').setAttribute('aria-pressed',!s);
+  $('op-serie').setAttribute('aria-pressed',s);
+  $('caja-serie').style.display=s?'block':'none';
+  $('aviso-flyer').style.display=s?'block':'none';
+  $('lbl-fecha').textContent=s?'Primera fecha':'Fecha';
+  calc();
+}
+$('op-unico').onclick=()=>modo(false);
+$('op-serie').onclick=()=>modo(true);
+$('f-sem').onclick=function(){frec=7;this.setAttribute('aria-pressed','true');$('f-qui').setAttribute('aria-pressed','false');calc();};
+$('f-qui').onclick=function(){frec=14;this.setAttribute('aria-pressed','true');$('f-sem').setAttribute('aria-pressed','false');calc();};
+$('fecha').onchange=calc;$('hasta').onchange=calc;
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-p]').forEach(o=>o.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  const libre=b.dataset.p==='0';
+  $('monto').style.display=libre?'none':'block';
+});
+document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-q]').forEach(o=>o.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  const art=b.dataset.q==='art';
+  $('lbl-wa').textContent=art?'WhatsApp del local':'WhatsApp para reservas';
+  $('ayuda-wa').textContent=art?'Si lo tienes. El contacto siempre es del local, nunca del artista.':'Es el botón principal del evento. Aquí te escribe la gente.';
+});
+$('desc').oninput=function(){$('cont').textContent=this.value.length+'/200';};
+$('enviar').onclick=()=>{
+  const e=$('error');
+  if(!$('nombre').value.trim()){e.textContent='Ponle nombre al evento para poder enviarlo.';e.style.display='block';return;}
+  e.style.display='none';
+  $('enviar').textContent='Enviado ✓';
+};
+$('nombre').oninput=()=>{$('error').style.display='none';};
+calc();
+</script>
+</body>
+</html>
