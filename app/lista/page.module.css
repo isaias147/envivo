@@ -78,7 +78,8 @@
 
 /* ---------- lista ---------- */
 .lista {
-  padding: 6px 18px 28px;
+  /* el padding inferior deja aire para la barra de precio flotante */
+  padding: 6px 18px calc(env(safe-area-inset-bottom) + 92px);
 }
 
 .dia {
@@ -124,4 +125,44 @@
   color: var(--coral);
   font-size: 12.5px;
   text-align: center;
+}
+
+/* ---------- filtros de precio: cápsula flotante abajo (igual que /) ---------- */
+.pie {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  pointer-events: none;
+}
+
+.precioBarra {
+  composes: cristal from global;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 100px;
+  pointer-events: auto;
+}
+.precio {
+  border: none;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 8px 16px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.precio[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
 }

@@ -31,6 +31,36 @@ export type EventoPublico = {
 
 export type Filtro = "hoy" | "finde" | "proximos";
 
+/** Filtro de precio. Se combina con el de tiempo. "todo" no filtra nada. */
+export type Precio = "todo" | "gratis" | "cover";
+
+/** ¿el evento pasa el filtro de precio elegido? */
+export function pasaPrecio(ev: { is_free: boolean }, precio: Precio): boolean {
+  if (precio === "gratis") return ev.is_free;
+  if (precio === "cover") return !ev.is_free;
+  return true;
+}
+
+// --- Conservar los filtros al pasar de /mapa a /lista y viceversa --------
+// Van en la query (`?t=finde&p=gratis`); se omite lo que esté en su valor
+// por defecto para que la URL quede limpia mientras no se toque nada.
+
+export function leerFiltro(v: string | null | undefined): Filtro {
+  return v === "finde" || v === "proximos" ? v : "hoy";
+}
+
+export function leerPrecio(v: string | null | undefined): Precio {
+  return v === "gratis" || v === "cover" ? v : "todo";
+}
+
+export function queryFiltros(filtro: Filtro, precio: Precio): string {
+  const p = new URLSearchParams();
+  if (filtro !== "hoy") p.set("t", filtro);
+  if (precio !== "todo") p.set("p", precio);
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
 /** Barrio Granada, Cali. Fallback cuando el navegador niega la ubicación. */
 export const GRANADA_CALI = { lat: 3.4566, lng: -76.5335 };
 

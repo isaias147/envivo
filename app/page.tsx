@@ -1,16 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
   GRANADA_CALI,
+  leerFiltro,
+  leerPrecio,
+  pasaPrecio,
+  queryFiltros,
   RADIOS_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
+  type Precio,
   type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
@@ -29,19 +42,30 @@ const FILTROS: { id: Filtro; etiqueta: string }[] = [
   { id: "proximos", etiqueta: "Próximos" },
 ];
 
-// Filtro de precio: se combina con el de tiempo. "todo" no filtra nada.
-type Precio = "todo" | "gratis" | "cover";
+// Etiquetas del filtro de precio (el tipo y la lógica viven en lib/eventos).
 const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "todo", etiqueta: "Todo" },
   { id: "gratis", etiqueta: "Gratis" },
   { id: "cover", etiqueta: "Con cover" },
 ];
 
+// `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Home() {
+  return (
+    <Suspense fallback={<div className={styles.mapaCargando}>Cargando…</div>}>
+      <MapaPantalla />
+    </Suspense>
+  );
+}
+
+function MapaPantalla() {
+  const sp = useSearchParams();
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [filtro, setFiltro] = useState<Filtro>("hoy");
-  const [precio, setPrecio] = useState<Precio>("todo");
+  // Filtros iniciales desde la URL (?t=&p=), para conservarlos al venir
+  // de /lista. El radio es propio del mapa y no se comparte.
+  const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
+  const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [radioKm, setRadioKm] = useState<RadioKm>(3);
   // `centro` = punto de referencia del mapa (movible).
   // `gps` = ubicación real del navegador, si la concedió.
@@ -89,6 +113,13 @@ export default function Home() {
     setSeleccionadoId(null);
   }, [gps, marcarMovido]);
 
+  // Refleja los filtros en la URL (sin recargar) para que "Ver lista" y el
+  // botón atrás del navegador los conserven.
+  useEffect(() => {
+    const qs = queryFiltros(filtro, precio);
+    window.history.replaceState(null, "", qs || window.location.pathname);
+  }, [filtro, precio]);
+
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
     let vivo = true;
@@ -114,8 +145,7 @@ export default function Home() {
     const { desde, hasta } = rangoFiltro(filtro);
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
-      if (precio === "gratis" && !ev.is_free) return false;
-      if (precio === "cover" && ev.is_free) return false;
+      if (!pasaPrecio(ev, precio)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
@@ -160,8 +190,12 @@ export default function Home() {
         En<i>Vivo</i>
       </div>
 
-      {/* "Ver lista": cápsula de cristal, arriba a la derecha. */}
-      <Link href="/lista" className={styles.verLista}>
+      {/* "Ver lista": cápsula de cristal, arriba a la derecha. Lleva los
+          filtros actuales para que la lista abra igual. */}
+      <Link
+        href={`/lista${queryFiltros(filtro, precio)}`}
+        className={styles.verLista}
+      >
         Ver lista
       </Link>
 
