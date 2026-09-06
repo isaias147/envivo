@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
@@ -33,19 +33,51 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("hoy");
   const [radioKm, setRadioKm] = useState<RadioKm>(3);
+  // `centro` = punto de referencia del mapa (movible).
+  // `gps` = ubicación real del navegador, si la concedió.
+  // `movido` = el usuario arrastró o recolocó el punto a mano.
   const [centro, setCentro] = useState(GRANADA_CALI);
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
+  const [movido, setMovido] = useState(false);
+  const movidoRef = useRef(false);
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
 
+  const marcarMovido = useCallback((v: boolean) => {
+    movidoRef.current = v;
+    setMovido(v);
+  }, []);
+
   // Ubicación del navegador; si se niega o falla, se queda en Granada.
+  // Solo mueve el centro si el usuario aún no lo recolocó.
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        setCentro({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setCentro(GRANADA_CALI),
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setGps(coords);
+        if (!movidoRef.current) setCentro(coords);
+      },
+      () => {}, // permiso negado: se queda en Granada
       { enableHighAccuracy: true, timeout: 8000 },
     );
   }, []);
+
+  // Recolocar el punto (arrastre del pin o pulsación larga en el mapa).
+  const moverCentro = useCallback(
+    (lat: number, lng: number) => {
+      setCentro({ lat, lng });
+      marcarMovido(true);
+      setSeleccionadoId(null);
+    },
+    [marcarMovido],
+  );
+
+  const volverAMiUbicacion = useCallback(() => {
+    if (!gps) return;
+    setCentro(gps);
+    marcarMovido(false);
+    setSeleccionadoId(null);
+  }, [gps, marcarMovido]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -127,9 +159,24 @@ export default function Home() {
           eventos={visibles}
           centro={centro}
           radioKm={radioKm}
+          anclado={!movido}
           seleccionadoId={seleccionadoId}
           onSeleccionar={setSeleccionadoId}
+          onMoverCentro={moverCentro}
         />
+        {gps && movido && (
+          <button
+            type="button"
+            className={styles.volverUbicacion}
+            onClick={volverAMiUbicacion}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            </svg>
+            Volver a mi ubicación
+          </button>
+        )}
         <div className={styles.radioCinta}>
           <span>Radio</span>
           {RADIOS_KM.map((km) => (

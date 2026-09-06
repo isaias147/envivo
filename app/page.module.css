@@ -112,6 +112,37 @@
   font-size: 13px;
 }
 
+/* Botón discreto: reaparece cuando el punto se movió de la ubicación real.
+   Mismo estilo que el botón "Volver" del mockup de detalle. */
+.volverUbicacion {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--linea);
+  border-radius: 100px;
+  background: rgba(22, 26, 61, 0.82);
+  backdrop-filter: blur(6px);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.volverUbicacion:hover {
+  border-color: var(--hueso-tenue);
+}
+.volverUbicacion svg {
+  width: 13px;
+  height: 13px;
+  color: var(--laton);
+}
+
 .radioCinta {
   position: absolute;
   left: 0;

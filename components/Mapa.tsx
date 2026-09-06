@@ -3,15 +3,8 @@
 // El mapa vive solo en el navegador: Leaflet necesita `window`.
 // En app/page.tsx se importa con next/dynamic y ssr:false.
 
-import { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Circle,
-  CircleMarker,
-  useMap,
-} from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { horaCali, type EventoPublico } from "@/lib/eventos";
@@ -20,8 +13,11 @@ type Props = {
   eventos: EventoPublico[];
   centro: { lat: number; lng: number };
   radioKm: number;
+  /** true si el punto sigue en la ubicación real (el mapa lo recentra). */
+  anclado: boolean;
   seleccionadoId: string | null;
   onSeleccionar: (id: string) => void;
+  onMoverCentro: (lat: number, lng: number) => void;
 };
 
 function escaparHtml(s: string): string {
@@ -40,6 +36,21 @@ function zoomPorRadio(radioKm: number): number {
   if (radioKm <= 3) return 14;
   return 13;
 }
+
+// Punto de referencia arrastrable: un aro latón sobre un núcleo latón.
+const ICONO_UBICACION = L.divIcon({
+  className: "",
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  html: `
+    <div style="width:24px;height:24px;border-radius:50%;
+                background:rgba(255,182,39,.22);display:flex;
+                align-items:center;justify-content:center;cursor:grab;">
+      <div style="width:12px;height:12px;border-radius:50%;background:#FFB627;
+                  border:2px solid var(--noche);
+                  box-shadow:0 0 0 1px rgba(255,182,39,.6);"></div>
+    </div>`,
+});
 
 /**
  * El pin del mockup: una etiqueta con hora + nombre y un pie.
@@ -75,18 +86,28 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   return L.divIcon({ html, className: "", iconSize: [0, 0], iconAnchor: [0, 0] });
 }
 
-/** Mueve y ajusta el zoom del mapa cuando cambia el centro o el radio. */
+/**
+ * Recentra y ajusta el zoom del mapa cuando el punto está anclado a la
+ * ubicación real. Si el usuario lo recolocó a mano, solo ajusta el zoom
+ * y respeta dónde dejó el punto.
+ */
 function Vista({
   centro,
   zoom,
+  anclado,
 }: {
   centro: { lat: number; lng: number };
   zoom: number;
+  anclado: boolean;
 }) {
   const map = useMap();
   useEffect(() => {
-    map.setView([centro.lat, centro.lng], zoom, { animate: true });
-  }, [centro.lat, centro.lng, zoom, map]);
+    if (anclado) {
+      map.setView([centro.lat, centro.lng], zoom, { animate: true });
+    } else {
+      map.setZoom(zoom);
+    }
+  }, [centro.lat, centro.lng, zoom, anclado, map]);
   return null;
 }
 
@@ -105,23 +126,84 @@ function AjustarTamano() {
   return null;
 }
 
+/**
+ * Mantener pulsado ~0,5 s sobre el mapa recoloca el punto ahí.
+ * También responde a `contextmenu` (el long-press del móvil y el clic
+ * derecho en escritorio). Se cancela si el gesto empieza sobre un pin
+ * o si el dedo se mueve (eso es un desplazamiento del mapa).
+ */
+function PulsacionLarga({
+  onMover,
+}: {
+  onMover: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    let temporizador: ReturnType<typeof setTimeout> | null = null;
+    let inicio: L.Point | null = null;
+
+    const cancelar = () => {
+      if (temporizador) {
+        clearTimeout(temporizador);
+        temporizador = null;
+      }
+      inicio = null;
+    };
+
+    const sobreUnPin = (e: L.LeafletMouseEvent) => {
+      const t = e.originalEvent?.target as HTMLElement | null;
+      return !!t?.closest?.(".leaflet-marker-icon");
+    };
+
+    const alPresionar = (e: L.LeafletMouseEvent) => {
+      if (sobreUnPin(e)) return;
+      inicio = e.containerPoint;
+      const { lat, lng } = e.latlng;
+      temporizador = setTimeout(() => {
+        temporizador = null;
+        onMover(lat, lng);
+      }, 500);
+    };
+
+    const alMover = (e: L.LeafletMouseEvent) => {
+      if (inicio && inicio.distanceTo(e.containerPoint) > 8) cancelar();
+    };
+
+    const alMenuContexto = (e: L.LeafletMouseEvent) => {
+      if (sobreUnPin(e)) return;
+      L.DomEvent.preventDefault(e.originalEvent);
+      onMover(e.latlng.lat, e.latlng.lng);
+    };
+
+    map.on("mousedown", alPresionar);
+    map.on("mousemove", alMover);
+    map.on("mouseup", cancelar);
+    map.on("dragstart", cancelar);
+    map.on("zoomstart", cancelar);
+    map.on("contextmenu", alMenuContexto);
+    return () => {
+      cancelar();
+      map.off("mousedown", alPresionar);
+      map.off("mousemove", alMover);
+      map.off("mouseup", cancelar);
+      map.off("dragstart", cancelar);
+      map.off("zoomstart", cancelar);
+      map.off("contextmenu", alMenuContexto);
+    };
+  }, [map, onMover]);
+  return null;
+}
+
 export default function Mapa({
   eventos,
   centro,
   radioKm,
+  anclado,
   seleccionadoId,
   onSeleccionar,
+  onMoverCentro,
 }: Props) {
   const zoom = zoomPorRadio(radioKm);
-
-  // Leaflet no tolera el doble montaje de React StrictMode en desarrollo:
-  // esperamos un tick para montar el mapa una sola vez sobre un nodo limpio.
-  const [listo, setListo] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setListo(true), 0);
-    return () => clearTimeout(t);
-  }, []);
-  if (!listo) return null;
 
   return (
     <MapContainer
@@ -136,7 +218,7 @@ export default function Mapa({
         maxZoom={19}
       />
 
-      {/* Radio de búsqueda y "tú estás aquí". */}
+      {/* Radio de búsqueda alrededor del punto de referencia. */}
       <Circle
         center={[centro.lat, centro.lng]}
         radius={radioKm * 1000}
@@ -149,14 +231,19 @@ export default function Mapa({
           dashArray: "3 6",
         }}
       />
-      <CircleMarker
-        center={[centro.lat, centro.lng]}
-        radius={6}
-        pathOptions={{
-          color: "#FFB627",
-          weight: 2,
-          fillColor: "#FFB627",
-          fillOpacity: 1,
+
+      {/* Punto de referencia: se arrastra para recolocarlo. */}
+      <Marker
+        position={[centro.lat, centro.lng]}
+        icon={ICONO_UBICACION}
+        draggable
+        autoPan
+        zIndexOffset={2000}
+        eventHandlers={{
+          dragend: (e) => {
+            const ll = (e.target as L.Marker).getLatLng();
+            onMoverCentro(ll.lat, ll.lng);
+          },
         }}
       />
 
@@ -170,7 +257,8 @@ export default function Mapa({
         />
       ))}
 
-      <Vista centro={centro} zoom={zoom} />
+      <Vista centro={centro} zoom={zoom} anclado={anclado} />
+      <PulsacionLarga onMover={onMoverCentro} />
       <AjustarTamano />
     </MapContainer>
   );
