@@ -1,0 +1,939 @@
+"use client";
+
+// Formulario para publicar un evento. Sin registro: cualquiera con el
+// link puede llegar aquí. Sigue los bloques "1 · Publicar evento" y
+// "3 · Enviado" de envivo-pantallas-organizador.html.
+//
+// - Bifurca desde la primera pregunta: una sola vez / se repite.
+// - La ubicación se marca con un pin arrastrable, nunca escribiendo dirección.
+// - El flyer es obligatorio y se sube al bucket `flyers`.
+// - Al enviar, inserta en `events` con status 'pendiente' (una fila por
+//   fecha si es serie, agrupadas por `series_id`, con tope de 3 meses).
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { supabase } from "@/lib/supabase";
+import { GRANADA_CALI } from "@/lib/eventos";
+import styles from "./page.module.css";
+
+const MapaSelector = dynamic(() => import("@/components/MapaSelector"), {
+  ssr: false,
+  loading: () => <div className={styles.mapaCargando}>Cargando mapa…</div>,
+});
+
+// ---------- utilidades de fecha en hora de Cali (UTC-5, sin DST) ----------
+
+function hoyCali(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/** ISO con zona de Cali a partir de "YYYY-MM-DD" y "HH:MM". */
+function isoCali(ymd: string, hhmm: string): string {
+  return `${ymd}T${hhmm}:00-05:00`;
+}
+
+/** Suma días a un "YYYY-MM-DD" sin liarse con zonas horarias. */
+function sumarDiasYmd(ymd: string, dias: number): string {
+  const d = new Date(`${ymd}T12:00:00-05:00`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Día de la semana (0 = domingo … 6 = sábado) de una fecha "YYYY-MM-DD". */
+function dowCali(ymd: string): number {
+  return new Date(`${ymd}T12:00:00-05:00`).getUTCDay();
+}
+
+// Chips de días en orden de semana: L M X J V S D.
+const DIAS_ORDEN = [1, 2, 3, 4, 5, 6, 0];
+const CHIP_DIA = ["L", "M", "X", "J", "V", "S", "D"];
+const NOMBRE_DIA = [
+  "domingo",
+  "lunes",
+  "martes",
+  "miércoles",
+  "jueves",
+  "viernes",
+  "sábado",
+];
+
+/** "jueves" · "martes y jueves" · "lunes, miércoles y viernes". */
+function listaDias(dias: number[]): string {
+  const ns = DIAS_ORDEN.filter((d) => dias.includes(d)).map((d) => NOMBRE_DIA[d]);
+  if (ns.length <= 1) return ns[0] ?? "";
+  return `${ns.slice(0, -1).join(", ")} y ${ns[ns.length - 1]}`;
+}
+
+/**
+ * Fechas reales de una serie: por cada día de la semana marcado, en cada
+ * semana activa (cada 7 o cada 14 días), desde la primera fecha hasta
+ * `hastaYmd` — nunca más allá de 3 meses desde la primera fecha. Todas
+ * comparten luego el mismo `series_id`.
+ */
+function fechasDeSerie(
+  primeraYmd: string,
+  hastaYmd: string,
+  cadaDias: number,
+  dias: number[],
+): string[] {
+  if (!primeraYmd || !hastaYmd || dias.length === 0) return [];
+
+  const tope = new Date(`${primeraYmd}T12:00:00-05:00`);
+  tope.setUTCMonth(tope.getUTCMonth() + 3);
+  const topeYmd = tope.toISOString().slice(0, 10);
+  const limite = hastaYmd < topeYmd ? hastaYmd : topeYmd;
+  if (limite < primeraYmd) return [];
+
+  // Lunes de la semana de la primera fecha, como ancla.
+  const offsetLunes = (dowCali(primeraYmd) + 6) % 7;
+  let lunes = sumarDiasYmd(primeraYmd, -offsetLunes);
+
+  const fechas = new Set<string>();
+  for (let semana = 0; lunes <= limite && semana < 80; semana++) {
+    for (const dow of dias) {
+      const f = sumarDiasYmd(lunes, (dow + 6) % 7);
+      if (f >= primeraYmd && f <= limite) fechas.add(f);
+    }
+    lunes = sumarDiasYmd(lunes, cadaDias);
+  }
+  return [...fechas].sort();
+}
+
+// ---------- opciones del formulario ----------
+
+const TIPOS: { valor: string; etiqueta: string }[] = [
+  { valor: "musica_en_vivo", etiqueta: "Música en vivo" },
+  { valor: "clase_taller", etiqueta: "Clase o taller" },
+  { valor: "recreativo", etiqueta: "Recreativo" },
+  { valor: "cultural", etiqueta: "Cultural" },
+  { valor: "deportivo", etiqueta: "Deportivo" },
+];
+
+const MIMES_OK = ["image/jpeg", "image/png", "image/webp"];
+const MAX_BYTES = 3 * 1024 * 1024;
+const RE_REEL = /^https:\/\/(www\.)?(instagram\.com|tiktok\.com)\//i;
+
+type Enviado = {
+  hora: string;
+  titulo: string;
+  sede: string;
+  precio: string;
+  serieTexto: string | null;
+};
+
+export default function PublicarNuevo() {
+  // bifurcación
+  const [serie, setSerie] = useState(false);
+  const [cadaDias, setCadaDias] = useState<7 | 14>(7);
+  // Días de la semana marcados a mano (0 = domingo … 6 = sábado). El día de
+  // la primera fecha se añade aparte, en `diasEfectivos`.
+  const [diasSemana, setDiasSemana] = useState<number[]>([]);
+
+  // datos del evento
+  const [nombre, setNombre] = useState("");
+  const [lugar, setLugar] = useState("");
+  const [punto, setPunto] = useState(GRANADA_CALI);
+  const [puntoMovido, setPuntoMovido] = useState(false);
+  const [fecha, setFecha] = useState(hoyCali());
+  const [hora, setHora] = useState("20:00");
+  const [hasta, setHasta] = useState(sumarDiasYmd(hoyCali(), 56));
+  const [tipo, setTipo] = useState(TIPOS[0].valor);
+  const [entrada, setEntrada] = useState<"gratis" | "cover" | "rango">("cover");
+  const [monto, setMonto] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [reel, setReel] = useState("");
+
+  // quién publica y contacto
+  const [quien, setQuien] = useState<"local" | "organizador" | "artista">("local");
+  const [quienNombre, setQuienNombre] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [tiktok, setTiktok] = useState("");
+
+  // flyer
+  const [flyer, setFlyer] = useState<File | null>(null);
+  const [flyerPrev, setFlyerPrev] = useState<string | null>(null);
+
+  // trampa para bots: debe quedar vacío
+  const [trampa, setTrampa] = useState("");
+
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [enviado, setEnviado] = useState<Enviado | null>(null);
+  // Nº de fechas pendiente de confirmar (series de más de 40).
+  const [confirmarN, setConfirmarN] = useState<number | null>(null);
+
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPunto((p) =>
+          // solo si el usuario aún no recolocó el pin
+          p === GRANADA_CALI
+            ? { lat: pos.coords.latitude, lng: pos.coords.longitude }
+            : p,
+        );
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (flyerPrev) URL.revokeObjectURL(flyerPrev);
+    };
+  }, [flyerPrev]);
+
+  const dowPrimera = fecha ? dowCali(fecha) : -1;
+
+  // El día de la primera fecha va siempre en la serie: se fusiona con los
+  // que el usuario marcó a mano, sin necesidad de un efecto.
+  const diasEfectivos = useMemo(() => {
+    if (dowPrimera < 0 || diasSemana.includes(dowPrimera)) return diasSemana;
+    return [...diasSemana, dowPrimera];
+  }, [diasSemana, dowPrimera]);
+
+  // Fechas reales de la serie: una por día marcado en cada semana activa.
+  const fechasSerie = useMemo(
+    () => (serie ? fechasDeSerie(fecha, hasta, cadaDias, diasEfectivos) : []),
+    [serie, fecha, hasta, cadaDias, diasEfectivos],
+  );
+
+  // Resumen de la serie, como en el mockup.
+  const resumenSerie = useMemo(() => {
+    if (!serie) return "";
+    if (!fecha || !hasta || hasta < fecha)
+      return "Elige una fecha final posterior a la primera.";
+    if (diasEfectivos.length === 0)
+      return "Marca al menos un día de la semana.";
+    const n = fechasSerie.length;
+    const lista = listaDias(diasEfectivos);
+    const cuerpo = diasEfectivos.length === 1 ? `todos los ${lista}` : lista;
+    return `Saldrá ${cuerpo}: ${n} ${n === 1 ? "fecha" : "fechas"}`;
+  }, [serie, fecha, hasta, diasEfectivos, fechasSerie]);
+
+  function elegirPin(lat: number, lng: number) {
+    setPunto({ lat, lng });
+    setPuntoMovido(true);
+  }
+
+  // Cambios que alteran la forma de la serie: anulan la confirmación pendiente.
+  function cambiarSerie(v: boolean) {
+    setSerie(v);
+    setConfirmarN(null);
+  }
+  function cambiarFecha(v: string) {
+    setFecha(v);
+    setConfirmarN(null);
+  }
+  function cambiarHasta(v: string) {
+    setHasta(v);
+    setConfirmarN(null);
+  }
+  function cambiarCadaDias(v: 7 | 14) {
+    setCadaDias(v);
+    setConfirmarN(null);
+  }
+
+  function toggleDia(d: number) {
+    if (d === dowPrimera) return; // el día de la primera fecha no se quita
+    setConfirmarN(null);
+    setDiasSemana((prev) =>
+      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+    );
+  }
+
+  function elegirFlyer(f: File | null) {
+    setError(null);
+    if (!f) return;
+    if (!MIMES_OK.includes(f.type)) {
+      setError("El flyer debe ser JPG, PNG o WebP.");
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      setError("El flyer pesa más de 3 MB. Súbelo más liviano.");
+      return;
+    }
+    if (flyerPrev) URL.revokeObjectURL(flyerPrev);
+    setFlyer(f);
+    setFlyerPrev(URL.createObjectURL(f));
+  }
+
+  function quitarFlyer() {
+    if (flyerPrev) URL.revokeObjectURL(flyerPrev);
+    setFlyer(null);
+    setFlyerPrev(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function pesoLegible(bytes: number): string {
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / 1048576).toFixed(1).replace(".", ",")} MB`;
+  }
+
+  // Normaliza el link del reel; devuelve null si el campo está vacío,
+  // o `false` si no es de Instagram/TikTok.
+  function normalizarReel(valor: string): string | null | false {
+    const v = valor.trim();
+    if (!v) return null;
+    let url = v;
+    if (url.startsWith("http://")) url = "https://" + url.slice(7);
+    else if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    return RE_REEL.test(url) ? url : false;
+  }
+
+  const labelWhatsapp =
+    quien === "artista" ? "WhatsApp del local" : "WhatsApp para reservas";
+  const ayudaWhatsapp =
+    quien === "artista"
+      ? "El contacto siempre es del local, nunca del artista."
+      : "Es el botón principal del evento. Aquí te escribe la gente.";
+
+  async function enviar() {
+    if (enviando) return;
+    setError(null);
+
+    // Trampa: si un bot llenó el campo oculto, fingimos éxito y no insertamos.
+    if (trampa.trim()) {
+      setEnviado({
+        hora: "",
+        titulo: nombre.trim() || "Tu evento",
+        sede: lugar.trim(),
+        precio: "",
+        serieTexto: null,
+      });
+      return;
+    }
+
+    const titulo = nombre.trim();
+    if (titulo.length < 3) {
+      setError("Ponle un nombre de al menos 3 letras al evento.");
+      return;
+    }
+    if (titulo.length > 120) {
+      setError("El nombre es muy largo (máximo 120 caracteres).");
+      return;
+    }
+    if (!puntoMovido) {
+      setError("Arrastra el pin al lugar exacto del evento.");
+      return;
+    }
+    if (!lugar.trim()) {
+      setError("Escribe cómo se llama el lugar.");
+      return;
+    }
+    if (!fecha || !hora) {
+      setError("Falta la fecha o la hora.");
+      return;
+    }
+    if (new Date(isoCali(fecha, hora)).getTime() <= Date.now()) {
+      setError("La fecha y la hora deben ser futuras.");
+      return;
+    }
+    if (serie && (!hasta || hasta < fecha)) {
+      setError("Elige hasta cuándo se repite (una fecha posterior a la primera).");
+      return;
+    }
+    if (serie && diasEfectivos.length === 0) {
+      setError("Marca al menos un día de la semana para la serie.");
+      return;
+    }
+    if (entrada !== "gratis" && !monto.trim()) {
+      setError("Escribe el valor de la entrada.");
+      return;
+    }
+    if (descripcion.length > 200) {
+      setError("La descripción no puede pasar de 200 caracteres.");
+      return;
+    }
+    if (!quienNombre.trim()) {
+      setError("Escribe el nombre de quien publica.");
+      return;
+    }
+    if (!whatsapp.trim()) {
+      setError("Falta el WhatsApp de contacto.");
+      return;
+    }
+    if (!flyer) {
+      setError("El flyer es obligatorio.");
+      return;
+    }
+    const reelUrl = normalizarReel(reel);
+    if (reelUrl === false) {
+      setError("El link debe ser de Instagram o TikTok (o déjalo vacío).");
+      return;
+    }
+
+    if (serie) {
+      if (fechasSerie.length === 0) {
+        setError("Con esos días y esa fecha final la serie no genera fechas.");
+        return;
+      }
+      // Serie larga: pedir confirmación explícita antes de crear tantas filas.
+      if (fechasSerie.length > 40 && confirmarN !== fechasSerie.length) {
+        setConfirmarN(fechasSerie.length);
+        return;
+      }
+    }
+
+    setEnviando(true);
+    try {
+      // 1. Subir el flyer al bucket `flyers`.
+      const ext = (flyer.name.split(".").pop() || "jpg").toLowerCase();
+      const ruta = `publico/${crypto.randomUUID()}.${ext}`;
+      const { error: errSubida } = await supabase.storage
+        .from("flyers")
+        .upload(ruta, flyer, { contentType: flyer.type, upsert: false });
+      if (errSubida) {
+        setError("No se pudo subir el flyer. Intenta de nuevo.");
+        setEnviando(false);
+        return;
+      }
+      const { data: pub } = supabase.storage.from("flyers").getPublicUrl(ruta);
+      const flyerUrl = pub.publicUrl;
+
+      // 2. Armar la(s) fila(s).
+      const esGratis = entrada === "gratis";
+      const montoNum = Number(monto.replace(/[^\d]/g, "")) || null;
+      const etiquetaPrecio = esGratis
+        ? null
+        : entrada === "cover"
+          ? `Cover ${monto.trim()}`
+          : monto.trim();
+
+      const seriesId = serie ? crypto.randomUUID() : null;
+      const fechas = serie ? fechasSerie : [fecha];
+
+      const base = {
+        title: titulo,
+        description: descripcion.trim() || null,
+        type: tipo,
+        cover_url: flyerUrl,
+        venue_name: lugar.trim(),
+        latitude: punto.lat,
+        longitude: punto.lng,
+        is_free: esGratis,
+        price: esGratis ? null : montoNum,
+        price_label: etiquetaPrecio,
+        status: "pendiente" as const,
+        is_recurring: serie,
+        recurrence_rule: serie
+          ? cadaDias === 7
+            ? "FREQ=WEEKLY"
+            : "FREQ=WEEKLY;INTERVAL=2"
+          : null,
+        series_id: seriesId,
+        publisher_type: quien,
+        publisher_name: quienNombre.trim(),
+        whatsapp: whatsapp.trim(),
+        instagram: instagram.trim() || null,
+        tiktok: tiktok.trim() || null,
+        post_url: reelUrl,
+        city: "Cali",
+      };
+
+      const filas = fechas.map((ymd) => ({
+        ...base,
+        starts_at: isoCali(ymd, hora),
+      }));
+
+      const { error: errInsert } = await supabase.from("events").insert(filas);
+      if (errInsert) {
+        setError("No se pudo enviar el evento. Intenta de nuevo.");
+        setEnviando(false);
+        return;
+      }
+
+      // 3. Pantalla de "enviado".
+      const [hh, mm] = hora.split(":").map(Number);
+      const periodo = hh >= 12 ? "PM" : "AM";
+      const h12 = ((hh + 11) % 12) + 1;
+      setEnviado({
+        hora: `${h12}:${String(mm).padStart(2, "0")} ${periodo}`,
+        titulo,
+        sede: lugar.trim(),
+        precio: esGratis ? "Gratis" : etiquetaPrecio || "Entrada paga",
+        serieTexto: serie
+          ? `${listaDias(diasEfectivos)} · ${filas.length} fechas`
+          : null,
+      });
+      window.scrollTo({ top: 0 });
+    } catch {
+      setError("Algo falló al enviar. Revisa tu conexión e intenta de nuevo.");
+      setEnviando(false);
+    }
+  }
+
+  // ---------------- pantalla de "enviado" ----------------
+  if (enviado) {
+    return (
+      <div className={styles.pantalla}>
+        <div className={styles.marco}>
+          <div className={styles.marca}>
+            En<i>Vivo</i>
+          </div>
+          <div className={styles.ruta}>envivo.app/publicar</div>
+
+          <div className={styles.marcaOk} aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 12.5l5.5 5.5L20 7" />
+            </svg>
+          </div>
+          <h1 className={styles.tit}>Tu evento va en camino</h1>
+          <p className={styles.bajada}>
+            Lo revisamos hoy mismo y aparece en el mapa. Te avisamos por
+            WhatsApp cuando esté arriba.
+          </p>
+
+          <div className={styles.tarjetaRes}>
+            {enviado.hora && <div className={styles.resHora}>{enviado.hora}</div>}
+            <b>{enviado.titulo}</b>
+            {(enviado.sede || enviado.precio) && (
+              <small>
+                {[enviado.sede, enviado.precio].filter(Boolean).join(" · ")}
+              </small>
+            )}
+            {enviado.serieTexto && (
+              <div className={styles.pillSerie}>{enviado.serieTexto}</div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className={styles.fantasma}
+            onClick={() => window.location.reload()}
+          >
+            Publicar otro evento
+          </button>
+          <Link href="/publicar" className={styles.volverMapa}>
+            Volver al mapa
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------- formulario ----------------
+  return (
+    <div className={styles.pantalla}>
+      <div className={styles.marco}>
+        <div className={styles.marca}>
+          En<i>Vivo</i>
+        </div>
+        <div className={styles.ruta}>envivo.app/publicar</div>
+        <h1 className={styles.tit}>Publica tu evento</h1>
+        <p className={styles.bajada}>
+          Es gratis. Lo revisamos y queda en el mapa el mismo día.
+        </p>
+
+        {/* 1 · bifurcación */}
+        <div className={styles.campo}>
+          <label>¿Es una sola vez o se repite?</label>
+          <div className={styles.trio}>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={!serie}
+              onClick={() => cambiarSerie(false)}
+            >
+              Una sola vez
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={serie}
+              onClick={() => cambiarSerie(true)}
+            >
+              Se repite
+            </button>
+          </div>
+        </div>
+
+        {/* nombre */}
+        <div className={styles.campo}>
+          <label htmlFor="nombre">Nombre del evento</label>
+          <input
+            id="nombre"
+            value={nombre}
+            onChange={(e) => {
+              setNombre(e.target.value);
+              setError(null);
+            }}
+            placeholder="Noche de salsa con La Clave"
+          />
+        </div>
+
+        {/* dónde: pin arrastrable */}
+        <div className={styles.campo}>
+          <label>¿Dónde es?</label>
+          <div className={styles.mapita}>
+            <MapaSelector
+              punto={punto}
+              movido={puntoMovido}
+              onCambio={elegirPin}
+            />
+            <div className={styles.pista}>
+              {puntoMovido
+                ? "Arrastra el pin para ajustarlo"
+                : "Arrastra el pin al punto exacto"}
+            </div>
+          </div>
+          <input
+            style={{ marginTop: 9 }}
+            value={lugar}
+            onChange={(e) => setLugar(e.target.value)}
+            placeholder="Bar La Topa Tolondra"
+          />
+          <p className={styles.ayuda}>
+            Escribe cómo lo conoce la gente. Si es un parque o una plaza,
+            descríbelo.
+          </p>
+        </div>
+
+        {/* fecha / hora */}
+        <div className={`${styles.campo} ${styles.duo}`}>
+          <div>
+            <label htmlFor="fecha">{serie ? "Primera fecha" : "Fecha"}</label>
+            <input
+              id="fecha"
+              type="date"
+              value={fecha}
+              min={hoyCali()}
+              onChange={(e) => cambiarFecha(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="hora">Hora</label>
+            <input
+              id="hora"
+              type="time"
+              value={hora}
+              onChange={(e) => setHora(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* caja de serie */}
+        {serie && (
+          <div className={styles.cajaSerie}>
+            <div className={styles.campo} style={{ marginBottom: 14 }}>
+              <label className={styles.labelLaton}>¿Qué días?</label>
+              <div className={styles.chipsDias}>
+                {DIAS_ORDEN.map((d, i) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={styles.chipDia}
+                    aria-pressed={diasEfectivos.includes(d)}
+                    aria-label={NOMBRE_DIA[d]}
+                    title={
+                      d === dowPrimera
+                        ? `${NOMBRE_DIA[d]}: día de la primera fecha`
+                        : NOMBRE_DIA[d]
+                    }
+                    onClick={() => toggleDia(d)}
+                  >
+                    {CHIP_DIA[i]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.campo} style={{ marginBottom: 14 }}>
+              <label className={styles.labelLaton}>¿Cada cuánto?</label>
+              <div className={styles.trio}>
+                <button
+                  type="button"
+                  className={styles.op}
+                  aria-pressed={cadaDias === 7}
+                  onClick={() => cambiarCadaDias(7)}
+                >
+                  Cada semana
+                </button>
+                <button
+                  type="button"
+                  className={styles.op}
+                  aria-pressed={cadaDias === 14}
+                  onClick={() => cambiarCadaDias(14)}
+                >
+                  Cada 15 días
+                </button>
+              </div>
+            </div>
+            <label className={styles.labelLaton} htmlFor="hasta">
+              ¿Hasta cuándo?
+            </label>
+            <input
+              id="hasta"
+              type="date"
+              value={hasta}
+              min={fecha}
+              onChange={(e) => cambiarHasta(e.target.value)}
+            />
+            {resumenSerie && (
+              <p className={styles.resumenSerie}>{resumenSerie}</p>
+            )}
+          </div>
+        )}
+
+        {/* tipo */}
+        <div className={styles.campo}>
+          <label htmlFor="tipo">Tipo</label>
+          <select
+            id="tipo"
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+          >
+            {TIPOS.map((t) => (
+              <option key={t.valor} value={t.valor}>
+                {t.etiqueta}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* entrada */}
+        <div className={styles.campo}>
+          <label>Entrada</label>
+          <div className={styles.trio}>
+            <button
+              type="button"
+              className={`${styles.op} ${styles.verde}`}
+              aria-pressed={entrada === "gratis"}
+              onClick={() => setEntrada("gratis")}
+            >
+              Gratis
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={entrada === "cover"}
+              onClick={() => setEntrada("cover")}
+            >
+              Cover
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={entrada === "rango"}
+              onClick={() => setEntrada("rango")}
+            >
+              Rango
+            </button>
+          </div>
+          {entrada !== "gratis" && (
+            <input
+              style={{ marginTop: 9 }}
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              placeholder={entrada === "rango" ? "$20.000 a $40.000" : "$20.000"}
+              inputMode="numeric"
+            />
+          )}
+        </div>
+
+        {/* flyer */}
+        <div className={styles.campo}>
+          <label>Flyer del evento</label>
+          {flyer && flyerPrev ? (
+            <div className={styles.subido}>
+              <div className={styles.prev}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={flyerPrev} alt="Vista previa del flyer" />
+              </div>
+              <div>
+                <p>{flyer.name}</p>
+                <small>{pesoLegible(flyer.size)}</small>
+              </div>
+              <button
+                type="button"
+                className={styles.quitar}
+                onClick={quitarFlyer}
+              >
+                Quitar
+              </button>
+            </div>
+          ) : (
+            <label className={styles.soltar}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => elegirFlyer(e.target.files?.[0] ?? null)}
+              />
+              <b>Sube el flyer</b>
+              <span>JPG, PNG o WebP · máximo 3 MB</span>
+            </label>
+          )}
+          {serie && (
+            <div className={styles.avisoFlyer}>
+              Súbelo sin fecha impresa: nosotros mostramos cada fecha de la
+              serie.
+            </div>
+          )}
+        </div>
+
+        {/* descripción con contador */}
+        <div className={styles.campo}>
+          <label htmlFor="desc">
+            De qué se trata{" "}
+            <span className={styles.contador}>{descripcion.length}/200</span>
+          </label>
+          <textarea
+            id="desc"
+            rows={3}
+            maxLength={200}
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Orquesta en vivo y pista abierta desde las 9. Ideal si vienes solo o en grupo."
+          />
+        </div>
+
+        {/* reel opcional */}
+        <div className={styles.campo}>
+          <label htmlFor="reel">Link de tu reel o TikTok</label>
+          <input
+            id="reel"
+            value={reel}
+            onChange={(e) => setReel(e.target.value)}
+            placeholder="instagram.com/reel/…"
+          />
+          <p className={styles.ayuda}>
+            Opcional. Un video del ambiente convence más que el flyer.
+          </p>
+        </div>
+
+        {/* quién publica */}
+        <div className={styles.campo}>
+          <label>¿Quién publica?</label>
+          <div className={styles.trio}>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={quien === "local"}
+              onClick={() => setQuien("local")}
+            >
+              El local
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={quien === "organizador"}
+              onClick={() => setQuien("organizador")}
+            >
+              Organizador
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={quien === "artista"}
+              onClick={() => setQuien("artista")}
+            >
+              Artista
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.campo}>
+          <label htmlFor="quien-nombre">Nombre de quien publica</label>
+          <input
+            id="quien-nombre"
+            value={quienNombre}
+            onChange={(e) => setQuienNombre(e.target.value)}
+            placeholder="Bar La Topa Tolondra"
+          />
+        </div>
+
+        <div className={styles.campo}>
+          <label htmlFor="whatsapp">{labelWhatsapp}</label>
+          <input
+            id="whatsapp"
+            type="tel"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            placeholder="300 123 4567"
+          />
+          <p className={styles.ayuda}>{ayudaWhatsapp}</p>
+        </div>
+
+        <div className={`${styles.campo} ${styles.duo}`}>
+          <div>
+            <label htmlFor="ig">Instagram</label>
+            <input
+              id="ig"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="@latopa"
+            />
+          </div>
+          <div>
+            <label htmlFor="tk">TikTok</label>
+            <input
+              id="tk"
+              value={tiktok}
+              onChange={(e) => setTiktok(e.target.value)}
+              placeholder="@latopa"
+            />
+          </div>
+        </div>
+
+        {/* honeypot: invisible para personas, tentador para bots */}
+        <div className={styles.trampa} aria-hidden="true">
+          <label htmlFor="sitio-web">No llenes este campo</label>
+          <input
+            id="sitio-web"
+            name="sitio-web"
+            tabIndex={-1}
+            autoComplete="off"
+            value={trampa}
+            onChange={(e) => setTrampa(e.target.value)}
+          />
+        </div>
+
+        {confirmarN !== null ? (
+          <div className={styles.avisoConfirm}>
+            <p>
+              Vas a crear <b>{confirmarN} fechas</b> de una vez. Revisa los días
+              y la fecha final; si está bien, confírmalo.
+            </p>
+            <button
+              type="button"
+              className={styles.enviar}
+              style={{ marginTop: 0 }}
+              onClick={enviar}
+              disabled={enviando}
+            >
+              {enviando ? "Enviando…" : `Sí, crear ${confirmarN} fechas`}
+            </button>
+            <button
+              type="button"
+              className={styles.fantasma}
+              onClick={() => setConfirmarN(null)}
+            >
+              Ajustar la serie
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={styles.enviar}
+            onClick={enviar}
+            disabled={enviando}
+          >
+            {enviando ? "Enviando…" : "Enviar evento"}
+          </button>
+        )}
+        {error && <p className={styles.error}>{error}</p>}
+      </div>
+    </div>
+  );
+}

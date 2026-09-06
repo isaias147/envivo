@@ -1,0 +1,444 @@
+/* ===== EnVivo · pantalla /publicar/nuevo (formulario) ===== */
+/* Sigue los bloques "1 · Publicar evento" y "3 · Enviado" de
+   envivo-pantallas-organizador.html. Móvil primero, 380px. */
+
+.pantalla {
+  min-height: 100dvh;
+  background: var(--noche);
+}
+
+.marco {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 22px 20px 40px;
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+.ruta {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin-bottom: 22px;
+}
+
+.tit {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 23px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.bajada {
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ---------- campos ---------- */
+.campo {
+  margin-bottom: 19px;
+}
+
+.campo label,
+.marco label {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12.5px;
+  margin-bottom: 7px;
+  letter-spacing: -0.01em;
+}
+.labelLaton {
+  color: var(--laton);
+}
+
+.ayuda {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.marco input,
+.marco select,
+.marco textarea {
+  width: 100%;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-size: 14px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  outline: none;
+  color-scheme: dark;
+}
+.marco input:focus,
+.marco select:focus,
+.marco textarea:focus {
+  border-color: var(--laton);
+}
+.marco input::placeholder,
+.marco textarea::placeholder {
+  color: #6b7099;
+}
+.marco textarea {
+  resize: vertical;
+  min-height: 74px;
+}
+
+.duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+.duo label {
+  margin-bottom: 7px;
+}
+
+.trio {
+  display: flex;
+  gap: 7px;
+}
+.op {
+  flex: 1;
+  text-align: center;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 11px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.op[aria-pressed="true"] {
+  background: var(--laton);
+  border-color: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}
+.op.verde[aria-pressed="true"] {
+  background: var(--cana);
+  border-color: var(--cana);
+  color: #0a2b1c;
+}
+
+/* ---------- mini-mapa ---------- */
+.mapita {
+  position: relative;
+  height: 148px;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--noche-2);
+}
+.mapita :global(.leaflet-container) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a1f47;
+  font-family: var(--fuente-cuerpo);
+}
+.mapita :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+.pista {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 500;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+  padding: 7px;
+  background: rgba(22, 26, 61, 0.8);
+  pointer-events: none;
+}
+
+.mapaCargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1f47;
+  color: var(--hueso-tenue);
+  font-size: 12px;
+}
+
+/* ---------- caja de serie ---------- */
+.cajaSerie {
+  border: 1px solid rgba(255, 182, 39, 0.4);
+  background: rgba(255, 182, 39, 0.07);
+  border-radius: 9px;
+  padding: 14px;
+  margin-bottom: 19px;
+}
+.resumenSerie {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--laton);
+  margin-top: 11px;
+  line-height: 1.5;
+}
+
+/* siete chips L M X J V S D, selección múltiple */
+.chipsDias {
+  display: flex;
+  gap: 6px;
+}
+.chipDia {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  background: var(--noche-2);
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.chipDia[aria-pressed="true"] {
+  background: var(--laton);
+  border-color: var(--laton);
+  color: #231a00;
+}
+
+/* aviso de confirmación para series de más de 40 fechas */
+.avisoConfirm {
+  border: 1px solid rgba(255, 182, 39, 0.4);
+  background: rgba(255, 182, 39, 0.1);
+  border-radius: 9px;
+  padding: 13px;
+  margin-top: 14px;
+}
+.avisoConfirm p {
+  font-size: 12.5px;
+  color: var(--laton);
+  line-height: 1.55;
+  margin-bottom: 11px;
+}
+
+/* ---------- flyer ---------- */
+.soltar {
+  display: block;
+  border: 1px dashed rgba(244, 241, 232, 0.28);
+  border-radius: 8px;
+  padding: 22px 14px;
+  text-align: center;
+  cursor: pointer;
+}
+.soltar:hover {
+  border-color: var(--laton);
+}
+.soltar b {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13.5px;
+  display: block;
+  margin-bottom: 5px;
+}
+.soltar span {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+}
+
+.subido {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  padding: 10px;
+}
+.subido .prev {
+  width: 44px;
+  height: 56px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--noche-3);
+}
+.subido .prev img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.subido p {
+  font-size: 13px;
+  font-weight: 500;
+  word-break: break-all;
+}
+.subido small {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+}
+.quitar {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+
+.avisoFlyer {
+  background: rgba(255, 182, 39, 0.1);
+  border-left: 2px solid var(--laton);
+  padding: 9px 11px;
+  font-size: 12px;
+  color: var(--laton);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+/* ---------- contador ---------- */
+.contador {
+  float: right;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+}
+
+/* ---------- honeypot: fuera de la vista y del tabulador ---------- */
+.trampa {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- botones ---------- */
+.enviar {
+  width: 100%;
+  background: var(--laton);
+  color: #231a00;
+  border: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 15px;
+  border-radius: 9px;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  margin-top: 6px;
+}
+.enviar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.fantasma {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--linea);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13.5px;
+  padding: 13px;
+  border-radius: 9px;
+  cursor: pointer;
+  margin-top: 9px;
+}
+.fantasma:hover {
+  border-color: var(--hueso-tenue);
+}
+.error {
+  font-size: 13px;
+  color: var(--coral);
+  margin-top: 9px;
+}
+
+/* ---------- pantalla "enviado" ---------- */
+.marcaOk {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(95, 214, 160, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 26px 0 18px;
+}
+.marcaOk svg {
+  width: 26px;
+  height: 26px;
+  stroke: var(--cana);
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tarjetaRes {
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+}
+.resHora {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--laton);
+  letter-spacing: -0.03em;
+}
+.tarjetaRes b {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  display: block;
+  margin: 7px 0 4px;
+  line-height: 1.25;
+}
+.tarjetaRes small {
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+}
+.pillSerie {
+  display: inline-block;
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: rgba(255, 182, 39, 0.14);
+  color: var(--laton);
+  margin-top: 10px;
+}
+.volverMapa {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+}
+.volverMapa:hover {
+  color: var(--hueso);
+}

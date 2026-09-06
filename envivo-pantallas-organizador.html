@@ -48,6 +48,8 @@ input::placeholder,textarea::placeholder{color:#6B7099}
 }
 .op[aria-pressed="true"]{background:var(--laton);border-color:var(--laton);color:#231A00;font-weight:600}
 .op.verde[aria-pressed="true"]{background:var(--cana);border-color:var(--cana);color:#0A2B1C}
+#dias-semana .op{padding:11px 0;font-family:Archivo,sans-serif;font-weight:700}
+.aviso-confirm{border:1px solid rgba(255,182,39,.4);background:rgba(255,182,39,.1);border-radius:9px;padding:13px;margin-top:14px;font-size:12.5px;color:var(--laton);line-height:1.55}
 
 .mapita{height:126px;border:1px solid var(--linea);border-radius:8px;overflow:hidden;position:relative;background:var(--noche-2)}
 .mapita svg{position:absolute;inset:0;width:100%;height:100%}
@@ -221,6 +223,18 @@ input::placeholder,textarea::placeholder{color:#6B7099}
           </div>
 
           <div class="caja-serie" id="caja-serie" style="display:none">
+            <div class="campo" style="margin-bottom:14px">
+              <label style="color:var(--laton)">¿Qué días?</label>
+              <div class="trio" id="dias-semana">
+                <button class="op dia" data-dow="1" aria-pressed="false">L</button>
+                <button class="op dia" data-dow="2" aria-pressed="false">M</button>
+                <button class="op dia" data-dow="3" aria-pressed="false">X</button>
+                <button class="op dia" data-dow="4" aria-pressed="false">J</button>
+                <button class="op dia" data-dow="5" aria-pressed="false">V</button>
+                <button class="op dia" data-dow="6" aria-pressed="false">S</button>
+                <button class="op dia" data-dow="0" aria-pressed="false">D</button>
+              </div>
+            </div>
             <div class="campo" style="margin-bottom:14px">
               <label style="color:var(--laton)">¿Cada cuánto?</label>
               <div class="trio">
@@ -412,12 +426,47 @@ document.getElementById('p4').innerHTML=fly('#3A3A4A','FIESTA','PRIVADA','#9A9AB
 const $=id=>document.getElementById(id);
 let serie=false,frec=7;
 const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const diasSel=new Set();               // días marcados a mano
+const ymd=d=>d.toISOString().slice(0,10);
+function dowPrimera(){const d=new Date($('fecha').value+'T12:00');return isNaN(d)?-1:d.getDay();}
+function diasEfectivos(){               // los marcados + el de la primera fecha
+  const s=new Set(diasSel),dp=dowPrimera();
+  if(dp>=0)s.add(dp);
+  return s;
+}
+function pintarDias(){
+  const ef=diasEfectivos();
+  document.querySelectorAll('#dias-semana .dia').forEach(b=>
+    b.setAttribute('aria-pressed', ef.has(+b.dataset.dow)));
+}
+function fechasSerie(){
+  const a=new Date($('fecha').value+'T12:00'),b=new Date($('hasta').value+'T12:00');
+  const ef=diasEfectivos();
+  if(isNaN(a)||isNaN(b)||b<a||!ef.size)return[];
+  const tope=new Date(a);tope.setMonth(tope.getMonth()+3);
+  const lim=b<tope?b:tope;
+  const lunes=new Date(a);lunes.setDate(lunes.getDate()-((a.getDay()+6)%7));
+  const out=new Set();
+  for(let s=0;lunes<=lim&&s<80;s++){
+    ef.forEach(dow=>{const f=new Date(lunes);f.setDate(f.getDate()+((dow+6)%7));
+      if(f>=a&&f<=lim)out.add(ymd(f));});
+    lunes.setDate(lunes.getDate()+frec);
+  }
+  return[...out];
+}
 function calc(){
   if(!serie){$('resumen').textContent='';return;}
+  pintarDias();
   const a=new Date($('fecha').value+'T12:00'),b=new Date($('hasta').value+'T12:00');
   if(isNaN(a)||isNaN(b)||b<a){$('resumen').textContent='Elige una fecha final posterior.';return;}
-  const n=Math.floor((b-a)/(86400000*frec))+1;
-  $('resumen').textContent=`Saldrá todos los ${dias[a.getDay()]}: ${n} fechas en el mapa.`;
+  const orden=[1,2,3,4,5,6,0],ef=diasEfectivos();
+  const ns=orden.filter(d=>ef.has(d)).map(d=>dias[d]);
+  if(!ns.length){$('resumen').textContent='Marca al menos un día de la semana.';return;}
+  const n=fechasSerie().length;
+  const lista=ns.length===1?`todos los ${ns[0]}`:ns.slice(0,-1).join(', ')+' y '+ns[ns.length-1];
+  let t=`Saldrá ${lista}: ${n} ${n===1?'fecha':'fechas'}`;
+  if(n>40)t+=' — te pediremos confirmación antes de enviar.';
+  $('resumen').textContent=t;
 }
 function modo(s){
   serie=s;
@@ -430,6 +479,12 @@ function modo(s){
 }
 $('op-unico').onclick=()=>modo(false);
 $('op-serie').onclick=()=>modo(true);
+document.querySelectorAll('#dias-semana .dia').forEach(b=>b.onclick=function(){
+  const dow=+this.dataset.dow;
+  if(dow===dowPrimera())return;          // el día de la primera fecha no se quita
+  diasSel.has(dow)?diasSel.delete(dow):diasSel.add(dow);
+  calc();
+});
 $('f-sem').onclick=function(){frec=7;this.setAttribute('aria-pressed','true');$('f-qui').setAttribute('aria-pressed','false');calc();};
 $('f-qui').onclick=function(){frec=14;this.setAttribute('aria-pressed','true');$('f-sem').setAttribute('aria-pressed','false');calc();};
 $('fecha').onchange=calc;$('hasta').onchange=calc;

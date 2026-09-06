@@ -1,0 +1,130 @@
+/* ===== EnVivo · pantalla /publicar (mapa del organizador) ===== */
+/* Igual que la pantalla del mapa, pero el pie es un botón "Publicar
+   evento". Sigue "0 · Inicio del organizador" de
+   envivo-pantallas-organizador.html. */
+
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--noche);
+  overflow: hidden;
+}
+
+.top {
+  flex-shrink: 0;
+  padding: 18px 18px 0;
+}
+
+.marca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.marca b {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+}
+.marca b i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+.misEventos {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  padding: 6px 0;
+}
+.misEventos:hover {
+  color: var(--hueso);
+}
+
+.reel {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  scrollbar-width: none;
+}
+.reel::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 7px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filtro[aria-pressed="true"] {
+  background: var(--hueso);
+  color: var(--noche);
+  border-color: var(--hueso);
+  font-weight: 600;
+}
+
+.lienzo {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.lienzo :global(.leaflet-container) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a1f47;
+  font-family: var(--fuente-cuerpo);
+}
+.lienzo :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+.lienzo :global(.leaflet-control-attribution) {
+  background: rgba(22, 26, 61, 0.7);
+  color: var(--hueso-tenue);
+}
+.lienzo :global(.leaflet-control-attribution a) {
+  color: var(--hueso-tenue);
+}
+
+.mapaCargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1f47;
+  color: var(--hueso-tenue);
+  font-size: 13px;
+}
+
+.fab {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 400;
+  padding: 15px;
+  border-radius: 10px;
+  background: var(--laton);
+  color: #231a00;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
