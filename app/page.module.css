@@ -1,0 +1,253 @@
+/* ===== EnVivo · pantalla / (mapa) ===== */
+/* Sigue envivo-pantallas-usuario.html, pero a pantalla completa. */
+
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--noche);
+  overflow: hidden;
+}
+
+/* ---------- barra superior ---------- */
+.top {
+  flex-shrink: 0;
+  padding: 18px 18px 0;
+}
+
+.marca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.marca b {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.03em;
+}
+.marca b i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+.verLista {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  padding: 6px 0;
+}
+.verLista:hover {
+  color: var(--hueso);
+}
+
+.reel {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  scrollbar-width: none;
+}
+.reel::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 7px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.filtro[aria-pressed="true"] {
+  background: var(--hueso);
+  color: var(--noche);
+  border-color: var(--hueso);
+  font-weight: 600;
+}
+
+/* ---------- mapa ---------- */
+.lienzo {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.lienzo :global(.leaflet-container) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a1f47;
+  font-family: var(--fuente-cuerpo);
+}
+/* Oscurece las tiles de OpenStreetMap para que peguen con el índigo. */
+.lienzo :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+.lienzo :global(.leaflet-control-attribution) {
+  background: rgba(22, 26, 61, 0.7);
+  color: var(--hueso-tenue);
+}
+.lienzo :global(.leaflet-control-attribution a) {
+  color: var(--hueso-tenue);
+}
+
+.mapaCargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1f47;
+  color: var(--hueso-tenue);
+  font-size: 13px;
+}
+
+.radioCinta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px 16px;
+  background: linear-gradient(to top, var(--noche) 62%, transparent);
+  pointer-events: none;
+}
+.radioCinta > * {
+  pointer-events: auto;
+}
+.radioCinta span {
+  margin-right: 2px;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+}
+
+.km {
+  min-width: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  background: rgba(22, 26, 61, 0.6);
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 12px;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.km[aria-pressed="true"] {
+  border-color: var(--laton);
+  color: var(--laton);
+}
+
+/* ---------- ficha inferior ---------- */
+.ficha {
+  display: block;
+  flex-shrink: 0;
+  min-height: 132px;
+  padding: 16px 18px 20px;
+  border-top: 1px solid var(--linea);
+  background: var(--noche);
+}
+
+.fichaVacia {
+  padding-top: 8px;
+  color: var(--hueso-tenue);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.fichaCab {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.mini {
+  width: 64px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--noche-3);
+}
+.mini img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.horaGrande {
+  margin-bottom: 6px;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--laton);
+}
+.horaGrande span {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--hueso-tenue);
+}
+
+.nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+
+.sede {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hueso-tenue);
+}
+
+.tiras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 11px;
+}
+.tira {
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--noche-3);
+  color: var(--hueso);
+  font-size: 11.5px;
+}
+.tira.libre {
+  background: rgba(95, 214, 160, 0.15);
+  color: var(--cana);
+}
+.tira.serie {
+  background: rgba(255, 182, 39, 0.14);
+  color: var(--laton);
+}
+
+/* ---------- aviso de error ---------- */
+.aviso {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: rgba(255, 94, 91, 0.12);
+  color: var(--coral);
+  font-size: 12.5px;
+  text-align: center;
+}

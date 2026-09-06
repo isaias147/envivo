@@ -1,65 +1,200 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
+import {
+  dentroDeCaja,
+  GRANADA_CALI,
+  horaCali,
+  RADIOS_KM,
+  rangoFiltro,
+  type EventoPublico,
+  type Filtro,
+  type RadioKm,
+} from "@/lib/eventos";
+import styles from "./page.module.css";
 
-// Esqueleto de la Sesión 1: sin pantallas todavía.
-// Esta página solo comprueba que el cliente de Supabase conecta.
-export const dynamic = "force-dynamic";
+// El mapa se carga solo en el navegador (Leaflet necesita `window`).
+const Mapa = dynamic(() => import("@/components/Mapa"), {
+  ssr: false,
+  loading: () => <div className={styles.mapaCargando}>Cargando mapa…</div>,
+});
 
-async function probarSupabase() {
-  // Consulta mínima a la vista pública. head + count no trae filas, solo el conteo.
-  const { count, error } = await supabase
-    .from("eventos_publicos")
-    .select("*", { count: "exact", head: true });
+const FILTROS: { id: Filtro; etiqueta: string }[] = [
+  { id: "hoy", etiqueta: "Esta noche" },
+  { id: "finde", etiqueta: "Este finde" },
+  { id: "proximos", etiqueta: "Próximos" },
+];
 
-  if (error) {
-    return { ok: false as const, mensaje: error.message };
+export default function Home() {
+  const [eventos, setEventos] = useState<EventoPublico[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState<Filtro>("hoy");
+  const [radioKm, setRadioKm] = useState<RadioKm>(3);
+  const [centro, setCentro] = useState(GRANADA_CALI);
+  const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
+
+  // Ubicación del navegador; si se niega o falla, se queda en Granada.
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setCentro({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setCentro(GRANADA_CALI),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
+  }, []);
+
+  // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      const desde = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+      const { data, error: err } = await supabase
+        .from("eventos_publicos")
+        .select("*")
+        .gte("starts_at", desde)
+        .order("starts_at", { ascending: true });
+
+      if (!vivo) return;
+      if (err) setError(err.message);
+      else setEventos((data as EventoPublico[]) ?? []);
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  // Eventos que pasan el filtro de fecha y caen dentro del radio.
+  const visibles = useMemo(() => {
+    const { desde, hasta } = rangoFiltro(filtro);
+    return eventos.filter((ev) => {
+      if (ev.latitude == null || ev.longitude == null) return false;
+      const t = new Date(ev.starts_at);
+      if (t < desde) return false;
+      if (hasta && t > hasta) return false;
+      return dentroDeCaja(ev, centro, radioKm);
+    });
+  }, [eventos, filtro, centro, radioKm]);
+
+  const seleccionado =
+    visibles.find((e) => e.id === seleccionadoId) ?? null;
+
+  // Cambiar de filtro o de radio cierra la ficha abierta (como el mockup).
+  function cambiarFiltro(f: Filtro) {
+    setFiltro(f);
+    setSeleccionadoId(null);
   }
-  return { ok: true as const, count: count ?? 0 };
-}
-
-export default async function Home() {
-  const resultado = await probarSupabase();
+  function cambiarRadio(km: RadioKm) {
+    setRadioKm(km);
+    setSeleccionadoId(null);
+  }
 
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 20,
-        padding: 24,
-        textAlign: "center",
-      }}
-    >
-      <h1 style={{ fontSize: 40, color: "var(--laton)" }}>EnVivo</h1>
+    <div className={styles.pantalla}>
+      <header className={styles.top}>
+        <div className={styles.marca}>
+          <b>
+            En<i>Vivo</i>
+          </b>
+          <Link href="/lista" className={styles.verLista}>
+            Ver lista
+          </Link>
+        </div>
+        <div className={styles.reel}>
+          {FILTROS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={styles.filtro}
+              aria-pressed={filtro === f.id}
+              onClick={() => cambiarFiltro(f.id)}
+            >
+              {f.etiqueta}
+            </button>
+          ))}
+        </div>
+      </header>
 
-      <p
-        style={{
-          padding: "10px 16px",
-          borderRadius: 999,
-          border: "1px solid var(--linea)",
-          background: "var(--noche-2)",
-          fontSize: 15,
-        }}
-      >
-        {resultado.ok ? (
-          <>
-            <span style={{ color: "var(--cana)" }}>● Supabase conecta</span>{" "}
-            — la vista <code>eventos_publicos</code> respondió con{" "}
-            {resultado.count} evento(s).
-          </>
-        ) : (
-          <>
-            <span style={{ color: "var(--coral)" }}>● Sin conexión con Supabase</span>{" "}
-            — {resultado.mensaje}
-          </>
-        )}
-      </p>
+      {error && (
+        <p className={styles.aviso}>No se pudieron cargar los eventos: {error}</p>
+      )}
 
-      <p style={{ color: "var(--hueso-tenue)", fontSize: 13, maxWidth: 320 }}>
-        Esqueleto listo. Las 8 pantallas se construyen en las próximas sesiones.
-      </p>
-    </main>
+      <div className={styles.lienzo}>
+        <Mapa
+          eventos={visibles}
+          centro={centro}
+          radioKm={radioKm}
+          seleccionadoId={seleccionadoId}
+          onSeleccionar={setSeleccionadoId}
+        />
+        <div className={styles.radioCinta}>
+          <span>Radio</span>
+          {RADIOS_KM.map((km) => (
+            <button
+              key={km}
+              type="button"
+              className={styles.km}
+              aria-pressed={radioKm === km}
+              onClick={() => cambiarRadio(km)}
+            >
+              {km} km
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <FichaInferior evento={seleccionado} />
+    </div>
+  );
+}
+
+function FichaInferior({ evento }: { evento: EventoPublico | null }) {
+  if (!evento) {
+    return (
+      <div className={styles.ficha}>
+        <p className={styles.fichaVacia}>
+          Toca un pin para ver de qué se trata. Los pines en verde son gratis.
+        </p>
+      </div>
+    );
+  }
+
+  const { hhmm, periodo } = horaCali(evento.starts_at);
+  const precio = evento.is_free
+    ? "Gratis"
+    : evento.price_label ?? "Entrada paga";
+
+  return (
+    <Link href={`/evento/${evento.id}`} className={styles.ficha}>
+      <div className={styles.fichaCab}>
+        <div className={styles.mini}>
+          {evento.flyer_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={evento.flyer_url} alt="" />
+          )}
+        </div>
+        <div>
+          <div className={styles.horaGrande}>
+            {hhmm} <span>{periodo.toUpperCase()}</span>
+          </div>
+          <h3 className={styles.nombre}>{evento.title}</h3>
+          {evento.venue_name && <p className={styles.sede}>{evento.venue_name}</p>}
+          <div className={styles.tiras}>
+            <span
+              className={`${styles.tira} ${evento.is_free ? styles.libre : ""}`}
+            >
+              {precio}
+            </span>
+            {evento.es_serie && (
+              <span className={`${styles.tira} ${styles.serie}`}>Serie</span>
+            )}
+            {evento.type && <span className={styles.tira}>{evento.type}</span>}
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }
