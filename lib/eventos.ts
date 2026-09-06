@@ -247,16 +247,11 @@ export function enlaceWhatsapp(numero: string, titulo: string): string {
 }
 
 /**
- * Enlace `geo:` que abre la app de mapas del teléfono en el punto del
- * evento. En escritorio normalmente no hace nada; es una acción pensada
- * para el móvil.
+ * Enlace de direcciones de Google Maps hacia el punto del evento. Abre la
+ * app de Google Maps si está instalada, o el navegador si no, y siempre en
+ * modo "cómo llegar".
  */
-export function enlaceComoLlegar(
-  lat: number,
-  lng: number,
-  etiqueta?: string | null,
-): string {
-  const punto = `${lat},${lng}`;
-  const consulta = etiqueta ? `${punto}(${encodeURIComponent(etiqueta)})` : punto;
-  return `geo:${punto}?q=${consulta}`;
+export function enlaceComoLlegar(lat: number, lng: number): string {
+  const destino = encodeURIComponent(`${lat},${lng}`);
+  return `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
 }

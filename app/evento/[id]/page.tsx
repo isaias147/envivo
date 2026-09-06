@@ -176,11 +176,7 @@ function Detalle({ evento }: { evento: EventoPublico }) {
 
           <a
             className={styles.sec}
-            href={enlaceComoLlegar(
-              evento.latitude,
-              evento.longitude,
-              evento.venue_name,
-            )}
+            href={enlaceComoLlegar(evento.latitude, evento.longitude)}
           >
             Cómo llegar
           </a>
