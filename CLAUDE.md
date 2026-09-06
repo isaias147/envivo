@@ -21,13 +21,14 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
 - Tabla principal: `events`. Vista pública: `eventos_publicos` (ya filtra aprobados y futuros).
 - Función de choques: `hay_choque(whatsapp, lat, lng, starts_at)`.
+- Login admin: `verificar_admin(phone, pin)`. Cambio de PIN: `cambiar_pin_admin(phone, pin_actual, pin_nuevo)` (PIN nuevo de 4 dígitos). Ambas solo desde API routes del servidor.
 - Vista de duplicados: `posibles_duplicados`.
 - Bucket de flyers: `flyers` (público, 3 MB, solo JPG/PNG/WebP).
 - Tablas `admins` y `access_tokens`: cerradas al cliente, solo desde servidor.
 
 ---
 
-## Las 8 pantallas
+## Las pantallas
 
 **Usuario (sin registro, nunca ve un login):**
 1. `/` — mapa con pines, geolocalización, radio 1/3/5 km, filtro Hoy / Este finde / Próximos
@@ -42,6 +43,10 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
 8. `/admin/cola` — aprobar, rechazar, fusionar
+9. `/admin/cambiar-pin` — cambiar el PIN provisional. Si el login devuelve
+   `debeCambiarPin` (columna `must_change_pin`), se redirige aquí antes de la
+   cola. Usa la función `cambiar_pin_admin` por API route del servidor.
+   (Añadida después del arranque; es la única pantalla extra sobre las 8.)
 
 ---
 

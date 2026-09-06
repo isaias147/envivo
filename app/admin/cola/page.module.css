@@ -1,0 +1,498 @@
+/* ===== EnVivo · /admin/cola ===== */
+/* Bloque "2 · Cola de aprobación" de envivo-panel-admin.html. Es la única
+   pantalla de la app pensada también para escritorio (mesa de trabajo). */
+
+.pantalla {
+  min-height: 100dvh;
+  background: #0d0f26;
+  padding: 28px 16px 70px;
+}
+
+.taller {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: var(--noche);
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--linea);
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+.marca em {
+  font-style: normal;
+  color: var(--hueso-tenue);
+  font-weight: 400;
+  font-size: 13px;
+  font-family: var(--fuente-cuerpo);
+  margin-left: 9px;
+}
+
+.derecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pestanas {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.p {
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 7px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.p[aria-pressed="true"] {
+  background: var(--hueso);
+  color: var(--noche);
+  border-color: var(--hueso);
+  font-weight: 600;
+}
+.p b {
+  font-weight: 700;
+  margin-left: 5px;
+}
+
+.salir {
+  border: 1px solid var(--linea);
+  background: transparent;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+}
+.salir:hover {
+  color: var(--hueso);
+  border-color: var(--hueso-tenue);
+}
+
+.cola {
+  padding: 10px 20px 24px;
+}
+
+.nota {
+  color: var(--hueso-tenue);
+  font-size: 14px;
+  padding: 40px 4px;
+}
+.reintentar {
+  background: transparent;
+  border: 0;
+  color: var(--laton);
+  font-family: var(--fuente-cuerpo);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.vacio {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--hueso-tenue);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.vacio b {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  color: var(--hueso);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- tarjeta ---------- */
+
+.tarjeta {
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 18px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.tarjeta.fusion {
+  border-color: rgba(255, 182, 39, 0.45);
+  background: rgba(255, 182, 39, 0.05);
+}
+
+.flyer {
+  width: 104px;
+  height: 130px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--noche-2);
+}
+.flyer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.flyerVacio {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hueso-tenue);
+  font-size: 12px;
+}
+
+.cuerpo {
+  flex: 1;
+  min-width: 240px;
+}
+
+.lineaAlta {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.hora {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 21px;
+  color: var(--laton);
+  letter-spacing: -0.03em;
+}
+.cuando {
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+}
+
+.cuerpo h3 {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.desc {
+  font-size: 13px;
+  color: #cfccc2;
+  line-height: 1.6;
+  margin-top: 8px;
+  max-width: 62ch;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.tg {
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--noche-3);
+  color: var(--hueso);
+}
+.tg.libre {
+  background: rgba(95, 214, 160, 0.15);
+  color: var(--cana);
+}
+.tg.serie {
+  background: rgba(255, 182, 39, 0.14);
+  color: var(--laton);
+}
+.tg.alerta {
+  background: rgba(255, 94, 91, 0.14);
+  color: var(--coral);
+}
+
+.fechas {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin-top: 9px;
+  line-height: 1.7;
+}
+.fechas span {
+  display: inline-block;
+  background: var(--noche-2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin: 2px 4px 2px 0;
+}
+
+.quien {
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+  margin-top: 12px;
+  line-height: 1.7;
+  border-top: 1px solid var(--linea);
+  padding-top: 11px;
+  word-break: break-word;
+}
+.quien b {
+  color: var(--hueso);
+  font-weight: 500;
+}
+.quien a {
+  color: var(--laton);
+}
+
+.mapita {
+  width: 132px;
+  height: 130px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid var(--linea);
+  background: #1a1f47;
+}
+.mapaCargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hueso-tenue);
+  font-size: 11px;
+}
+.mapita :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+/* ---------- acciones ---------- */
+
+.acciones {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.si {
+  background: var(--cana);
+  color: #0a2b1c;
+  border: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 11px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.no {
+  background: transparent;
+  border: 1px solid var(--linea);
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13.5px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.no:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+.mezcla {
+  background: var(--laton);
+  color: #231a00;
+  border: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 11px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ver {
+  background: transparent;
+  border: 1px solid var(--linea);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13.5px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ver:hover {
+  border-color: var(--hueso-tenue);
+}
+.si:disabled,
+.no:disabled,
+.mezcla:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.rechazoCaja {
+  margin-top: 16px;
+}
+.motivo {
+  width: 100%;
+  max-width: 420px;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13.5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  outline: none;
+}
+.motivo:focus {
+  border-color: var(--laton);
+}
+.rechazoCaja .acciones {
+  margin-top: 10px;
+}
+
+/* ---------- "otros de este WhatsApp" ---------- */
+
+.otrosNota {
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+  margin-top: 12px;
+}
+.otros {
+  margin-top: 12px;
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.otroItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--linea);
+}
+.otroItem:last-child {
+  border-bottom: 0;
+}
+.otroFecha {
+  color: var(--hueso-tenue);
+  white-space: nowrap;
+}
+.otroTitulo {
+  flex: 1;
+  color: var(--hueso);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.otroEstado {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--noche-3);
+  color: var(--hueso-tenue);
+  white-space: nowrap;
+}
+.e_aprobado {
+  background: rgba(95, 214, 160, 0.15);
+  color: var(--cana);
+}
+.e_rechazado {
+  background: rgba(255, 94, 91, 0.14);
+  color: var(--coral);
+}
+.e_pendiente {
+  background: rgba(255, 182, 39, 0.14);
+  color: var(--laton);
+}
+
+/* ---------- fusión ---------- */
+
+.avisoFusion {
+  font-size: 12.5px;
+  color: var(--laton);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  width: 100%;
+}
+.parFusion {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.mitad {
+  flex: 1;
+  min-width: 230px;
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  padding: 13px;
+}
+.mitad small {
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+  display: block;
+  margin-bottom: 7px;
+}
+.mitad b {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  display: block;
+  line-height: 1.3;
+}
+.mitad p {
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+  margin-top: 5px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+@media (max-width: 700px) {
+  .pantalla {
+    padding: 16px 10px 50px;
+  }
+  .tarjeta {
+    flex-direction: column;
+  }
+  .mapita {
+    width: 100%;
+    height: 120px;
+  }
+  .flyer {
+    width: 92px;
+    height: 116px;
+  }
+}

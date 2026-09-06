@@ -1,0 +1,129 @@
+/* ===== EnVivo · /admin (entrar al panel) ===== */
+/* Bloque "1 · Entrar" de envivo-panel-admin.html. */
+
+.pantalla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 32px 20px;
+  background: #0d0f26;
+}
+
+.cargando {
+  color: var(--hueso-tenue);
+  font-size: 14px;
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 360px;
+  background: var(--noche);
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  padding: 40px 26px 34px;
+  text-align: center;
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+.titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  margin: 18px 0 8px;
+}
+
+.bajada {
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.etiqueta {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin: 12px 2px 6px;
+}
+
+.tarjeta input {
+  width: 100%;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-size: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  outline: none;
+}
+.tarjeta input:focus {
+  border-color: var(--laton);
+}
+
+.pin {
+  letter-spacing: 0.5em;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+}
+
+.tarjeta button {
+  width: 100%;
+  margin-top: 18px;
+  background: var(--laton);
+  color: #231a00;
+  border: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.tarjeta button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  margin-top: 14px;
+  color: var(--coral);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.exito {
+  margin-top: 14px;
+  color: var(--cana);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.enlaceSalir {
+  display: inline-block;
+  margin-top: 18px;
+  background: transparent;
+  border: 0;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.enlaceSalir:hover {
+  color: var(--hueso);
+}
