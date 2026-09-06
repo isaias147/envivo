@@ -5,11 +5,17 @@
 // Vive solo en el navegador: Leaflet necesita `window`, así que en el
 // formulario se importa con next/dynamic y ssr:false.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { GRANADA_CALI } from "@/lib/eventos";
+import {
+  TILES_ATRIBUCION,
+  TILES_MAX_NATIVE_ZOOM,
+  TILES_MAX_ZOOM,
+  TILES_URL,
+} from "@/lib/mapaTiles";
 
 type Props = {
   /** Punto actual del pin. */
@@ -18,6 +24,12 @@ type Props = {
   movido: boolean;
   /** Se llama con las nuevas coordenadas cada vez que el pin cambia. */
   onCambio: (lat: number, lng: number) => void;
+  /**
+   * Punto al que saltar desde el buscador de ciudad. `id` sube en cada
+   * elección para disparar el salto aunque las coordenadas se repitan; el
+   * salto ignora `movido`.
+   */
+  objetivo?: { lat: number; lng: number; id: number } | null;
 };
 
 // El pin del mockup: etiqueta latón "Aquí" con su pie.
@@ -65,6 +77,21 @@ function Seguir({
   useEffect(() => {
     if (!movido) map.setView([punto.lat, punto.lng], map.getZoom(), { animate: true });
   }, [punto.lat, punto.lng, movido, map]);
+  return null;
+}
+
+/**
+ * Salta a un punto elegido en el buscador de ciudad. A diferencia de
+ * `Seguir`, recentra aunque el usuario ya haya movido el pin.
+ */
+function IrA({ objetivo }: { objetivo?: Props["objetivo"] }) {
+  const map = useMap();
+  const ultimoId = useRef<number | null>(null);
+  useEffect(() => {
+    if (!objetivo || objetivo.id === ultimoId.current) return;
+    ultimoId.current = objetivo.id;
+    map.setView([objetivo.lat, objetivo.lng], 15, { animate: true });
+  }, [objetivo, map]);
   return null;
 }
 
@@ -130,7 +157,12 @@ function TocarParaMover({ onMover }: { onMover: (lat: number, lng: number) => vo
   return null;
 }
 
-export default function MapaSelector({ punto, movido, onCambio }: Props) {
+export default function MapaSelector({
+  punto,
+  movido,
+  onCambio,
+  objetivo,
+}: Props) {
   return (
     <MapContainer
       center={[punto.lat, punto.lng]}
@@ -140,8 +172,10 @@ export default function MapaSelector({ punto, movido, onCambio }: Props) {
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
+        url={TILES_URL}
+        attribution={TILES_ATRIBUCION}
+        maxNativeZoom={TILES_MAX_NATIVE_ZOOM}
+        maxZoom={TILES_MAX_ZOOM}
       />
       <Marker
         position={[punto.lat, punto.lng]}
@@ -156,6 +190,7 @@ export default function MapaSelector({ punto, movido, onCambio }: Props) {
         }}
       />
       <Seguir punto={punto} movido={movido} />
+      <IrA objetivo={objetivo} />
       <TocarParaMover onMover={onCambio} />
       <AjustarTamano />
     </MapContainer>

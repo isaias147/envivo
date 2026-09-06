@@ -16,7 +16,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
-import { GRANADA_CALI } from "@/lib/eventos";
+import {
+  componerWhatsapp,
+  GRANADA_CALI,
+  PAIS_WHATSAPP_POR_DEFECTO,
+  PAISES_WHATSAPP,
+} from "@/lib/eventos";
 import styles from "./page.module.css";
 
 const MapaSelector = dynamic(() => import("@/components/MapaSelector"), {
@@ -160,6 +165,14 @@ type Choque = {
   colisiones: string[]; // subconjunto de `fechas` que choca con algo
 };
 
+// Un resultado del buscador de ciudad (proxy /api/geocode → Nominatim).
+type ResultadoGeo = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
+
 export default function PublicarNuevo() {
   // bifurcación
   const [serie, setSerie] = useState(false);
@@ -173,6 +186,18 @@ export default function PublicarNuevo() {
   const [lugar, setLugar] = useState("");
   const [punto, setPunto] = useState(GRANADA_CALI);
   const [puntoMovido, setPuntoMovido] = useState(false);
+  // Buscador de ciudad (Nominatim) sobre el mini-mapa.
+  const [consultaCiudad, setConsultaCiudad] = useState("");
+  const [resultadosCiudad, setResultadosCiudad] = useState<ResultadoGeo[]>([]);
+  const [buscandoCiudad, setBuscandoCiudad] = useState(false);
+  // Punto al que saltar cuando se elige un resultado; `id` fuerza el salto.
+  const [objetivoMapa, setObjetivoMapa] = useState<{
+    lat: number;
+    lng: number;
+    id: number;
+  } | null>(null);
+  // Evita relanzar la búsqueda cuando el propio "elegir" rellena el campo.
+  const ignorarBusquedaCiudad = useRef(false);
   const [fecha, setFecha] = useState(hoyCali());
   const [hora, setHora] = useState("20:00");
   const [hasta, setHasta] = useState(sumarDiasYmd(hoyCali(), 56));
@@ -185,6 +210,7 @@ export default function PublicarNuevo() {
   // quién publica y contacto
   const [quien, setQuien] = useState<"local" | "organizador" | "artista">("local");
   const [quienNombre, setQuienNombre] = useState("");
+  const [paisWa, setPaisWa] = useState<string>(PAIS_WHATSAPP_POR_DEFECTO); // Colombia
   const [whatsapp, setWhatsapp] = useState("");
   const [instagram, setInstagram] = useState("");
   const [tiktok, setTiktok] = useState("");
@@ -228,6 +254,38 @@ export default function PublicarNuevo() {
     };
   }, [flyerPrev]);
 
+  // Buscador de ciudad: espera a que el organizador termine de escribir
+  // (debounce de 800 ms, según la política de uso de Nominatim) y consulta
+  // el proxy del servidor. Cada tecla cancela la petición anterior.
+  useEffect(() => {
+    if (ignorarBusquedaCiudad.current) {
+      ignorarBusquedaCiudad.current = false;
+      return;
+    }
+    const q = consultaCiudad.trim();
+    if (q.length < 3) return; // el onChange ya limpió los resultados
+
+    const control = new AbortController();
+    const t = setTimeout(async () => {
+      setBuscandoCiudad(true);
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`, {
+          signal: control.signal,
+        });
+        const j = r.ok ? await r.json() : { resultados: [] };
+        setResultadosCiudad(Array.isArray(j.resultados) ? j.resultados : []);
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") setResultadosCiudad([]);
+      } finally {
+        setBuscandoCiudad(false);
+      }
+    }, 800);
+    return () => {
+      clearTimeout(t);
+      control.abort();
+    };
+  }, [consultaCiudad]);
+
   const dowPrimera = fecha ? dowCali(fecha) : -1;
 
   // El día de la primera fecha va siempre en la serie: se fusiona con los
@@ -259,6 +317,21 @@ export default function PublicarNuevo() {
   function elegirPin(lat: number, lng: number) {
     setPunto({ lat, lng });
     setPuntoMovido(true);
+  }
+
+  // Al elegir un resultado del buscador: el mapa salta ahí y el pin se pone
+  // en el centro. El organizador sigue pudiendo arrastrarlo para ajustar.
+  function elegirCiudad(r: ResultadoGeo) {
+    const lat = Number.parseFloat(r.lat);
+    const lng = Number.parseFloat(r.lon);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+    setPunto({ lat, lng });
+    setPuntoMovido(true);
+    setObjetivoMapa({ lat, lng, id: Date.now() });
+    setResultadosCiudad([]);
+    setBuscandoCiudad(false);
+    ignorarBusquedaCiudad.current = true;
+    setConsultaCiudad(r.display_name.split(",").slice(0, 3).join(",").trim());
   }
 
   // Cambios que alteran la forma de la serie: anulan la confirmación pendiente.
@@ -459,7 +532,10 @@ export default function PublicarNuevo() {
    * están todas libres.
    */
   async function buscarChoque(fechas: string[]): Promise<Choque | null> {
-    const wa = whatsapp.trim();
+    // Mismo formato con el que se guarda en `events.whatsapp` (indicativo +
+    // dígitos), para que `hay_choque`, que compara por igualdad exacta,
+    // encuentre los cruces.
+    const wa = componerWhatsapp(paisWa, whatsapp);
     const colisiones: string[] = [];
     let existente: { title: string; starts_at: string } | null = null;
 
@@ -563,7 +639,7 @@ export default function PublicarNuevo() {
         series_id: seriesId,
         publisher_type: quien,
         publisher_name: quienNombre.trim(),
-        whatsapp: whatsapp.trim(),
+        whatsapp: componerWhatsapp(paisWa, whatsapp),
         instagram: instagram.trim() || null,
         tiktok: tiktok.trim() || null,
         post_url: reelUrl,
@@ -701,14 +777,62 @@ export default function PublicarNuevo() {
           />
         </div>
 
-        {/* dónde: pin arrastrable */}
+        {/* dónde: buscador de ciudad + pin arrastrable */}
         <div className={styles.campo}>
-          <label>¿Dónde es?</label>
+          <label htmlFor="buscar-ciudad">¿Dónde es?</label>
+
+          <div className={styles.buscadorCiudad}>
+            <input
+              id="buscar-ciudad"
+              type="text"
+              autoComplete="off"
+              value={consultaCiudad}
+              onChange={(e) => {
+                const v = e.target.value;
+                setConsultaCiudad(v);
+                if (v.trim().length < 3) {
+                  setResultadosCiudad([]);
+                  setBuscandoCiudad(false);
+                }
+              }}
+              onBlur={() =>
+                window.setTimeout(() => setResultadosCiudad([]), 120)
+              }
+              placeholder="Busca una ciudad o lugar"
+            />
+            {buscandoCiudad && (
+              <span className={styles.buscandoCiudad}>Buscando…</span>
+            )}
+            {resultadosCiudad.length > 0 && (
+              <ul className={styles.resultadosCiudad}>
+                {resultadosCiudad.map((r) => (
+                  <li key={r.place_id}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => elegirCiudad(r)}
+                    >
+                      {r.display_name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!buscandoCiudad &&
+              resultadosCiudad.length === 0 &&
+              consultaCiudad.trim().length >= 3 && (
+                <span className={styles.buscandoCiudad}>
+                  Sin resultados. Prueba con otro nombre o mueve el pin a mano.
+                </span>
+              )}
+          </div>
+
           <div className={styles.mapita}>
             <MapaSelector
               punto={punto}
               movido={puntoMovido}
               onCambio={elegirPin}
+              objetivo={objetivoMapa}
             />
             <div className={styles.pista}>
               {puntoMovido
@@ -984,13 +1108,27 @@ export default function PublicarNuevo() {
 
         <div className={styles.campo}>
           <label htmlFor="whatsapp">{labelWhatsapp}</label>
-          <input
-            id="whatsapp"
-            type="tel"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            placeholder="300 123 4567"
-          />
+          <div className={styles.filaPais}>
+            <select
+              id="wa-pais"
+              aria-label="País del WhatsApp"
+              value={paisWa}
+              onChange={(e) => setPaisWa(e.target.value)}
+            >
+              {PAISES_WHATSAPP.map((p) => (
+                <option key={p.nombre} value={p.indicativo}>
+                  {p.nombre} +{p.indicativo}
+                </option>
+              ))}
+            </select>
+            <input
+              id="whatsapp"
+              type="tel"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="300 123 4567"
+            />
+          </div>
           <p className={styles.ayuda}>{ayudaWhatsapp}</p>
         </div>
 

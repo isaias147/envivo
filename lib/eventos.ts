@@ -162,15 +162,88 @@ export function sinArroba(usuario: string): string {
 }
 
 /**
+ * Países admitidos para el WhatsApp del organizador, con su indicativo
+ * telefónico (sin "+"). En orden alfabético (así se muestra el selector);
+ * el valor por defecto es `PAIS_WHATSAPP_POR_DEFECTO`, no el primero.
+ */
+export const PAISES_WHATSAPP = [
+  { nombre: "Argentina", indicativo: "54" },
+  { nombre: "Bolivia", indicativo: "591" },
+  { nombre: "Chile", indicativo: "56" },
+  { nombre: "Colombia", indicativo: "57" },
+  { nombre: "Costa Rica", indicativo: "506" },
+  { nombre: "Ecuador", indicativo: "593" },
+  { nombre: "El Salvador", indicativo: "503" },
+  { nombre: "España", indicativo: "34" },
+  { nombre: "Estados Unidos", indicativo: "1" },
+  { nombre: "Guatemala", indicativo: "502" },
+  { nombre: "Honduras", indicativo: "504" },
+  { nombre: "México", indicativo: "52" },
+  { nombre: "Nicaragua", indicativo: "505" },
+  { nombre: "Panamá", indicativo: "507" },
+  { nombre: "Paraguay", indicativo: "595" },
+  { nombre: "Perú", indicativo: "51" },
+  { nombre: "Puerto Rico", indicativo: "1" },
+  { nombre: "República Dominicana", indicativo: "1" },
+  { nombre: "Uruguay", indicativo: "598" },
+  { nombre: "Venezuela", indicativo: "58" },
+] as const;
+
+/** Indicativo preseleccionado en el formulario: Colombia. */
+export const PAIS_WHATSAPP_POR_DEFECTO = "57";
+
+// Indicativos con los más largos primero, para que "593" gane a "5" al
+// detectar el prefijo de un número guardado.
+const INDICATIVOS = PAISES_WHATSAPP.map((p) => p.indicativo).sort(
+  (a, b) => b.length - a.length,
+);
+
+/**
+ * Limpia un WhatsApp: deja **solo los dígitos**. Nunca antepone un
+ * indicativo (de eso se encarga el selector de país del formulario). "" si
+ * no hay dígitos. Se usa para comparar de forma estable en el panel de
+ * admin, los tokens y /mis-eventos.
+ */
+export function normalizarWhatsapp(valor: string | null | undefined): string {
+  return (valor ?? "").replace(/\D/g, "");
+}
+
+/**
+ * Une el indicativo elegido en el selector con lo que se escribió en el
+ * campo, y devuelve "indicativo + dígitos" sin espacios ni símbolos. Si el
+ * campo ya trae el indicativo delante (número internacional pegado entero),
+ * no lo duplica.
+ */
+export function componerWhatsapp(
+  indicativo: string,
+  campo: string | null | undefined,
+): string {
+  const d = normalizarWhatsapp(campo);
+  if (!d) return "";
+  return d.startsWith(indicativo) ? d : `${indicativo}${d}`;
+}
+
+/**
+ * "573001234567" → "+57 300 123 4567" para mostrarlo a una persona. Detecta
+ * el indicativo por el prefijo; si no reconoce ninguno, devuelve "+" y los
+ * dígitos.
+ */
+export function formatearWhatsapp(valor: string | null | undefined): string {
+  const d = normalizarWhatsapp(valor);
+  if (!d) return "";
+  const ind = INDICATIVOS.find((i) => d.startsWith(i) && d.length > i.length);
+  if (!ind) return `+${d}`;
+  const resto = d.slice(ind.length).replace(/(\d{3})(?=\d)/g, "$1 ");
+  return `+${ind} ${resto}`;
+}
+
+/**
  * Enlace de WhatsApp con el mensaje ya escrito. El número es el del
- * local u organizador (nunca el del artista). Se le dejan solo dígitos;
- * si viene con 10 (celular colombiano sin indicativo), se le antepone 57.
+ * local u organizador (nunca el del artista).
  */
 export function enlaceWhatsapp(numero: string, titulo: string): string {
-  const digitos = numero.replace(/\D/g, "");
-  const conPais = digitos.length === 10 ? `57${digitos}` : digitos;
   const texto = `Hola, vi "${titulo}" en EnVivo y quiero preguntar por el evento.`;
-  return `https://wa.me/${conPais}?text=${encodeURIComponent(texto)}`;
+  return `https://wa.me/${normalizarWhatsapp(numero)}?text=${encodeURIComponent(texto)}`;
 }
 
 /**

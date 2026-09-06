@@ -89,9 +89,6 @@
   background: #1a1f47;
   font-family: var(--fuente-cuerpo);
 }
-.lienzo :global(.leaflet-tile-pane) {
-  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
-}
 .lienzo :global(.leaflet-control-attribution) {
   background: rgba(22, 26, 61, 0.7);
   color: var(--hueso-tenue);

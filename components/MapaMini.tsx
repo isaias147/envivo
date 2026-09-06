@@ -8,6 +8,12 @@ import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import {
+  TILES_ATRIBUCION,
+  TILES_MAX_NATIVE_ZOOM,
+  TILES_MAX_ZOOM,
+  TILES_URL,
+} from "@/lib/mapaTiles";
 
 const PIN = L.divIcon({
   className: "",
@@ -50,8 +56,10 @@ export default function MapaMini({
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
+        url={TILES_URL}
+        attribution={TILES_ATRIBUCION}
+        maxNativeZoom={TILES_MAX_NATIVE_ZOOM}
+        maxZoom={TILES_MAX_ZOOM}
       />
       <Marker position={[lat, lng]} icon={PIN} />
       <Recalcular />

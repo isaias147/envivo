@@ -290,10 +290,6 @@
   color: var(--hueso-tenue);
   font-size: 11px;
 }
-.mapita :global(.leaflet-tile-pane) {
-  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
-}
-
 /* ---------- acciones ---------- */
 
 .acciones {

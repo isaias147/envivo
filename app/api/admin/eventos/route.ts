@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionAdmin } from "@/lib/adminSesion";
+import { normalizarWhatsapp } from "@/lib/eventos";
 
 export async function GET(request: Request) {
   const sesion = await leerSesionAdmin();
@@ -13,7 +14,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Sin sesión." }, { status: 401 });
   }
 
-  const whatsapp = new URL(request.url).searchParams.get("whatsapp")?.trim();
+  const whatsapp = normalizarWhatsapp(
+    new URL(request.url).searchParams.get("whatsapp"),
+  );
   if (!whatsapp) {
     return NextResponse.json({ error: "Falta el WhatsApp." }, { status: 400 });
   }

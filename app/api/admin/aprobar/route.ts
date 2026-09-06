@@ -6,6 +6,8 @@
 import { NextResponse } from "next/server";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionAdmin } from "@/lib/adminSesion";
+import { tokenParaWhatsapp } from "@/lib/tokenOrganizador";
+import { normalizarWhatsapp } from "@/lib/eventos";
 
 export async function POST(request: Request) {
   const sesion = await leerSesionAdmin();
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Faltan los eventos." }, { status: 400 });
   }
 
-  const { error } = await supabaseServidor
+  const { data: aprobados, error } = await supabaseServidor
     .from("events")
     .update({
       status: "aprobado",
@@ -32,7 +34,8 @@ export async function POST(request: Request) {
       reviewed_at: new Date().toISOString(),
     })
     .in("id", ids as string[])
-    .eq("status", "pendiente");
+    .eq("status", "pendiente")
+    .select("whatsapp");
 
   if (error) {
     return NextResponse.json(
@@ -41,5 +44,25 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  // Cada WhatsApp recién aprobado necesita su link de /mis-eventos (se crea
+  // una vez y se reutiliza). Si algo falla aquí, el evento ya quedó aprobado:
+  // no lo revertimos, solo omitimos ese link.
+  const numeros = [
+    ...new Set(
+      (aprobados ?? [])
+        .map((e) => normalizarWhatsapp(e.whatsapp))
+        .filter((w) => w.length > 0),
+    ),
+  ];
+  const misEventos: { whatsapp: string; token: string }[] = [];
+  for (const wa of numeros) {
+    try {
+      const token = await tokenParaWhatsapp(wa);
+      if (token) misEventos.push({ whatsapp: wa, token });
+    } catch {
+      // link no generado; la aprobación sigue en pie
+    }
+  }
+
+  return NextResponse.json({ ok: true, misEventos });
 }

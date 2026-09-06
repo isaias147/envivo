@@ -8,6 +8,12 @@ import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { horaCali, type EventoPublico } from "@/lib/eventos";
+import {
+  TILES_ATRIBUCION,
+  TILES_MAX_NATIVE_ZOOM,
+  TILES_MAX_ZOOM,
+  TILES_URL,
+} from "@/lib/mapaTiles";
 
 type Props = {
   eventos: EventoPublico[];
@@ -213,9 +219,10 @@ export default function Mapa({
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        maxZoom={19}
+        url={TILES_URL}
+        attribution={TILES_ATRIBUCION}
+        maxNativeZoom={TILES_MAX_NATIVE_ZOOM}
+        maxZoom={TILES_MAX_ZOOM}
       />
 
       {/* Radio de búsqueda alrededor del punto de referencia. */}

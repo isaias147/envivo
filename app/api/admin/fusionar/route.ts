@@ -7,6 +7,8 @@
 import { NextResponse } from "next/server";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionAdmin } from "@/lib/adminSesion";
+import { tokenParaWhatsapp } from "@/lib/tokenOrganizador";
+import { normalizarWhatsapp } from "@/lib/eventos";
 
 type Evento = {
   id: string;
@@ -123,5 +125,16 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, conservado: conserva.id });
+  // El evento que queda es del local: genera (o reutiliza) su link de
+  // /mis-eventos. Si falla, la fusión ya está hecha; solo se omite el link.
+  let misEventos: { whatsapp: string; token: string } | null = null;
+  try {
+    const wa = normalizarWhatsapp(conserva.whatsapp);
+    const token = await tokenParaWhatsapp(wa);
+    if (token) misEventos = { whatsapp: wa, token };
+  } catch {
+    // link no generado; la fusión sigue en pie
+  }
+
+  return NextResponse.json({ ok: true, conservado: conserva.id, misEventos });
 }

@@ -21,6 +21,7 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
 - Tabla principal: `events`. Vista pública: `eventos_publicos` (ya filtra aprobados y futuros).
 - Función de choques: `hay_choque(whatsapp, lat, lng, starts_at)`.
+- **WhatsApp del organizador**: se guarda como indicativo de país + dígitos, sin espacios ni símbolos (`573001234567`). El formulario `/publicar/nuevo` tiene un selector de país (`PAISES_WHATSAPP` en `lib/eventos.ts`; Colombia +57 por defecto). Helpers: `componerWhatsapp(indicativo, campo)` (solo el formulario antepone indicativo, con esto), `normalizarWhatsapp()` (solo limpia caracteres, nunca antepone nada — para comparar en panel/tokens/`/mis-eventos`), `formatearWhatsapp()` (para mostrar). Es la clave que une `events.whatsapp`, `access_tokens.whatsapp` y `hay_choque`. El `phone` del admin es otro campo y no se toca.
 - Login admin: `verificar_admin(phone, pin)`. Cambio de PIN: `cambiar_pin_admin(phone, pin_actual, pin_nuevo)` (PIN nuevo de 4 dígitos). Ambas solo desde API routes del servidor.
 - Vista de duplicados: `posibles_duplicados`.
 - Bucket de flyers: `flyers` (público, 3 MB, solo JPG/PNG/WebP).
@@ -38,7 +39,14 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 **Organizador (sin registro, link entregado por QR o WhatsApp):**
 4. `/publicar` — el mapa con botón "Publicar evento"
 5. `/publicar/nuevo` — el formulario
-6. `/mis-eventos/[token]` — lo que ha publicado ese WhatsApp
+6. `/mis-eventos/[token]` — lo que ha publicado ese WhatsApp, en cuatro
+   secciones (En el mapa / En revisión / No publicado / Ya pasaron). Solo
+   lectura. El token vive en `access_tokens` y se genera (o se reutiliza)
+   desde la API route del servidor al aprobar o fusionar el primer evento
+   de ese WhatsApp.
+   `/mis-eventos` (sin token) es una pantalla-puente: no hay nada que
+   mostrar sin el link personal, así que solo explica dónde encontrarlo.
+   (Añadida después del arranque; es la única pantalla extra del organizador.)
 
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
@@ -46,7 +54,7 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 9. `/admin/cambiar-pin` — cambiar el PIN provisional. Si el login devuelve
    `debeCambiarPin` (columna `must_change_pin`), se redirige aquí antes de la
    cola. Usa la función `cambiar_pin_admin` por API route del servidor.
-   (Añadida después del arranque; es la única pantalla extra sobre las 8.)
+   (Añadida después del arranque; es la única pantalla extra del admin.)
 
 ---
 
