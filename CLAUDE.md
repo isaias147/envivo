@@ -6,11 +6,46 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 
 ---
 
+## Decisiones fijas (no re-litigar en ninguna sesión)
+
+Estas decisiones ya se tomaron y se evaluaron a fondo. Una sesión de Claude Code
+**no las revierte ni las "mejora"** por su cuenta. Si algo parece que hace falta
+cambiar, se me pregunta primero.
+
+- **Una sola PWA, dos entradas por rol:** `/` para el público, `/publicar` para
+  el publicador. **Nunca** dos apps separadas.
+- **Mapa: OpenStreetMap servido por Stadia Maps, en modo oscuro.** No Google Maps
+  (decisión final tras evaluar costos). El detalle de tiles y filtro está en la
+  memoria `tiles-mapa-oscuro`; el estilo objetivo es *Alidade Smooth Dark* del
+  mismo proveedor (no se suma un proveedor nuevo).
+- **POI (lugares de interés):** se cargan desde un **archivo de descarga** ya
+  definido (export puntual), **no** desde una API en vivo.
+- **Sin estrellas, sin reseñas, sin recomendaciones.** El mapa es **cronológico**;
+  no hay ranking ni puja por posición.
+- **Registro del público:** con Google, **opcional**, solo para seguir
+  publicadores y recibir avisos. **Planeado para Fase 2 (Sesión 14 del spec).**
+  Hoy **no existe**: el usuario nunca ve un login.
+- **Registro del publicador:** WhatsApp verificado por **código de 4 dígitos vía
+  `wa.me`**, nunca Google. **Planeado (Fase 2).** Hoy el publicador tampoco ve
+  login: el acceso es por link de QR/WhatsApp.
+- **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
+  a partir de ahí. (Fase 2.)
+- **Monetización (sin puja por posición):** dos productos —
+  - *Pin destacado* por evento puntual: **$15.000–20.000 COP**.
+  - *Perfil destacado* mensual: **$40.000–60.000 COP**.
+  - **3 meses gratis** de lanzamiento.
+
+---
+
 ## Stack
 
 - **Next.js** (App Router) como PWA — instalable, con manifiesto y service worker
 - **Supabase** — proyecto ya existente, tablas ya creadas (no crear tablas nuevas sin avisarme)
-- **react-leaflet + OpenStreetMap** para el mapa (sin API key, sin Google Maps)
+- **react-leaflet + OpenStreetMap** para el mapa, servido por **Stadia Maps** en
+  modo oscuro (requiere `NEXT_PUBLIC_STADIA_API_KEY`; ver memoria
+  `tiles-mapa-oscuro`). **Sin Google Maps.**
+- **POI** (lugares de interés bajo los pines): archivo de descarga estático ya
+  definido, no una API en vivo.
 - **Netlify** para el deploy
 - Móvil primero. Todo se diseña para una pantalla de 380px de ancho.
 
@@ -27,6 +62,15 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 - Bucket de flyers: `flyers` (público, 3 MB, solo JPG/PNG/WebP).
 - Tablas `admins` y `access_tokens`: cerradas al cliente, solo desde servidor.
 
+### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
+
+- `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `whatsapp_cuenta` (**clave privada, no se expone al cliente** — se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
+- `phone_codes` — códigos OTP de 4 dígitos para verificar el WhatsApp del publicador. **Cerrada, solo servidor** (`phone_codes_no_client`).
+- `seguimientos` — un `auth.users` sigue a un `perfiles`. PK `(user_id, perfil_id)`. RLS: insert/delete/select solo del propio `user_id`.
+- `events.perfil_id` — FK opcional a `perfiles`. **Convive** con los campos planos (`publisher_*`, `whatsapp`); no hay backfill todavía.
+- `eventos_publicos` ahora hace LEFT JOIN a `perfiles` y expone `perfil_slug`, `perfil_nombre`, `perfil_tipo`, `perfil_imagen_url`, `perfil_verificado`, `perfil_seguidores_publicos`.
+- **Ojo:** la base arrastra un esquema grande de otra app (`profiles`, `follows`, `businesses`, `organizers`, `artists`, `influencers`, `offers`, `checkins`, `trending_scores`, `push_tokens`, `saved_items`, `influencer_reviews`). EnVivo **no lo usa** — no confundir `profiles` (app vieja, 1:1 con `auth.users`) con `perfiles` (EnVivo). Ver memoria `esquema-supabase-real`.
+
 ---
 
 ## Las pantallas
@@ -35,6 +79,9 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
 1. `/` — mapa con pines, geolocalización, radio 1/3/5 km, filtro Hoy / Este finde / Próximos
 2. `/lista` — los mismos eventos en lista
 3. `/evento/[id]` — detalle
+
+> Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
+> publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.
 
 **Organizador (sin registro, link entregado por QR o WhatsApp):**
 4. `/publicar` — el mapa con botón "Publicar evento"
@@ -48,6 +95,26 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
    mostrar sin el link personal, así que solo explica dónde encontrarlo.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
+**Alta del publicador (Sesión 12 — verificación por WhatsApp, sin Google):**
+- `/registro` — paso 1: elegir tipo (local/organizador/artista). Paso 2:
+  nombre + WhatsApp de cuenta. Al enviar → `/api/registro/iniciar` genera un
+  código de 4 dígitos en `phone_codes` (expira 10 min, tope 3/hora/número) y
+  deja la cookie provisional `envivo_registro`.
+- `/registro/verificar` — muestra el código; botón "Enviar por WhatsApp"
+  (`wa.me` al número de EnVivo, mensaje `EnVivo 1234`). Polling a
+  `/api/registro/estado` cada 5 s.
+- `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
+  Instagram, TikTok, WhatsApp público (prellenado). Al enviar crea el
+  `perfiles`, el `access_token`, la sesión `envivo_publicador` (cookie
+  firmada HMAC, como el admin) y va a `/panel`.
+- `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
+  (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
+- Detección del mensaje de WhatsApp: **modo manual** (`/admin/registro`, el
+  equipo confirma el código a mano). El webhook de la Cloud API está escrito
+  en `/api/wa/webhook` pero **dormido**: se activa solo al definir
+  `WHATSAPP_APP_SECRET` + `WHATSAPP_VERIFY_TOKEN`.
+- Env nueva: `NEXT_PUBLIC_ENVIVO_WHATSAPP` (número de EnVivo para el `wa.me`).
+
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
 8. `/admin/cola` — aprobar, rechazar, fusionar
@@ -55,6 +122,9 @@ Habla conmigo en español. Soy principiante: explícame qué vas a hacer antes d
    `debeCambiarPin` (columna `must_change_pin`), se redirige aquí antes de la
    cola. Usa la función `cambiar_pin_admin` por API route del servidor.
    (Añadida después del arranque; es la única pantalla extra del admin.)
+10. `/admin/registro` — códigos de verificación por confirmar a mano
+    (Sesión 12). Lista los `phone_codes` vigentes con número + código; el
+    botón "Confirmar" marca `used_at`. Poll cada 10 s.
 
 ---
 
@@ -89,18 +159,31 @@ Estética de cartelera de conciertos. Fondo índigo, no negro.
 
 ## Línea roja
 
-Esto es un MVP. **No agregues nada de esta lista aunque parezca buena idea:**
+Esto es un MVP. **No construyas nada de esto por tu cuenta**, ni aunque parezca
+buena idea o "ya que estamos".
 
-- Registro o login de organizadores
-- Perfiles de usuario, avatares, seguir, guardar favoritos
+**Prohibido siempre:**
+
+- Perfiles de usuario con avatar, biografía o muro
 - Dashboard de métricas o estadísticas
-- Notificaciones push
+- Notificaciones push del navegador
 - Sistema de moods o filtros por estado de ánimo
 - Ofertas, reseñas, check-ins, ranking, comentarios
-- Venta de boletas o pagos
+- Venta de boletas de eventos (ticketing)
 - Chat interno
+- Puja por posición en el mapa (el orden es cronológico y no se toca)
 
-Si crees que algo de esto hace falta, dímelo y lo decido yo. No lo construyas por tu cuenta.
+**Planeado, pero NO en el MVP actual** (no lo adelantes; cada cosa se construye
+en su sesión del spec — ver "Decisiones fijas"):
+
+- Login con Google para el público — Fase 2, Sesión 14 (seguir publicadores,
+  recibir avisos)
+- Verificación del publicador por código de 4 dígitos vía `wa.me` — Fase 2
+- Lista de seguidores (privada ≤ 25, pública después) — Fase 2
+- Cobro de "pin destacado" y "perfil destacado" — los productos y precios ya
+  están decididos; la pasarela de pago va en su propia sesión
+
+Si crees que algo de esto hace falta antes de tiempo, dímelo y lo decido yo.
 
 Al terminar cada sesión de trabajo, revisa que no hayamos agregado nada fuera de este documento.
 
