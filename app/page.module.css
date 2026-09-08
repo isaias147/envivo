@@ -25,12 +25,6 @@
   font-family: var(--fuente-cuerpo);
 }
 
-/* OSM Bright es un mapa claro: se invierte solo el panel de tiles para
-   volverlo oscuro (los pines y controles quedan intactos). */
-.lienzo :global(.leaflet-tile-pane) {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
-}
-
 .mapaCargando {
   position: absolute;
   inset: 0;

@@ -66,9 +66,11 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   const { hhmm } = horaCali(ev.starts_at);
   const nombre =
     ev.title.length > 20 ? `${ev.title.slice(0, 20).trim()}…` : ev.title;
-  const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#161A3D";
-  // Sobre latón o verde el texto va índigo; sobre el índigo normal, hueso.
-  const texto = activo || ev.is_free ? "#161A3D" : "#F4F1E8";
+  // Chip claro por defecto (como el mockup), verde si es gratis, latón si
+  // está seleccionado. El texto siempre va índigo: se lee sobre los tres
+  // fondos y sobre el mapa oscuro (Alidade Smooth Dark).
+  const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#F4F1E8";
+  const texto = "#161A3D";
   const tamHora = activo ? 13 : 11.5;
   const tamNombre = activo ? 12 : 11;
   const anchoMax = activo ? 168 : 132;
