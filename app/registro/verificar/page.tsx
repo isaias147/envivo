@@ -13,7 +13,11 @@ import { useRouter } from "next/navigation";
 import { formatearWhatsapp } from "@/lib/eventos";
 import styles from "../registro.module.css";
 
-const LARGO = 4;
+// SMS lo genera Twilio Verify (Code Length = 6); el correo lo generamos
+// nosotros en lib/codigoCorreo.ts con 4 dígitos.
+const LARGO_SMS = 6;
+const LARGO_CORREO = 4;
+const largoDe = (canal: string) => (canal === "email" ? LARGO_CORREO : LARGO_SMS);
 type Canal = "sms" | "email";
 
 export default function Verificar() {
@@ -140,6 +144,7 @@ function Canal({
   verificado: boolean;
   onVerificado: () => void;
 }) {
+  const LARGO = largoDe(canal);
   const [valores, setValores] = useState<string[]>(Array(LARGO).fill(""));
   const [enviando, setEnviando] = useState(false);
   const [reenviando, setReenviando] = useState(false);

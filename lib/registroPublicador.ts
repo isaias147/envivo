@@ -16,6 +16,7 @@
 import "server-only";
 
 import { supabaseServidor } from "@/lib/supabaseServidor";
+import { comprobarCodigoCorreo, enviarCodigoCorreo } from "@/lib/codigoCorreo";
 import { normalizarWhatsapp } from "@/lib/eventos";
 import type { TipoPerfil } from "@/lib/tiposPerfil";
 
@@ -47,7 +48,7 @@ export function candadoContacto(ultimoCambio: string | null | undefined): {
 // Largo del código que manda Twilio Verify. El servicio de Verify tiene que
 // estar configurado en la consola de Twilio con "Code Length = 4" para que
 // coincida con las 4 casillas de /registro/verificar.
-export const LARGO_CODIGO = 4;
+export const LARGO_CODIGO = 6;
 
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID || "";
 const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
@@ -165,6 +166,8 @@ export async function iniciarVerificacion(
     };
   }
 
+  if (canal === "email") return enviarCodigoCorreo(to);
+
   const res = await llamarTwilio("Verifications", { To: to, Channel: canal });
   if (!res.ok) return res;
   return { ok: true };
@@ -181,7 +184,14 @@ export async function comprobarCodigo(
 ): Promise<ResultadoVerificacion> {
   const to = destinoTwilio(destinoCrudo, canal);
   const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
-  if (!to || codigo.length !== LARGO_CODIGO) {
+  if (!to) {
+    return { ok: false, error: "Escribí el código completo.", status: 400 };
+  }
+
+  // El correo usa su propio largo (4) y valida adentro; el SMS usa el de Twilio (6).
+  if (canal === "email") return comprobarCodigoCorreo(to, codigo);
+
+  if (codigo.length !== LARGO_CODIGO) {
     return { ok: false, error: "Escribí el código completo.", status: 400 };
   }
 
