@@ -11,43 +11,15 @@
 // firmada `envivo_registro` (flag `verificado`, que solo pone el servidor).
 // El `perfiles` se crea recién al final (/api/registro/perfil).
 
+import "server-only";
+
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { normalizarWhatsapp } from "@/lib/eventos";
-import type { TipoPerfil } from "@/lib/sesionPublicador";
+import type { TipoPerfil } from "@/lib/tiposPerfil";
 
-export const TIPOS_PERFIL: {
-  valor: TipoPerfil;
-  icono: string;
-  titulo: string;
-  detalle: string;
-  etiquetaNombre: string;
-}[] = [
-  {
-    valor: "local",
-    icono: "🏠",
-    titulo: "Local",
-    detalle: "Bar, restaurante, escuela, parque",
-    etiquetaNombre: "Nombre del local",
-  },
-  {
-    valor: "organizador",
-    icono: "📋",
-    titulo: "Organizador",
-    detalle: "Monta eventos en distintos lugares",
-    etiquetaNombre: "Nombre o marca",
-  },
-  {
-    valor: "artista",
-    icono: "🎤",
-    titulo: "Artista",
-    detalle: "Toca o se presenta en eventos de otros",
-    etiquetaNombre: "Nombre artístico",
-  },
-];
-
-export function esTipoPerfil(v: unknown): v is TipoPerfil {
-  return v === "local" || v === "organizador" || v === "artista";
-}
+// `TipoPerfil`, `TIPOS_PERFIL` y `esTipoPerfil` viven en `lib/tiposPerfil.ts`
+// (sin dependencias de servidor) para que el Client Component `/registro`
+// pueda importarlos sin arrastrar la service_role key de `supabaseServidor`.
 
 // Candado de contacto: Instagram y WhatsApp público quedan bloqueados 30
 // días desde el último cambio (`perfiles.ultimo_cambio_contacto`). El nombre

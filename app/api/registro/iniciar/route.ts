@@ -8,7 +8,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { componerWhatsapp } from "@/lib/eventos";
-import { esTipoPerfil, iniciarVerificacion } from "@/lib/registroPublicador";
+import { iniciarVerificacion } from "@/lib/registroPublicador";
+import { esTipoPerfil } from "@/lib/tiposPerfil";
 import { COOKIE_REGISTRO, crearTokenRegistro } from "@/lib/sesionPublicador";
 
 export async function POST(request: Request) {

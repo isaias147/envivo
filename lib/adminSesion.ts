@@ -5,6 +5,8 @@
 // secreto). El secreto es la propia service_role key, que nunca sale del
 // servidor; si algún día quieres uno aparte, define ADMIN_SESSION_SECRET.
 
+import "server-only";
+
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 

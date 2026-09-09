@@ -57,6 +57,7 @@ cambiar, se me pregunta primero.
 - URL del proyecto: `https://ktzrqeoemyzqdcljqeaq.supabase.co`
 - El frontend usa **solo la anon key**, en variables de entorno.
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
+- **Barrera server/cliente:** `lib/supabaseServidor.ts`, `sesionPublicador.ts`, `adminSesion.ts`, `tokenOrganizador.ts` y `registroPublicador.ts` empiezan con `import "server-only";` — si un Client Component los importa (directa o transitivamente), el **build falla**. Lo que sí necesita el cliente de esos módulos (hoy: `TipoPerfil`, `TIPOS_PERFIL`, `esTipoPerfil`) vive en `lib/tiposPerfil.ts`, que no importa nada de servidor. No mover cosas de `tiposPerfil.ts` de vuelta a `registroPublicador.ts`.
 - Tabla principal: `events`. Vista pública: `eventos_publicos` (ya filtra aprobados y futuros).
 - `events.reubicado_pendiente` (boolean, default false) — Sesión 13, paso 6: el publicador movió el pin >500 m al editar un evento publicado. Solo bandera; el conteo (`veces_movido`, aviso a las 2 reubicaciones) es de la Sesión 18, que la reemplaza o complementa.
 - Función de choques: `hay_choque(whatsapp, lat, lng, starts_at)`.

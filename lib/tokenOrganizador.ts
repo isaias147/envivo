@@ -6,6 +6,8 @@
 // primera vez que le aprobamos (o fusionamos) un evento y se reutiliza
 // siempre que vuelva a publicar con el mismo número.
 
+import "server-only";
+
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { normalizarWhatsapp } from "@/lib/eventos";
 

@@ -17,8 +17,11 @@
 // El secreto es la service_role key (o ADMIN_SESSION_SECRET si se define
 // aparte), igual que la sesión del panel de admin.
 
+import "server-only";
+
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import type { TipoPerfil } from "@/lib/tiposPerfil";
 
 export const COOKIE_REGISTRO = "envivo_registro";
 export const COOKIE_PUBLICADOR = "envivo_publicador";
@@ -37,7 +40,9 @@ if (!secreto) {
   );
 }
 
-export type TipoPerfil = "local" | "organizador" | "artista";
+// `TipoPerfil` vive en `lib/tiposPerfil.ts` (sin deps de servidor). Se
+// re-exporta por compatibilidad con quien lo importaba desde aquí.
+export type { TipoPerfil } from "@/lib/tiposPerfil";
 
 export type DatosRegistro = {
   tipo: TipoPerfil;

@@ -12,8 +12,7 @@ import {
   PAISES_WHATSAPP,
   PAIS_WHATSAPP_POR_DEFECTO,
 } from "@/lib/eventos";
-import { TIPOS_PERFIL } from "@/lib/registroPublicador";
-import type { TipoPerfil } from "@/lib/sesionPublicador";
+import { TIPOS_PERFIL, type TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./registro.module.css";
 
 export default function Registro() {
