@@ -190,7 +190,11 @@ export default async function PerfilPublico({
             </p>
           )}
 
-          <AccionesPerfil nombre={nombre} whatsappPublico={waPublico} />
+          <AccionesPerfil
+            perfilId={perfil.id}
+            nombre={nombre}
+            whatsappPublico={waPublico}
+          />
 
           <div className={styles.rotulo}>Próximos eventos</div>
           {proximos.length === 0 ? (

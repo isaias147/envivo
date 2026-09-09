@@ -14,27 +14,9 @@
   gap: 8px;
 }
 
-/* CTA en latón sólido (no cristal): es la acción principal del perfil. */
-.seguir {
+/* El botón Seguir (components/BotonSeguir) ocupa el resto de la fila. */
+.seguirSlot {
   flex: 1;
-  padding: 12px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--laton);
-  color: var(--noche);
-  font-family: var(--fuente-titulo);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-}
-.seguir[aria-pressed="true"] {
-  flex: none;
-  padding: 12px 20px;
-  background: transparent;
-  color: var(--hueso-tenue);
-  border: 1px solid var(--linea);
-  cursor: default;
 }
 
 .icono {
@@ -53,10 +35,4 @@
 }
 .icono:hover {
   border-color: var(--hueso-tenue);
-}
-
-.aviso {
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--hueso-tenue);
 }

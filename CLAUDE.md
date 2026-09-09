@@ -79,15 +79,25 @@ cambiar, se me pregunta primero.
   restaurarlo al volver, vía `<RestaurarScrollLogin>` en el layout),
   `useUsuario()` (hook), `salir()`.
 - `components/ModalEntrarConGoogle.tsx` — hoja inferior (portal a `<body>`),
-  patrón del slot 2 de `envivo-grupo1-publico.html`. Paso 1: **no está
-  conectado a ningún botón**; se prueba desde `/pruebas/entrar` (página
-  **temporal**, borrar en el paso 2).
-- **Falta configurar Google en el dashboard** (Supabase Auth → Providers →
-  Google + Google Cloud Console; redirect URI
-  `https://ktzrqeoemyzqdcljqeaq.supabase.co/auth/v1/callback`). Hoy
-  `settings.external.google = false`: el botón muestra error hasta que se
-  habilite. Y en Auth → URL Configuration agregar la URL de Netlify y
-  `http://localhost:3000/**` a Redirect URLs.
+  patrón del slot 2 de `envivo-grupo1-publico.html`. Página de prueba suelta
+  en `/pruebas/entrar` (**temporal**, borrar cuando ya no haga falta).
+- **Seguir (Sesión 14, paso 2)** — `components/BotonSeguir.tsx`: sin sesión
+  de usuario final abre el modal (y deja marcado el perfil en
+  `sessionStorage` para completar el follow al volver); con sesión hace
+  `POST /api/seguir { perfilId, accion: "seguir"|"dejar" }`. Optimista +
+  `router.refresh()` (así el contador de `/p/[slug]`, Server Component
+  `force-dynamic`, se recuenta — recordá que solo se *muestra* con 25+).
+  Está en `/p/[slug]` (dentro de `AccionesPerfil`) y en `/evento/[id]`
+  (tarjeta "Publicado por"); en ambos sigue al **perfil**, no al evento.
+- `POST /api/seguir` — **no confía en el frontend**: exige el `access_token`
+  del usuario en `Authorization: Bearer`, lo valida con `getUser()`, y crea
+  un cliente Supabase CON ese token, así que la RLS de `seguimientos`
+  (`user_id = auth.uid()`) sigue aplicando. `user_id` sale del token, nunca
+  del body. `upsert` idempotente al seguir.
+- Google OAuth **ya habilitado** en Supabase (`external.google = true`,
+  Client ID/Secret puestos). Si al volver del login cae en la home en vez de
+  la URL de origen, falta agregar `http://localhost:3000/**` y la URL de
+  Netlify en Auth → URL Configuration → Redirect URLs.
 
 ### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
 
@@ -113,9 +123,10 @@ cambiar, se me pregunta primero.
     paso 1). Server Component: foto, tipo, redes; "Próximos eventos"
     (mini-mapa + lista desde `eventos_publicos` por `perfil_id`) y "Ya
     pasaron" (últimos 10 desde `events`, `status='aprobado'`). Botón
-    "Seguir" **placeholder** (seguir de verdad = Sesión 14, necesita el
-    login del público). El nº de seguidores solo se muestra con 25+
-    (privado por debajo — ver "Decisiones fijas"). Slug inexistente → 404.
+    "Seguir" real desde Sesión 14 paso 2 (`components/BotonSeguir` →
+    `/api/seguir`; ver "Auth del usuario final"). El nº de seguidores solo
+    se muestra con 25+ (privado por debajo — ver "Decisiones fijas"). Slug
+    inexistente → 404.
 
 > Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
 > publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.

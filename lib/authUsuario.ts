@@ -15,6 +15,30 @@ import { supabase } from "@/lib/supabase";
 
 const CLAVE_SCROLL = "envivo_scroll_login";
 const VIGENCIA_SCROLL_MS = 2 * 60 * 1000;
+const CLAVE_SEGUIR = "envivo_seguir_pendiente";
+
+/**
+ * "Quería seguir a este perfil pero tuvo que logearse antes." Se guarda al
+ * abrir el modal desde el botón Seguir; al volver del login, el botón lo
+ * lee y completa el follow solo. Se limpia al leerlo.
+ */
+export function marcarSeguirPendiente(perfilId: string): void {
+  try {
+    sessionStorage.setItem(CLAVE_SEGUIR, perfilId);
+  } catch {
+    // sin sessionStorage: el usuario tendrá que tocar Seguir otra vez
+  }
+}
+
+export function tomarSeguirPendiente(): string | null {
+  try {
+    const v = sessionStorage.getItem(CLAVE_SEGUIR);
+    if (v) sessionStorage.removeItem(CLAVE_SEGUIR);
+    return v;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Abre el flujo OAuth de Google. Antes guarda dónde está el usuario para

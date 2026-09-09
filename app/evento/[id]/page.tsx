@@ -12,6 +12,7 @@ import {
   sinArroba,
   type EventoPublico,
 } from "@/lib/eventos";
+import BotonSeguir from "@/components/BotonSeguir";
 import styles from "./page.module.css";
 
 type Estado = "cargando" | "listo" | "no-existe" | "error";
@@ -212,6 +213,12 @@ function Detalle({ evento }: { evento: EventoPublico }) {
             </Link>
           ) : (
             <b>{publicadoPor}</b>
+          )}
+
+          {tienePerfil && evento.perfil_id && (
+            <div className={styles.seguirEvento}>
+              <BotonSeguir perfilId={evento.perfil_id} nombre={nombrePerfil} />
+            </div>
           )}
 
           <div className={styles.redes}>

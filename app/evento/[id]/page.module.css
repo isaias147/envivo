@@ -210,6 +210,10 @@
 }
 
 /* ---------- tarjeta "Publicado por" con perfil enlazado ---------- */
+.seguirEvento {
+  margin-bottom: 12px;
+}
+
 .perfilEnlace {
   display: flex;
   align-items: center;

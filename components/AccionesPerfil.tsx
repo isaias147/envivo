@@ -4,24 +4,23 @@
 // WhatsApp. Sigue el bloque `.p-acciones` del mockup
 // envivo-grupo1-publico.html (slot 1).
 //
-// "Seguir" es PLACEHOLDER: seguir de verdad necesita una cuenta del público
-// (login con Google), que es de la Fase 2 — Sesión 14 del spec. La tabla
-// `seguimientos` exige `user_id = auth.uid()` por RLS, así que sin sesión no
-// se puede insertar. Cuando llegue la Sesión 14, acá va: sin sesión → abrir
-// el modal de Google; con sesión → insert/delete en `seguimientos` y
-// refrescar el contador.
+// "Seguir" es real desde la Sesión 14, paso 2 (ver components/BotonSeguir):
+// sin sesión abre el modal de Google, con sesión hace insert/delete en
+// `seguimientos`.
 
 import { useState } from "react";
+import BotonSeguir from "@/components/BotonSeguir";
 import styles from "./AccionesPerfil.module.css";
 
 export default function AccionesPerfil({
+  perfilId,
   nombre,
   whatsappPublico,
 }: {
+  perfilId: string;
   nombre: string;
   whatsappPublico: string | null;
 }) {
-  const [pedido, setPedido] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
   async function compartir() {
@@ -42,14 +41,9 @@ export default function AccionesPerfil({
   return (
     <div className={styles.caja}>
       <div className={styles.fila}>
-        <button
-          type="button"
-          className={styles.seguir}
-          aria-pressed={pedido}
-          onClick={() => setPedido(true)}
-        >
-          {pedido ? "Te avisaremos" : "Seguir"}
-        </button>
+        <div className={styles.seguirSlot}>
+          <BotonSeguir perfilId={perfilId} nombre={nombre} />
+        </div>
 
         <button
           type="button"
@@ -72,13 +66,6 @@ export default function AccionesPerfil({
           </a>
         )}
       </div>
-
-      {pedido && (
-        <p className={styles.aviso}>
-          Muy pronto vas a poder seguir a {nombre} con tu cuenta y recibir un
-          aviso cada vez que publique algo nuevo.
-        </p>
-      )}
     </div>
   );
 }
