@@ -1,15 +1,17 @@
-// ⚠️ SOLO SERVIDOR. Alta y verificación del publicador por SMS (Twilio Verify).
+// ⚠️ SOLO SERVIDOR. Alta y verificación del publicador (Twilio Verify).
 //
 // Usa `supabaseServidor` (service_role) sobre la tabla `perfiles` de la
 // Sesión 11. Nunca se importa desde el cliente.
 //
-// Verificación: la generación, expiración y reintentos del código los maneja
-// **Twilio Verify** de su lado. Acá solo hay dos llamadas HTTP a su API:
-// `iniciarVerificacion` (les pide que manden el SMS) y `comprobarCodigo`
-// (les pasa lo que escribió el usuario y pregunta si está bien). La "verdad"
-// de "este número quedó verificado" NO vive en la base: vive en la cookie
-// firmada `envivo_registro` (flag `verificado`, que solo pone el servidor).
-// El `perfiles` se crea recién al final (/api/registro/perfil).
+// Verificación: **dos canales obligatorios**, SMS y correo, ambos por Twilio
+// Verify (el canal `email` necesita SendGrid conectado al servicio de Verify
+// en la consola de Twilio). Acá solo hay llamadas HTTP a su API:
+// `iniciarVerificacion(destino, canal)` (que manden el código) y
+// `comprobarCodigo(destino, codigo, canal)` (validarlo). La "verdad" de qué
+// canal quedó verificado NO vive en la base durante el alta: vive en la
+// cookie firmada `envivo_registro` (flags `smsOk` / `correoOk`, que solo
+// pone el servidor). El `perfiles` se crea recién al final
+// (/api/registro/perfil), y ahí sí queda `correo_verificado`.
 
 import "server-only";
 
@@ -117,53 +119,73 @@ function mensajeErrorTwilio(http: number, codigo?: number): string {
   if (http === 429 || codigo === 60203) {
     return "Pediste demasiados códigos. Esperá un rato e intentá de nuevo.";
   }
-  if (codigo === 60200) return "Ese número no parece válido.";
+  if (codigo === 60200) return "Ese dato no parece válido.";
   if (codigo === 60202) {
     return "Demasiados intentos con este código. Pedí uno nuevo.";
   }
   if (http === 404) return "El código venció. Pedí uno nuevo.";
-  return "No se pudo verificar el número. Intentá de nuevo.";
+  return "No se pudo verificar. Intentá de nuevo.";
+}
+
+export type Canal = "sms" | "email";
+
+const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function esCorreoValido(v: string | null | undefined): boolean {
+  return RE_CORREO.test(String(v ?? "").trim());
 }
 
 /**
- * Le pide a Twilio Verify que mande un SMS con un código al `whatsapp`
- * (indicativo + dígitos, sin `+`). Twilio se encarga de generarlo, de que
- * expire y del tope de reenvíos.
+ * Formatea el destino para Twilio según el canal: SMS necesita E.164
+ * (`+<dígitos>`); email va tal cual.
+ */
+function destinoTwilio(destinoCrudo: string, canal: Canal): string | null {
+  if (canal === "email") {
+    const correo = String(destinoCrudo ?? "").trim().toLowerCase();
+    return esCorreoValido(correo) ? correo : null;
+  }
+  const whatsapp = normalizarWhatsapp(destinoCrudo);
+  return whatsapp.length >= 8 ? `+${whatsapp}` : null;
+}
+
+/**
+ * Le pide a Twilio Verify que mande un código por `canal` ("sms" | "email").
+ * Twilio se encarga de generarlo, de que expire y del tope de reenvíos.
  */
 export async function iniciarVerificacion(
-  whatsappCrudo: string,
+  destinoCrudo: string,
+  canal: Canal = "sms",
 ): Promise<ResultadoVerificacion> {
-  const whatsapp = normalizarWhatsapp(whatsappCrudo);
-  if (whatsapp.length < 8) {
-    return { ok: false, error: "El WhatsApp no parece válido.", status: 400 };
+  const to = destinoTwilio(destinoCrudo, canal);
+  if (!to) {
+    return {
+      ok: false,
+      error: canal === "email" ? "El correo no parece válido." : "El WhatsApp no parece válido.",
+      status: 400,
+    };
   }
 
-  const res = await llamarTwilio("Verifications", {
-    To: `+${whatsapp}`,
-    Channel: "sms",
-  });
+  const res = await llamarTwilio("Verifications", { To: to, Channel: canal });
   if (!res.ok) return res;
   return { ok: true };
 }
 
 /**
  * Le pasa a Twilio Verify el `codigo` que escribió el usuario para ese
- * `whatsapp`. `ok: true` solo si Twilio responde `status: "approved"`.
+ * destino y canal. `ok: true` solo si Twilio responde `status: "approved"`.
  */
 export async function comprobarCodigo(
-  whatsappCrudo: string,
+  destinoCrudo: string,
   codigoCrudo: string,
+  canal: Canal = "sms",
 ): Promise<ResultadoVerificacion> {
-  const whatsapp = normalizarWhatsapp(whatsappCrudo);
+  const to = destinoTwilio(destinoCrudo, canal);
   const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
-  if (whatsapp.length < 8 || codigo.length !== LARGO_CODIGO) {
+  if (!to || codigo.length !== LARGO_CODIGO) {
     return { ok: false, error: "Escribí el código completo.", status: 400 };
   }
 
-  const res = await llamarTwilio("VerificationCheck", {
-    To: `+${whatsapp}`,
-    Code: codigo,
-  });
+  const res = await llamarTwilio("VerificationCheck", { To: to, Code: codigo });
   if (!res.ok) return res;
   if (res.estado !== "approved") {
     return { ok: false, error: "El código no coincide o venció.", status: 401 };
@@ -205,6 +227,10 @@ export type DatosPerfil = {
   instagram: string | null;
   tiktok: string | null;
   imagenUrl: string | null;
+  correo: string;
+  adminNombre: string;
+  adminApellido: string;
+  adminEdad: number;
 };
 
 export type ResultadoPerfil =
@@ -229,6 +255,11 @@ export async function crearOActualizarPerfil(
     instagram: d.instagram?.trim() || null,
     tiktok: d.tiktok?.trim() || null,
     imagen_url: d.imagenUrl?.trim() || null,
+    correo_admin: d.correo.trim().toLowerCase() || null,
+    correo_verificado: true,
+    admin_nombre: d.adminNombre.trim() || null,
+    admin_apellido: d.adminApellido.trim() || null,
+    admin_edad: Number.isFinite(d.adminEdad) ? d.adminEdad : null,
     verified_at: new Date().toISOString(),
   };
 

@@ -1,14 +1,13 @@
-// POST /api/registro/reenviar
+// POST /api/registro/reenviar  { canal: "sms" | "email" }
 //
-// "¿No llegó? Reenviar SMS" en /registro/verificar. Toma el número de la
-// cookie `envivo_registro` y le pide a Twilio Verify que mande otro SMS.
-// Twilio aplica su propio tope de reenvíos.
+// "¿No llegó? Reenviar" de /registro/verificar, por canal. Toma el destino
+// de la cookie `envivo_registro` y le pide otro código a Twilio Verify.
 
 import { NextResponse } from "next/server";
-import { iniciarVerificacion } from "@/lib/registroPublicador";
+import { iniciarVerificacion, type Canal } from "@/lib/registroPublicador";
 import { leerRegistro } from "@/lib/sesionPublicador";
 
-export async function POST() {
+export async function POST(request: Request) {
   const reg = await leerRegistro();
   if (!reg) {
     return NextResponse.json(
@@ -17,7 +16,16 @@ export async function POST() {
     );
   }
 
-  const res = await iniciarVerificacion(reg.whatsapp);
+  let cuerpo: { canal?: string };
+  try {
+    cuerpo = await request.json();
+  } catch {
+    cuerpo = {};
+  }
+  const canal: Canal = cuerpo.canal === "email" ? "email" : "sms";
+  const destino = canal === "email" ? reg.correo : reg.whatsapp;
+
+  const res = await iniciarVerificacion(destino, canal);
   if (!res.ok) {
     return NextResponse.json({ error: res.error }, { status: res.status });
   }

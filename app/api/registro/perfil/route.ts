@@ -25,9 +25,9 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
-  if (!reg.verificado) {
+  if (!reg.smsOk || !reg.correoOk) {
     return NextResponse.json(
-      { error: "Ese número todavía no está verificado." },
+      { error: "Todavía faltan verificar el WhatsApp y el correo." },
       { status: 403 },
     );
   }
@@ -62,6 +62,10 @@ export async function POST(request: Request) {
     instagram: igRaw ? sinArroba(igRaw) : null,
     tiktok: ttRaw ? sinArroba(ttRaw) : null,
     imagenUrl: String(cuerpo.imagenUrl ?? "").trim() || null,
+    correo: reg.correo,
+    adminNombre: reg.adminNombre,
+    adminApellido: reg.adminApellido,
+    adminEdad: reg.adminEdad,
   });
 
   if (!res.ok) {

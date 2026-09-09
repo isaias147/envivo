@@ -58,7 +58,7 @@ export default function PerfilNuevo() {
           router.replace("/registro");
           return;
         }
-        if (!j.verificado) {
+        if (!j.smsOk || !j.correoOk) {
           router.replace("/registro/verificar");
           return;
         }

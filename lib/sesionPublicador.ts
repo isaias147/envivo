@@ -48,7 +48,12 @@ export type DatosRegistro = {
   tipo: TipoPerfil;
   nombre: string;
   whatsapp: string; // indicativo + dígitos, ya normalizado
-  verificado?: boolean; // true recién cuando Twilio Verify aprobó el código
+  correo: string;
+  adminNombre: string;
+  adminApellido: string;
+  adminEdad: number;
+  smsOk?: boolean; // Twilio Verify aprobó el código del SMS
+  correoOk?: boolean; // …y el del correo. Ambos hacen falta para seguir.
   exp: number; // epoch en segundos
 };
 
@@ -123,7 +128,7 @@ export function verificarTokenRegistro(
   token: string | undefined,
 ): DatosRegistro | null {
   const d = desempaquetar<DatosRegistro>(token);
-  if (!d || !d.tipo || !d.whatsapp) return null;
+  if (!d || !d.tipo || !d.whatsapp || !d.correo) return null;
   return d;
 }
 

@@ -1,28 +1,32 @@
 "use client";
 
-// Pantalla 5 · /registro — alta del publicador en dos pasos.
-// 5a: elegir tipo (Local / Organizador / Artista).
-// 5b: nombre + WhatsApp de cuenta.
-// Al enviar el paso 2, POST /api/registro/iniciar genera el código y deja la
-// cookie provisional; seguimos a /registro/verificar.
+// Pantalla /registro — alta del publicador, UNA sola pantalla (antes 5a+5b).
+// Sigue el slot "5b · Registro — datos" de envivo-registro-actualizado.html.
+//
+// Tipo de perfil = <select> (ya no tarjetas). Además del nombre y el
+// WhatsApp, pide los datos del administrador (nombre, apellido, edad) y el
+// correo. Al enviar → POST /api/registro/iniciar manda los DOS códigos
+// (SMS + correo) y seguimos a /registro/verificar.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  PAISES_WHATSAPP,
-  PAIS_WHATSAPP_POR_DEFECTO,
-} from "@/lib/eventos";
+import { PAISES_WHATSAPP, PAIS_WHATSAPP_POR_DEFECTO } from "@/lib/eventos";
 import { TIPOS_PERFIL, type TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./registro.module.css";
 
 export default function Registro() {
   const router = useRouter();
   const [revisando, setRevisando] = useState(true);
-  const [paso, setPaso] = useState<1 | 2>(1);
-  const [tipo, setTipo] = useState<TipoPerfil | null>(null);
+
+  const [tipo, setTipo] = useState<TipoPerfil>(TIPOS_PERFIL[0].valor);
   const [nombre, setNombre] = useState("");
+  const [adminNombre, setAdminNombre] = useState("");
+  const [adminApellido, setAdminApellido] = useState("");
+  const [adminEdad, setAdminEdad] = useState("");
   const [indicativo, setIndicativo] = useState(PAIS_WHATSAPP_POR_DEFECTO);
   const [whatsapp, setWhatsapp] = useState("");
+  const [correo, setCorreo] = useState("");
+
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,18 +55,50 @@ export default function Registro() {
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (enviando || !tipo) return;
+    if (enviando) return;
     setError(null);
+
+    const edad = Number(adminEdad);
+    if (nombre.trim().length < 2) {
+      setError("Escribí el nombre del local o marca.");
+      return;
+    }
+    if (adminNombre.trim().length < 2 || adminApellido.trim().length < 2) {
+      setError("Faltan el nombre y el apellido del administrador.");
+      return;
+    }
+    if (!Number.isInteger(edad) || edad < 14 || edad > 120) {
+      setError("Escribí una edad válida.");
+      return;
+    }
+    if (!whatsapp.trim()) {
+      setError("Falta el WhatsApp.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+      setError("Escribí un correo válido.");
+      return;
+    }
+
     setEnviando(true);
     try {
       const r = await fetch("/api/registro/iniciar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo, nombre, indicativo, whatsapp }),
+        body: JSON.stringify({
+          tipo,
+          nombre,
+          indicativo,
+          whatsapp,
+          correo,
+          adminNombre,
+          adminApellido,
+          adminEdad: edad,
+        }),
       });
       const j = await r.json();
       if (!r.ok) {
-        setError(j.error ?? "No se pudo enviar el código.");
+        setError(j.error ?? "No se pudieron enviar los códigos.");
         setEnviando(false);
         return;
       }
@@ -89,68 +125,105 @@ export default function Registro() {
         </div>
         <div className={styles.ruta}>envivo.app/registro</div>
 
-        {paso === 1 && (
-          <>
-            <h1 className={styles.tit}>¿Cómo publicás?</h1>
-            <p className={styles.bajada}>
-              Elegí el que mejor te describe. Podés cambiarlo después.
-            </p>
+        <h1 className={styles.tit}>Creá tu cuenta</h1>
+        <p className={styles.bajada}>
+          Estos datos son para saber con quién nos comunicamos. No se muestran
+          en público.
+        </p>
 
-            {TIPOS_PERFIL.map((t) => (
-              <button
-                key={t.valor}
-                type="button"
-                className={`${styles.tarjetaTipo} ${
-                  tipo === t.valor ? styles.activa : ""
-                }`}
-                onClick={() => setTipo(t.valor)}
-              >
-                <span className={styles.ico}>{t.icono}</span>
-                <span>
-                  <b>{t.titulo}</b>
-                  <small>{t.detalle}</small>
-                </span>
-              </button>
-            ))}
-
-            <button
-              type="button"
-              className={styles.principal}
-              style={{ marginTop: 16 }}
-              disabled={!tipo}
-              onClick={() => setPaso(2)}
+        <form onSubmit={enviar}>
+          <div className={styles.campo}>
+            <label htmlFor="tipo">¿Cómo publicás?</label>
+            <select
+              id="tipo"
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as TipoPerfil)}
             >
-              Continuar
-            </button>
-          </>
-        )}
+              {TIPOS_PERFIL.map((t) => (
+                <option key={t.valor} value={t.valor}>
+                  {t.icono} {t.titulo} — {t.detalle}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {paso === 2 && (
-          <form onSubmit={enviar}>
-            <h1 className={styles.tit}>Tus datos</h1>
-            <p className={styles.bajada}>
-              Este WhatsApp es tu acceso a EnVivo. No se muestra en público
-              hasta que vos lo decidas.
-            </p>
+          <div className={styles.campo}>
+            <label htmlFor="nombre">
+              {infoTipo?.etiquetaNombre ?? "Nombre del local / marca"}
+            </label>
+            <input
+              id="nombre"
+              value={nombre}
+              maxLength={80}
+              autoComplete="organization"
+              onChange={(e) => {
+                setNombre(e.target.value);
+                setError(null);
+              }}
+            />
+          </div>
+
+          <div className={styles.seccion}>
+            <div className={styles.seccionTit}>Datos del administrador</div>
+            <div className={styles.seccionSub}>
+              La persona responsable de esta cuenta.
+            </div>
+
+            <div className={styles.fila2}>
+              <div className={styles.campo}>
+                <label htmlFor="admin-nombre">Nombre</label>
+                <input
+                  id="admin-nombre"
+                  value={adminNombre}
+                  maxLength={60}
+                  autoComplete="given-name"
+                  onChange={(e) => {
+                    setAdminNombre(e.target.value);
+                    setError(null);
+                  }}
+                />
+              </div>
+              <div className={styles.campo}>
+                <label htmlFor="admin-apellido">Apellido</label>
+                <input
+                  id="admin-apellido"
+                  value={adminApellido}
+                  maxLength={60}
+                  autoComplete="family-name"
+                  onChange={(e) => {
+                    setAdminApellido(e.target.value);
+                    setError(null);
+                  }}
+                />
+              </div>
+            </div>
 
             <div className={styles.campo}>
-              <label htmlFor="nombre">
-                {infoTipo?.etiquetaNombre ?? "Nombre"}
-              </label>
+              <label htmlFor="admin-edad">Edad</label>
               <input
-                id="nombre"
-                value={nombre}
-                maxLength={80}
-                autoComplete="organization"
+                id="admin-edad"
+                type="number"
+                inputMode="numeric"
+                min={14}
+                max={120}
+                value={adminEdad}
+                style={{ maxWidth: 110 }}
                 onChange={(e) => {
-                  setNombre(e.target.value);
+                  setAdminEdad(e.target.value);
                   setError(null);
                 }}
               />
             </div>
+          </div>
+
+          <div className={styles.seccion}>
+            <div className={styles.seccionTit}>Contacto para verificar</div>
+            <div className={styles.seccionSub}>
+              Vas a recibir un código en cada uno.
+            </div>
 
             <div className={styles.campo}>
-              <label htmlFor="wa">WhatsApp de tu cuenta</label>
+              <label htmlFor="wa">WhatsApp / número que recibe SMS</label>
               <div className={styles.telFila}>
                 <select
                   aria-label="Indicativo de país"
@@ -176,32 +249,39 @@ export default function Registro() {
                   }}
                 />
               </div>
+              <p className={styles.notaCampo}>
+                Este número es solo para verificarte. No tiene que ser el mismo
+                que publiques después.
+              </p>
             </div>
 
-            <button
-              type="submit"
-              className={styles.principal}
-              style={{ marginTop: 8 }}
-              disabled={enviando}
-            >
-              {enviando ? "Enviando…" : "Enviarme el código por SMS"}
-            </button>
+            <div className={styles.campo}>
+              <label htmlFor="correo">Correo</label>
+              <input
+                id="correo"
+                type="email"
+                autoComplete="email"
+                placeholder="vos@correo.com"
+                value={correo}
+                onChange={(e) => {
+                  setCorreo(e.target.value);
+                  setError(null);
+                }}
+              />
+            </div>
+          </div>
 
-            <button
-              type="button"
-              className={styles.reintento}
-              style={{ marginTop: 12 }}
-              onClick={() => {
-                setPaso(1);
-                setError(null);
-              }}
-            >
-              ← Cambiar el tipo
-            </button>
+          <button
+            type="submit"
+            className={styles.principal}
+            style={{ marginTop: 8 }}
+            disabled={enviando}
+          >
+            {enviando ? "Enviando…" : "Enviar códigos"}
+          </button>
 
-            {error && <p className={styles.error}>{error}</p>}
-          </form>
-        )}
+          {error && <p className={styles.error}>{error}</p>}
+        </form>
       </div>
     </div>
   );

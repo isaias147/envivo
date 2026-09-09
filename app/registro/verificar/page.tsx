@@ -1,9 +1,12 @@
 "use client";
 
-// Pantalla 6 · /registro/verificar — escribir el código que llegó por SMS.
-// Twilio Verify mandó el SMS al número que se puso en /registro. Acá el
-// usuario escribe los 4 dígitos; al enviar, POST /api/registro/verificar se
-// los pasa a Twilio y, si están bien, seguimos a /registro/perfil.
+// Pantalla /registro/verificar — DOS canales obligatorios (SMS + correo).
+// Sigue el slot "6 · Verificar — SMS y correo" de
+// envivo-registro-actualizado.html.
+//
+// Twilio Verify ya mandó los dos códigos desde /registro. Acá el usuario
+// escribe cada uno en su caja; POST /api/registro/verificar { canal, codigo }
+// valida. "Continuar" se habilita cuando los dos están verificados.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -11,17 +14,15 @@ import { formatearWhatsapp } from "@/lib/eventos";
 import styles from "../registro.module.css";
 
 const LARGO = 4;
+type Canal = "sms" | "email";
 
 export default function Verificar() {
   const router = useRouter();
   const [cargando, setCargando] = useState(true);
   const [whatsapp, setWhatsapp] = useState("");
-  const [valores, setValores] = useState<string[]>(Array(LARGO).fill(""));
-  const [enviando, setEnviando] = useState(false);
-  const [reenviando, setReenviando] = useState(false);
-  const [aviso, setAviso] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const casillas = useRef<(HTMLInputElement | null)[]>([]);
+  const [correo, setCorreo] = useState("");
+  const [smsOk, setSmsOk] = useState(false);
+  const [correoOk, setCorreoOk] = useState(false);
   const yaSalte = useRef(false);
 
   useEffect(() => {
@@ -35,34 +36,127 @@ export default function Verificar() {
           router.replace("/registro");
           return;
         }
-        if (j.verificado) {
+        setWhatsapp(j.whatsapp ?? "");
+        setCorreo(j.correo ?? "");
+        setSmsOk(!!j.smsOk);
+        setCorreoOk(!!j.correoOk);
+        if (j.smsOk && j.correoOk && !yaSalte.current) {
+          yaSalte.current = true;
           router.replace("/registro/perfil");
           return;
         }
-        setWhatsapp(j.whatsapp ?? "");
       } catch {
-        // sin conexión: mostramos las casillas igual
+        // sin conexión: mostramos las cajas igual
       }
-      if (vivo) {
-        setCargando(false);
-        casillas.current[0]?.focus();
-      }
+      if (vivo) setCargando(false);
     })();
     return () => {
       vivo = false;
     };
   }, [router]);
 
+  const marcar = useCallback(
+    (canal: Canal, ok: boolean) => {
+      if (canal === "sms") setSmsOk(ok);
+      else setCorreoOk(ok);
+    },
+    [],
+  );
+
+  // Cuando quedan los dos, seguir.
+  useEffect(() => {
+    if (smsOk && correoOk && !yaSalte.current) {
+      yaSalte.current = true;
+      router.replace("/registro/perfil");
+    }
+  }, [smsOk, correoOk, router]);
+
+  if (cargando) {
+    return (
+      <div className={styles.pantalla}>
+        <p className={styles.cargandoPantalla}>Cargando…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.pantalla}>
+      <div className={styles.marco}>
+        <div className={styles.marca}>
+          En<i>Vivo</i>
+        </div>
+        <div className={styles.ruta}>envivo.app/registro/verificar</div>
+
+        <h1 className={styles.tit}>Confirmá los dos</h1>
+        <p className={styles.bajada}>
+          Necesitamos verificar tu número y tu correo antes de continuar.
+        </p>
+
+        <Canal
+          canal="sms"
+          titulo="📱 SMS"
+          destino={whatsapp ? formatearWhatsapp(whatsapp) : ""}
+          verificado={smsOk}
+          onVerificado={() => marcar("sms", true)}
+        />
+        <Canal
+          canal="email"
+          titulo="✉️ Correo"
+          destino={correo}
+          verificado={correoOk}
+          onVerificado={() => marcar("email", true)}
+        />
+
+        <button
+          type="button"
+          className={styles.principal}
+          disabled={!smsOk || !correoOk}
+          onClick={() => router.replace("/registro/perfil")}
+        >
+          Continuar
+        </button>
+        {(!smsOk || !correoOk) && (
+          <p className={styles.notaCentrada}>
+            El botón se activa cuando los dos canales estén verificados.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- una tarjeta de canal ----------
+
+function Canal({
+  canal,
+  titulo,
+  destino,
+  verificado,
+  onVerificado,
+}: {
+  canal: Canal;
+  titulo: string;
+  destino: string;
+  verificado: boolean;
+  onVerificado: () => void;
+}) {
+  const [valores, setValores] = useState<string[]>(Array(LARGO).fill(""));
+  const [enviando, setEnviando] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const casillas = useRef<(HTMLInputElement | null)[]>([]);
+
   const enviar = useCallback(
     async (codigo: string) => {
-      if (enviando || yaSalte.current) return;
-      setError(null);
+      if (enviando || verificado) return;
       setEnviando(true);
+      setError(null);
       try {
         const r = await fetch("/api/registro/verificar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ codigo }),
+          body: JSON.stringify({ canal, codigo }),
         });
         const j = await r.json();
         if (!r.ok) {
@@ -72,14 +166,13 @@ export default function Verificar() {
           setEnviando(false);
           return;
         }
-        yaSalte.current = true;
-        router.replace("/registro/perfil");
+        onVerificado();
       } catch {
         setError("Falló la conexión. Intentá de nuevo.");
         setEnviando(false);
       }
     },
-    [enviando, router],
+    [canal, enviando, verificado, onVerificado],
   );
 
   function escribir(i: number, bruto: string) {
@@ -88,14 +181,12 @@ export default function Verificar() {
     setError(null);
     setValores((prev) => {
       const sig = [...prev];
-      // Un dígito por casilla; si pegaron varios, se reparten desde aquí.
       for (let k = 0; k < digitos.length && i + k < LARGO; k++) {
         sig[i + k] = digitos[k];
       }
-      const lleno = sig.every((d) => d !== "");
       const foco = Math.min(i + digitos.length, LARGO - 1);
       casillas.current[foco]?.focus();
-      if (lleno) void enviar(sig.join(""));
+      if (sig.every((d) => d !== "")) void enviar(sig.join(""));
       return sig;
     });
   }
@@ -117,12 +208,15 @@ export default function Verificar() {
     setAviso(null);
     setReenviando(true);
     try {
-      const r = await fetch("/api/registro/reenviar", { method: "POST" });
+      const r = await fetch("/api/registro/reenviar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ canal }),
+      });
       const j = await r.json();
-      if (!r.ok) {
-        setError(j.error ?? "No se pudo reenviar el SMS.");
-      } else {
-        setAviso("Te mandamos otro SMS.");
+      if (!r.ok) setError(j.error ?? "No se pudo reenviar.");
+      else {
+        setAviso("Te mandamos otro código.");
         setValores(Array(LARGO).fill(""));
         casillas.current[0]?.focus();
       }
@@ -132,70 +226,54 @@ export default function Verificar() {
     setReenviando(false);
   }
 
-  if (cargando) {
-    return (
-      <div className={styles.pantalla}>
-        <p className={styles.cargandoPantalla}>Cargando…</p>
-      </div>
-    );
-  }
-
   return (
-    <div className={styles.pantalla}>
-      <div className={styles.marco}>
-        <div className={styles.marca}>
-          En<i>Vivo</i>
-        </div>
-        <div className={styles.ruta}>envivo.app/registro/verificar</div>
-
-        <h1 className={styles.tit}>Escribí el código</h1>
-        <p className={styles.bajada}>
-          Te mandamos un SMS con un código de {LARGO} dígitos
-          {whatsapp ? ` al ${formatearWhatsapp(whatsapp)}` : ""}. Escribilo acá.
-        </p>
-
-        <div className={styles.codigoInputs}>
-          {valores.map((d, i) => (
-            <input
-              key={i}
-              ref={(el) => {
-                casillas.current[i] = el;
-              }}
-              className={`${styles.digitoInput} ${d ? styles.lleno : ""}`}
-              type="text"
-              inputMode="numeric"
-              autoComplete={i === 0 ? "one-time-code" : "off"}
-              maxLength={LARGO}
-              value={d}
-              disabled={enviando}
-              onChange={(e) => escribir(i, e.target.value)}
-              onKeyDown={(e) => teclear(i, e)}
-              aria-label={`Dígito ${i + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          type="button"
-          className={styles.principal}
-          disabled={enviando || valores.some((d) => d === "")}
-          onClick={() => enviar(valores.join(""))}
-        >
-          {enviando ? "Verificando…" : "Verificar"}
-        </button>
-
-        <button
-          type="button"
-          className={styles.reintento}
-          onClick={reenviar}
-          disabled={reenviando}
-        >
-          {reenviando ? "Reenviando…" : "¿No llegó? Reenviar SMS"}
-        </button>
-
-        {aviso && <p className={styles.verificado}>{aviso}</p>}
-        {error && <p className={styles.error}>{error}</p>}
+    <div
+      className={`${styles.canal} ${verificado ? styles.canalHecho : ""}`}
+    >
+      <div className={styles.canalCab}>
+        <b>{titulo}</b>
+        <span className={styles.canalEstado}>
+          {verificado ? "✓ Verificado" : "Pendiente"}
+        </span>
       </div>
+      {destino && <div className={styles.canalDestino}>{destino}</div>}
+
+      {verificado ? (
+        <div className={styles.canalHechoTexto}>✓ Código confirmado</div>
+      ) : (
+        <>
+          <div className={styles.codigoInputs}>
+            {valores.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => {
+                  casillas.current[i] = el;
+                }}
+                className={`${styles.digitoInput} ${d ? styles.lleno : ""}`}
+                type="text"
+                inputMode="numeric"
+                autoComplete={i === 0 ? "one-time-code" : "off"}
+                maxLength={LARGO}
+                value={d}
+                disabled={enviando}
+                onChange={(e) => escribir(i, e.target.value)}
+                onKeyDown={(e) => teclear(i, e)}
+                aria-label={`${titulo} · dígito ${i + 1}`}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            className={styles.reintento}
+            onClick={reenviar}
+            disabled={reenviando}
+          >
+            {reenviando ? "Reenviando…" : "¿No llegó? Reenviar"}
+          </button>
+          {aviso && <p className={styles.verificado}>{aviso}</p>}
+          {error && <p className={styles.error}>{error}</p>}
+        </>
+      )}
     </div>
   );
 }

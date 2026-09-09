@@ -25,12 +25,14 @@ cambiar, se me pregunta primero.
 - **Registro del público:** con Google, **opcional**, solo para seguir
   publicadores y recibir avisos. **Planeado para Fase 2 (Sesión 14 del spec).**
   Hoy **no existe**: el usuario nunca ve un login.
-- **Registro del publicador:** número verificado por **SMS con código de 4
-  dígitos vía Twilio Verify**, nunca Google. **Planeado (Fase 2).** Hoy el
+- **Registro del publicador:** verificación por **DOS canales obligatorios —
+  SMS y correo — con código de 4 dígitos vía Twilio Verify**, nunca Google.
+  Ambos deben confirmarse para continuar. **Planeado (Fase 2).** Hoy el
   publicador tampoco ve login: el acceso es por link de QR/WhatsApp.
-  (Antes se hizo por `wa.me`; se cambió porque el número no se pudo registrar
-  como empresa en Meta. Twilio Verify maneja generación, expiración y
-  reintentos del código de su lado.)
+  (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo. El `wa.me` se
+  descartó porque el número no se pudo registrar como empresa en Meta.
+  Twilio Verify maneja generación, expiración y reintentos; el canal email
+  necesita SendGrid conectado al servicio de Verify.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
 - **Monetización (sin puja por posición):** dos productos —
@@ -194,22 +196,24 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
    "Editar…" en las tarjetas de "En el mapa" de `/mis-eventos`.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
-**Alta del publicador (Sesión 12 — verificación por SMS con Twilio Verify, sin Google):**
-- `/registro` — paso 1: elegir tipo (local/organizador/artista). Paso 2:
-  nombre + WhatsApp de cuenta. Al enviar → `/api/registro/iniciar` le pide a
-  Twilio Verify que mande un SMS con el código al número, y deja la cookie
-  provisional `envivo_registro` (todavía sin el flag `verificado`).
-- `/registro/verificar` — 4 casillas donde el usuario escribe el código que
-  le llegó por SMS. "Verificar" → `/api/registro/verificar` se lo pasa a
-  Twilio (`VerificationCheck`); si Twilio responde `approved`, re-firma la
-  cookie `envivo_registro` con `verificado: true` y sigue a
-  `/registro/perfil`. Botón "Reenviar SMS" → `/api/registro/reenviar`. Sin
-  polling, sin `wa.me`.
+**Alta del publicador (Sesión 12, revisada — verificación por SMS + correo con Twilio Verify, sin Google):**
+- `/registro` — **una sola pantalla** (antes 5a+5b). Tipo de perfil por
+  `<select>` (ya no tarjetas). Pide: tipo, nombre del local/marca, **datos
+  del administrador** (nombre, apellido, edad), WhatsApp de cuenta (con nota
+  "solo para verificarte, no tiene que ser el que publiques") y **correo**.
+  Al enviar → `/api/registro/iniciar` valida todo y le pide a Twilio Verify
+  que mande **los dos códigos** (SMS + email); deja la cookie
+  `envivo_registro` con todos los datos (sin `smsOk` / `correoOk` todavía).
+- `/registro/verificar` — **dos tarjetas de canal** (SMS, Correo), cada una
+  con 4 casillas. `/api/registro/verificar { canal, codigo }` valida contra
+  Twilio y re-firma la cookie poniendo `smsOk` o `correoOk`. "Continuar" se
+  habilita solo con los dos verificados. "Reenviar" por canal
+  (`/api/registro/reenviar { canal }`).
 - `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
-  Instagram, TikTok, WhatsApp público (prellenado). Exige el flag
-  `verificado` de la cookie. Al enviar crea el `perfiles`, el `access_token`,
-  la sesión `envivo_publicador` (cookie firmada HMAC, como el admin) y va a
-  `/panel`.
+  Instagram, TikTok, WhatsApp público (prellenado). Exige `smsOk && correoOk`
+  en la cookie. Al enviar crea el `perfiles` (con `admin_nombre/apellido/edad`,
+  `correo_admin`, `correo_verificado = true`), el `access_token`, la sesión
+  `envivo_publicador` y va a `/panel`.
 - `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
   (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
 - `/perfil` — vista **privada** del dueño (Sesión 13). Server Component sin
@@ -230,10 +234,16 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
   hace dos llamadas HTTP a su API (sin SDK). No hay confirmación manual ni
   webhook: se borró `/admin/registro` y `/api/wa/webhook` al cambiar de
   `wa.me` a Twilio Verify.
-- Env nuevas: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
-  `TWILIO_VERIFY_SERVICE_SID` (el servicio de Verify configurado con
-  "Code Length = 4"). El WhatsApp Business Manager / Sender de Meta que se
-  configuró en Twilio queda sin usar para este flujo.
+- Env: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`
+  (el servicio de Verify configurado con "Code Length = 4"). **Para el canal
+  email hay que conectar SendGrid** al servicio de Verify en la consola de
+  Twilio (Email Integration); hasta entonces el código del correo no se
+  entrega y el registro no se puede terminar. El Sender de Meta que se
+  configuró en Twilio queda sin usar.
+- `perfiles`: columnas `admin_nombre`, `admin_apellido`, `admin_edad` (CHECK
+  14–120), `correo_admin`, `correo_verificado` (migración
+  `envivo_perfiles_admin_y_correo`). Son PII: **sin grant a `anon`/
+  `authenticated`**, solo se escriben/leen por service_role.
 
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
