@@ -1,0 +1,6 @@
+[build.environment]
+  # El caché de build de Turbopack (.netlify/.next/cache) guarda valores de
+  # entorno en sus .sst; no se sirve al público. Se excluye del escáner de
+  # secretos de Netlify para que TWILIO_AUTH_TOKEN ahí dentro no rompa el
+  # deploy. El resto de rutas se siguen escaneando.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**"
