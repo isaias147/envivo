@@ -215,6 +215,17 @@ export default function PublicarNuevo() {
   const [instagram, setInstagram] = useState("");
   const [tiktok, setTiktok] = useState("");
 
+  // Perfil del publicador autenticado (cookie `envivo_publicador`, Sesión 12).
+  // Si existe, el evento hereda `perfil_id` + nombre + redes del perfil y esos
+  // campos no se piden en el formulario. Si no, sigue el flujo viejo (sin
+  // perfil): cualquiera con el link publica y escribe su nombre a mano.
+  const [perfilSesion, setPerfilSesion] = useState<{
+    perfilId: string;
+    nombre: string | null;
+  } | null>(null);
+  const [sesionLista, setSesionLista] = useState(false);
+  const conPerfil = perfilSesion !== null;
+
   // flyer
   const [flyer, setFlyer] = useState<File | null>(null);
   const [flyerPrev, setFlyerPrev] = useState<string | null>(null);
@@ -231,6 +242,26 @@ export default function PublicarNuevo() {
   const [choque, setChoque] = useState<Choque | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // ¿Hay publicador autenticado? Una sola consulta al montar.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/publicador/sesion", { cache: "no-store" });
+        const j = await r.json();
+        if (vivo && j.activa && j.perfilId) {
+          setPerfilSesion({ perfilId: j.perfilId, nombre: j.nombre ?? null });
+        }
+      } catch {
+        // sin sesión o sin red: flujo viejo, con los campos a mano
+      }
+      if (vivo) setSesionLista(true);
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -468,7 +499,7 @@ export default function PublicarNuevo() {
       setError("La descripción no puede pasar de 200 caracteres.");
       return;
     }
-    if (!quienNombre.trim()) {
+    if (!conPerfil && !quienNombre.trim()) {
       setError("Escribe el nombre de quien publica.");
       return;
     }
@@ -638,10 +669,16 @@ export default function PublicarNuevo() {
           : null,
         series_id: seriesId,
         publisher_type: quien,
-        publisher_name: quienNombre.trim(),
+        // Con perfil: el nombre y las redes salen del perfil (por eso no se
+        // piden en el form). `perfil_id` enlaza el evento → /p/[slug]. Sin
+        // perfil: como siempre, lo que escribió la persona.
+        publisher_name: conPerfil
+          ? perfilSesion.nombre ?? null
+          : quienNombre.trim(),
         whatsapp: componerWhatsapp(paisWa, whatsapp),
-        instagram: instagram.trim() || null,
-        tiktok: tiktok.trim() || null,
+        instagram: conPerfil ? null : instagram.trim() || null,
+        tiktok: conPerfil ? null : tiktok.trim() || null,
+        perfil_id: conPerfil ? perfilSesion.perfilId : null,
         post_url: reelUrl,
         city: "Cali",
       };
@@ -676,6 +713,22 @@ export default function PublicarNuevo() {
       setError("Algo falló al enviar. Revisa tu conexión e intenta de nuevo.");
       setEnviando(false);
     }
+  }
+
+  // Esperamos a saber si hay publicador autenticado antes de pintar el
+  // formulario, así no se ven y se esconden los campos de nombre/redes.
+  if (!sesionLista) {
+    return (
+      <div className={styles.pantalla}>
+        <div className={styles.marco}>
+          <div className={styles.marca}>
+            En<i>Vivo</i>
+          </div>
+          <div className={styles.ruta}>envivo.app/publicar</div>
+          <p className={styles.bajada}>Cargando…</p>
+        </div>
+      </div>
+    );
   }
 
   // ---------------- pantalla de "enviado" ----------------
@@ -739,6 +792,12 @@ export default function PublicarNuevo() {
         <p className={styles.bajada}>
           Es gratis. Lo revisamos y queda en el mapa el mismo día.
         </p>
+
+        {conPerfil && perfilSesion.nombre && (
+          <div className={styles.publicandoComo}>
+            Publicando como <b>{perfilSesion.nombre}</b>
+          </div>
+        )}
 
         {/* 1 · bifurcación */}
         <div className={styles.campo}>
@@ -1096,15 +1155,17 @@ export default function PublicarNuevo() {
           </div>
         </div>
 
-        <div className={styles.campo}>
-          <label htmlFor="quien-nombre">Nombre de quien publica</label>
-          <input
-            id="quien-nombre"
-            value={quienNombre}
-            onChange={(e) => setQuienNombre(e.target.value)}
-            placeholder="Bar La Topa Tolondra"
-          />
-        </div>
+        {!conPerfil && (
+          <div className={styles.campo}>
+            <label htmlFor="quien-nombre">Nombre de quien publica</label>
+            <input
+              id="quien-nombre"
+              value={quienNombre}
+              onChange={(e) => setQuienNombre(e.target.value)}
+              placeholder="Bar La Topa Tolondra"
+            />
+          </div>
+        )}
 
         <div className={styles.campo}>
           <label htmlFor="whatsapp">{labelWhatsapp}</label>
@@ -1132,26 +1193,28 @@ export default function PublicarNuevo() {
           <p className={styles.ayuda}>{ayudaWhatsapp}</p>
         </div>
 
-        <div className={`${styles.campo} ${styles.duo}`}>
-          <div>
-            <label htmlFor="ig">Instagram</label>
-            <input
-              id="ig"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="@latopa"
-            />
+        {!conPerfil && (
+          <div className={`${styles.campo} ${styles.duo}`}>
+            <div>
+              <label htmlFor="ig">Instagram</label>
+              <input
+                id="ig"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@latopa"
+              />
+            </div>
+            <div>
+              <label htmlFor="tk">TikTok</label>
+              <input
+                id="tk"
+                value={tiktok}
+                onChange={(e) => setTiktok(e.target.value)}
+                placeholder="@latopa"
+              />
+            </div>
           </div>
-          <div>
-            <label htmlFor="tk">TikTok</label>
-            <input
-              id="tk"
-              value={tiktok}
-              onChange={(e) => setTiktok(e.target.value)}
-              placeholder="@latopa"
-            />
-          </div>
-        </div>
+        )}
 
         {/* honeypot: invisible para personas, tentador para bots */}
         <div className={styles.trampa} aria-hidden="true">

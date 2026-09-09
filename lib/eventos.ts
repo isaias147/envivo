@@ -27,6 +27,15 @@ export type EventoPublico = {
   artist_instagram: string | null;
   series_id: string | null;
   es_serie: boolean;
+  // Perfil asociado (LEFT JOIN a `perfiles` por `events.perfil_id`). Todo
+  // null en eventos viejos sin migrar; conviven con `publisher_*`.
+  perfil_id: string | null;
+  perfil_slug: string | null;
+  perfil_nombre: string | null;
+  perfil_tipo: string | null;
+  perfil_imagen_url: string | null;
+  perfil_verificado: boolean;
+  perfil_seguidores_publicos: boolean;
 };
 
 export type Filtro = "hoy" | "finde" | "proximos";
@@ -156,6 +165,28 @@ export function dentroDeCaja(
   );
 }
 
+/** Umbral de "reubicación": mover el pin más de esto al editar se marca. */
+export const REUBICACION_METROS = 500;
+
+/**
+ * Distancia en metros entre dos puntos (haversine). Se usa al editar un
+ * evento para detectar si el pin se movió lo bastante como para marcar
+ * `reubicado_pendiente`.
+ */
+export function distanciaMetros(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6_371_000; // radio de la Tierra en metros
+  const rad = (g: number) => (g * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
 /** Parte la hora de inicio en "9:00" + "pm", en hora de Cali. */
 export function horaCali(iso: string): { hhmm: string; periodo: string } {
   const partes = new Intl.DateTimeFormat("es-CO", {
@@ -251,6 +282,28 @@ export function componerWhatsapp(
   const d = normalizarWhatsapp(campo);
   if (!d) return "";
   return d.startsWith(indicativo) ? d : `${indicativo}${d}`;
+}
+
+/**
+ * "573002917326" → { indicativo: "57", nacional: "3002917326" }. Al revés de
+ * `componerWhatsapp`: separa un número guardado para rellenar el selector de
+ * país + el campo nacional de un formulario. Si no reconoce ningún
+ * indicativo, devuelve el país por defecto y los dígitos tal cual.
+ */
+export function partirWhatsapp(valor: string | null | undefined): {
+  indicativo: string;
+  nacional: string;
+} {
+  const d = normalizarWhatsapp(valor);
+  const inds = [...new Set(PAISES_WHATSAPP.map((p) => p.indicativo))].sort(
+    (a, b) => b.length - a.length,
+  );
+  for (const ind of inds) {
+    if (d.startsWith(ind) && d.length - ind.length >= 6) {
+      return { indicativo: ind, nacional: d.slice(ind.length) };
+    }
+  }
+  return { indicativo: PAIS_WHATSAPP_POR_DEFECTO, nacional: d };
 }
 
 /**

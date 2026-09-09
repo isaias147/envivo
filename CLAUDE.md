@@ -58,6 +58,7 @@ cambiar, se me pregunta primero.
 - El frontend usa **solo la anon key**, en variables de entorno.
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
 - Tabla principal: `events`. Vista pública: `eventos_publicos` (ya filtra aprobados y futuros).
+- `events.reubicado_pendiente` (boolean, default false) — Sesión 13, paso 6: el publicador movió el pin >500 m al editar un evento publicado. Solo bandera; el conteo (`veces_movido`, aviso a las 2 reubicaciones) es de la Sesión 18, que la reemplaza o complementa.
 - Función de choques: `hay_choque(whatsapp, lat, lng, starts_at)`.
 - **WhatsApp del organizador**: se guarda como indicativo de país + dígitos, sin espacios ni símbolos (`573001234567`). El formulario `/publicar/nuevo` tiene un selector de país (`PAISES_WHATSAPP` en `lib/eventos.ts`; Colombia +57 por defecto). Helpers: `componerWhatsapp(indicativo, campo)` (solo el formulario antepone indicativo, con esto), `normalizarWhatsapp()` (solo limpia caracteres, nunca antepone nada — para comparar en panel/tokens/`/mis-eventos`), `formatearWhatsapp()` (para mostrar). Es la clave que une `events.whatsapp`, `access_tokens.whatsapp` y `hay_choque`. El `phone` del admin es otro campo y no se toca.
 - Login admin: `verificar_admin(phone, pin)`. Cambio de PIN: `cambiar_pin_admin(phone, pin_actual, pin_nuevo)` (PIN nuevo de 4 dígitos). Ambas solo desde API routes del servidor.
@@ -81,21 +82,50 @@ cambiar, se me pregunta primero.
 **Usuario (sin registro, nunca ve un login):**
 1. `/` — mapa con pines, geolocalización, radio 1/3/5 km, filtro Hoy / Este finde / Próximos
 2. `/lista` — los mismos eventos en lista
-3. `/evento/[id]` — detalle
+3. `/evento/[id]` — detalle. Si el evento tiene `perfil_id`, la tarjeta
+   "Publicado por" es tocable y lleva a `/p/[slug]` (Sesión 13, paso 2); los
+   datos del perfil ya vienen en `eventos_publicos` por LEFT JOIN. Sin
+   `perfil_id` (eventos viejos) se muestra el nombre plano de siempre.
+3b. `/p/[slug]` — perfil público de un local/organizador/artista (Sesión 13,
+    paso 1). Server Component: foto, tipo, redes; "Próximos eventos"
+    (mini-mapa + lista desde `eventos_publicos` por `perfil_id`) y "Ya
+    pasaron" (últimos 10 desde `events`, `status='aprobado'`). Botón
+    "Seguir" **placeholder** (seguir de verdad = Sesión 14, necesita el
+    login del público). El nº de seguidores solo se muestra con 25+
+    (privado por debajo — ver "Decisiones fijas"). Slug inexistente → 404.
 
 > Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
 > publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.
 
 **Organizador (sin registro, link entregado por QR o WhatsApp):**
 4. `/publicar` — el mapa con botón "Publicar evento"
-5. `/publicar/nuevo` — el formulario
+5. `/publicar/nuevo` — el formulario. Si hay sesión de publicador (cookie
+   `envivo_publicador`, leída vía `GET /api/publicador/sesion`), el evento
+   hereda `perfil_id` + nombre + redes del perfil: esos campos no se piden,
+   sale el encabezado "Publicando como [nombre]" y se guarda
+   `events.perfil_id` (Sesión 13, paso 3). Sin sesión → flujo viejo intacto
+   (campos de nombre/redes a mano, `perfil_id` NULL).
 6. `/mis-eventos/[token]` — lo que ha publicado ese WhatsApp, en cuatro
    secciones (En el mapa / En revisión / No publicado / Ya pasaron). Solo
    lectura. El token vive en `access_tokens` y se genera (o se reutiliza)
    desde la API route del servidor al aprobar o fusionar el primer evento
    de ese WhatsApp.
-   `/mis-eventos` (sin token) es una pantalla-puente: no hay nada que
-   mostrar sin el link personal, así que solo explica dónde encontrarlo.
+   `/mis-eventos` (sin token) tiene dos caras (Sesión 13, paso 4): con
+   sesión de publicador (`envivo_publicador`) muestra la misma lista de
+   cuatro secciones, trayendo los eventos por `perfil_id` (y por el WhatsApp
+   de la cuenta, para los publicados antes de registrarse); sin sesión es la
+   pantalla-puente que explica dónde está el link personal. La lista vive en
+   `components/MisEventosLista.tsx` (la usa `/mis-eventos`); `[token]`
+   conserva su copia propia sin cambios.
+6b. `/mis-eventos/editar/[id]` — editar un evento publicado (Sesión 13,
+   paso 6). **Solo con sesión de publicador**, y solo eventos de su
+   `perfil_id`. Cambia **flyer, video y ubicación**, nada más; se guarda
+   directo por `POST /api/publicador/evento/editar` (service_role, verifica
+   dueño), **sin re-revisión** (ese modelo se reemplaza en la Sesión 18). Si
+   el evento es una serie, el cambio aplica a todas sus fechas. Mover el pin
+   >500 m del punto original marca `events.reubicado_pendiente = true` — se
+   detecta, no bloquea. Nombre/hora/descripción no se editan aquí. Enlace
+   "Editar…" en las tarjetas de "En el mapa" de `/mis-eventos`.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
 **Alta del publicador (Sesión 12 — verificación por SMS con Twilio Verify, sin Google):**
@@ -116,6 +146,20 @@ cambiar, se me pregunta primero.
   `/panel`.
 - `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
   (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
+- `/perfil` — vista **privada** del dueño (Sesión 13). Server Component sin
+  params: consulta siempre el perfil de `sesion.perfilId` (por eso nadie ve
+  el de otro). Sin sesión → `/registro`. Todavía no enlazado desde `/panel`
+  (eso lo decide S15).
+  - Paso 5: muestra el número **real** de seguidores, aunque sea < 25 (en
+    `/p/[slug]` público sigue oculto por debajo de 25).
+  - Paso 7: edita **nombre** (libre) e **Instagram + WhatsApp público** con
+    **candado de 30 días** desde `perfiles.ultimo_cambio_contacto`. Bloqueado
+    → campos en lectura + "Podés cambiarlo desde el [fecha]". Guarda por
+    `POST /api/publicador/perfil/editar` (service_role) que **revalida el
+    candado** con el valor de la base, no confía en el frontend; al cambiar
+    IG/WA pone `ultimo_cambio_contacto = now()`. Helper `candadoContacto()` +
+    `VENTANA_CANDADO_DIAS` en `lib/registroPublicador.ts`. Sigue la pantalla
+    8 de `envivo-grupo2-publicador.html`.
 - El código lo generan, expiran y limitan del lado de Twilio; EnVivo solo
   hace dos llamadas HTTP a su API (sin SDK). No hay confirmación manual ni
   webhook: se borró `/admin/registro` y `/api/wa/webhook` al cambiar de

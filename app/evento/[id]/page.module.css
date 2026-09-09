@@ -209,6 +209,62 @@
   letter-spacing: -0.015em;
 }
 
+/* ---------- tarjeta "Publicado por" con perfil enlazado ---------- */
+.perfilEnlace {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background: var(--noche-2);
+}
+.perfilEnlace:hover {
+  border-color: var(--hueso-tenue);
+}
+
+.perfilFoto {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--noche-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--hueso-tenue);
+}
+.perfilFoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.perfilNombre {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perfilVer {
+  flex-shrink: 0;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+}
+
 .redes {
   display: flex;
   flex-wrap: wrap;

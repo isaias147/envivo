@@ -1,0 +1,62 @@
+/* ===== EnVivo · fila de acciones del perfil público ===== */
+/* Sigue `.p-acciones` / `.btn-seguir` / `.btn-icono` del mockup
+   envivo-grupo1-publico.html. */
+
+.caja {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+
+.fila {
+  display: flex;
+  gap: 8px;
+}
+
+/* CTA en latón sólido (no cristal): es la acción principal del perfil. */
+.seguir {
+  flex: 1;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--laton);
+  color: var(--noche);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.seguir[aria-pressed="true"] {
+  flex: none;
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--hueso-tenue);
+  border: 1px solid var(--linea);
+  cursor: default;
+}
+
+.icono {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--hueso);
+  cursor: pointer;
+}
+.icono:hover {
+  border-color: var(--hueso-tenue);
+}
+
+.aviso {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--hueso-tenue);
+}

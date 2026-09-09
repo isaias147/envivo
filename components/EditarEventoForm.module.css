@@ -1,0 +1,182 @@
+/* ===== EnVivo · formulario de editar evento (Sesión 13, paso 6) ===== */
+
+.form {
+  margin-top: 6px;
+}
+
+.campo {
+  margin-bottom: 20px;
+}
+.campo label {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12.5px;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.campo input {
+  width: 100%;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  padding: 11px;
+  color: var(--hueso);
+  font-size: 14px;
+  font-family: var(--fuente-cuerpo);
+  outline: none;
+}
+.campo input:focus {
+  border-color: var(--laton);
+}
+
+.ayuda {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+/* ---------- flyer ---------- */
+.flyerFila {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.flyerPrev {
+  width: 64px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--noche-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--hueso-tenue);
+}
+.flyerPrev img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.secundario {
+  border: 1px solid var(--hueso-tenue);
+  background: transparent;
+  color: var(--hueso);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.secundario:hover {
+  border-color: var(--hueso);
+}
+
+/* ---------- mapa ---------- */
+.mapita {
+  position: relative;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+}
+.mapaCargando {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--hueso-tenue);
+  background: var(--noche-2);
+}
+.pista {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 500;
+  background: rgba(22, 26, 61, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--linea);
+  border-radius: 100px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  color: var(--hueso);
+}
+
+/* ---------- acciones ---------- */
+.guardar {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--laton);
+  color: #231a00;
+  border: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 15px;
+  border-radius: 9px;
+  text-align: center;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+.guardar:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.cancelar {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hueso-tenue);
+}
+.cancelar:hover {
+  color: var(--hueso);
+}
+
+.error {
+  color: var(--coral);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+/* ---------- pantalla de guardado ---------- */
+.hecho {
+  margin-top: 10px;
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  padding: 20px;
+}
+.hechoTit {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.reubi {
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--laton);
+}
+.volver {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--hueso);
+  border-bottom: 1px solid var(--laton);
+  padding-bottom: 2px;
+}

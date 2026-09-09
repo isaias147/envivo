@@ -1,0 +1,93 @@
+/* ===== EnVivo · /perfil (vista privada del dueño) ===== */
+/* Mismo marco que /panel: tarjeta índigo sobre fondo #0d0f26. */
+
+.pantalla {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 40px 20px 64px;
+  background: #0d0f26;
+}
+
+.marco {
+  width: 100%;
+  max-width: 360px;
+  background: var(--noche);
+  border: 1px solid var(--linea);
+  border-radius: 20px;
+  padding: 26px 22px 30px;
+}
+
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+
+.ruta {
+  font-size: 11px;
+  color: var(--hueso-tenue);
+  margin-bottom: 22px;
+}
+
+.tit {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+
+/* ---------- el dato (seguidores, paso 5) ---------- */
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--linea);
+}
+.numero {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--hueso);
+}
+.etiqueta {
+  font-size: 13px;
+  color: var(--hueso-tenue);
+}
+
+.nota {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--hueso-tenue);
+}
+
+/* ---------- accesos (como /panel) ---------- */
+.accesos {
+  margin-top: 20px;
+}
+.acceso {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--linea);
+  font-size: 14px;
+  color: var(--hueso);
+  text-decoration: none;
+}
+.acceso .flecha {
+  color: var(--hueso-tenue);
+}

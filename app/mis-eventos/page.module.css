@@ -46,6 +46,12 @@
   color: var(--hueso);
   word-break: break-all;
 }
+.nombre {
+  color: var(--hueso);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
 
 .enviar {
   display: block;
@@ -73,4 +79,13 @@
 }
 .volver:hover {
   color: var(--hueso);
+}
+
+/* Pie de la vista con sesión ("¿Necesitas cambiar algo?"). */
+.pie {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  line-height: 1.5;
+  text-align: center;
+  margin-top: 12px;
 }

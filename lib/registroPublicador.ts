@@ -49,6 +49,27 @@ export function esTipoPerfil(v: unknown): v is TipoPerfil {
   return v === "local" || v === "organizador" || v === "artista";
 }
 
+// Candado de contacto: Instagram y WhatsApp público quedan bloqueados 30
+// días desde el último cambio (`perfiles.ultimo_cambio_contacto`). El nombre
+// no tiene candado. Lo calculan /perfil (para pintar) y la API de guardado
+// (para validar server-side, sin confiar en el frontend).
+export const VENTANA_CANDADO_DIAS = 30;
+
+export function candadoContacto(ultimoCambio: string | null | undefined): {
+  bloqueado: boolean;
+  desbloqueaEn: string | null;
+} {
+  if (!ultimoCambio) return { bloqueado: false, desbloqueaEn: null };
+  const desbloqueo = new Date(
+    new Date(ultimoCambio).getTime() +
+      VENTANA_CANDADO_DIAS * 24 * 60 * 60 * 1000,
+  );
+  return {
+    bloqueado: desbloqueo.getTime() > Date.now(),
+    desbloqueaEn: desbloqueo.toISOString(),
+  };
+}
+
 // Largo del código que manda Twilio Verify. El servicio de Verify tiene que
 // estar configurado en la consola de Twilio con "Code Length = 4" para que
 // coincida con las 4 casillas de /registro/verificar.

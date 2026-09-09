@@ -1,0 +1,115 @@
+/* ===== EnVivo · formulario de /perfil (Sesión 13, paso 7) ===== */
+/* Sigue la pantalla 8 de envivo-grupo2-publicador.html. */
+
+.form {
+  margin-top: 6px;
+}
+
+.campo {
+  margin-bottom: 14px;
+}
+.campo label {
+  display: block;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin-bottom: 6px;
+}
+.campo input,
+.campo select {
+  width: 100%;
+  background: var(--noche-2);
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  padding: 11px;
+  color: var(--hueso);
+  font-size: 14px;
+  font-family: var(--fuente-cuerpo);
+  outline: none;
+}
+.campo input:focus,
+.campo select:focus {
+  border-color: var(--laton);
+}
+.campo input:disabled,
+.campo select:disabled {
+  cursor: not-allowed;
+}
+.bloqueado input,
+.bloqueado select {
+  opacity: 0.5;
+}
+
+.telFila {
+  display: flex;
+  gap: 8px;
+}
+.telFila select {
+  width: 108px;
+  flex-shrink: 0;
+}
+
+.candado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+  margin-top: 6px;
+}
+
+/* ---------- vista previa ---------- */
+.vistaPrevia {
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 22px 0 18px;
+}
+.etiqueta {
+  font-size: 11px;
+  color: var(--hueso-tenue);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+.pvNombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+.pvMeta {
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin-top: 4px;
+}
+
+/* ---------- acciones ---------- */
+.guardar {
+  width: 100%;
+  background: var(--laton);
+  color: var(--noche);
+  border: 0;
+  padding: 13px;
+  border-radius: 10px;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+.guardar:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.aviso {
+  font-size: 12.5px;
+  color: var(--cana);
+  line-height: 1.5;
+  margin-top: 12px;
+}
+.error {
+  font-size: 13px;
+  color: var(--coral);
+  line-height: 1.5;
+  margin-top: 12px;
+}

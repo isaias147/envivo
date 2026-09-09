@@ -1,0 +1,115 @@
+/* ===== EnVivo · lista de "Mis eventos" (secciones + tarjetas) ===== */
+/* Copiado tal cual de app/mis-eventos/[token]/page.module.css para no tocar
+   esa pantalla. Móvil primero, 380px. Solo lectura. */
+
+.vacio {
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+  line-height: 1.6;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 18px;
+}
+
+/* ---------- secciones ---------- */
+.seccion {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  letter-spacing: 0.02em;
+  padding: 18px 0 6px;
+}
+
+.item {
+  composes: cristal from global;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.prev {
+  width: 46px;
+  height: 58px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--noche-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prev img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sinFlyer {
+  font-size: 9px;
+  color: var(--hueso-tenue);
+  text-align: center;
+  line-height: 1.2;
+  padding: 0 3px;
+}
+
+.datos {
+  min-width: 0;
+}
+.datos b {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  display: block;
+}
+.datos small {
+  display: block;
+  font-size: 12px;
+  color: var(--hueso-tenue);
+  margin-top: 3px;
+}
+
+/* ---------- badge de estado ---------- */
+.estado {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.ok {
+  background: rgba(95, 214, 160, 0.15);
+  color: var(--cana);
+}
+.esp {
+  background: rgba(255, 182, 39, 0.14);
+  color: var(--laton);
+}
+.no {
+  background: rgba(255, 94, 91, 0.14);
+  color: var(--coral);
+}
+.idle {
+  background: rgba(244, 241, 232, 0.08);
+  color: var(--hueso-tenue);
+}
+
+/* ---------- enlace de editar (solo "En el mapa") ---------- */
+.editar {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--laton);
+}
+.editar:hover {
+  text-decoration: underline;
+}

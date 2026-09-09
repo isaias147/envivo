@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -98,6 +99,10 @@ function Detalle({ evento }: { evento: EventoPublico }) {
     ? "Gratis"
     : evento.price_label ?? "Entrada paga";
   const publicadoPor = evento.publisher_name ?? evento.venue_name ?? "Organizador";
+  // Los eventos ya migrados tienen un perfil público enlazado por `perfil_id`.
+  // Los viejos no: en ese caso la tarjeta cae al nombre plano de siempre.
+  const tienePerfil = Boolean(evento.perfil_id && evento.perfil_slug);
+  const nombrePerfil = evento.perfil_nombre ?? publicadoPor;
 
   return (
     <>
@@ -184,7 +189,31 @@ function Detalle({ evento }: { evento: EventoPublico }) {
 
         <div className={styles.autor}>
           <small>Publicado por</small>
-          <b>{publicadoPor}</b>
+
+          {tienePerfil ? (
+            <Link
+              href={`/p/${evento.perfil_slug}`}
+              className={styles.perfilEnlace}
+            >
+              <span className={styles.perfilFoto}>
+                {evento.perfil_imagen_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={evento.perfil_imagen_url} alt="" />
+                ) : (
+                  <span>
+                    {(nombrePerfil.trim()[0] ?? "?").toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className={styles.perfilNombre}>{nombrePerfil}</span>
+              <span className={styles.perfilVer} aria-hidden="true">
+                Ver perfil ›
+              </span>
+            </Link>
+          ) : (
+            <b>{publicadoPor}</b>
+          )}
+
           <div className={styles.redes}>
             {evento.instagram && (
               <a
