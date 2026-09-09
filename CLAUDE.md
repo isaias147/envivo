@@ -127,6 +127,15 @@ cambiar, se me pregunta primero.
     `/api/seguir`; ver "Auth del usuario final"). El nº de seguidores solo
     se muestra con 25+ (privado por debajo — ver "Decisiones fijas"). Slug
     inexistente → 404.
+3c. `/siguiendo` — a quién sigue el usuario final (Sesión 14, paso 3).
+    Client Component (sesión de usuario final = Supabase Auth). Sin sesión →
+    estado vacío con botón "Entrar con Google" (abre el modal, no salta
+    solo). Con sesión: `seguimientos` → `perfiles` → próximo evento futuro
+    de cada uno (de `events`, `status='aprobado'`, el más cercano). Los que
+    no tienen evento salen igual con "Sin eventos próximos". Badge **"Nuevo"**
+    = el próximo evento se publicó (`events.created_at`) en las últimas 72 h
+    y después de `user_metadata.ultima_visita_siguiendo` (que se actualiza al
+    entrar; sin tabla nueva). **Todavía no enlazado desde ningún nav.**
 
 > Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
 > publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.

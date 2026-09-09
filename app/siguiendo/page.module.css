@@ -1,0 +1,137 @@
+/* ===== EnVivo · /siguiendo ===== */
+/* Slots 3 y 3b de envivo-grupo1-publico.html. */
+
+.pantalla {
+  min-height: 100dvh;
+  background: var(--noche);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 10px;
+}
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+.verMapa {
+  composes: cristal from global;
+  padding: 7px 13px;
+  border-radius: 100px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hueso);
+}
+
+.titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  padding: 6px 18px 14px;
+}
+
+.info {
+  padding: 20px 18px;
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+}
+
+/* ---------- estados vacíos ---------- */
+.vacio {
+  padding: 56px 34px 0;
+  text-align: center;
+  color: var(--hueso-tenue);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.entrar {
+  margin-top: 20px;
+  background: var(--hueso);
+  color: var(--noche);
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ---------- lista ---------- */
+.lista {
+  list-style: none;
+}
+.tarjeta {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--linea);
+  color: inherit;
+}
+.tarjeta:hover {
+  background: rgba(244, 241, 232, 0.03);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--noche-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.datos {
+  flex: 1;
+  min-width: 0;
+}
+.nombre {
+  display: block;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prox {
+  display: block;
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nuevo {
+  flex-shrink: 0;
+  background: var(--coral);
+  color: var(--hueso);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
