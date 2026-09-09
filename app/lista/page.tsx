@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -16,6 +15,8 @@ import {
   type Precio,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
+import BarraInferior from "@/components/BarraInferior";
+import EnlaceCuenta from "@/components/EnlaceCuenta";
 import styles from "./page.module.css";
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
@@ -104,12 +105,7 @@ function ListaPantalla() {
           <b>
             En<i>Vivo</i>
           </b>
-          <Link
-            href={`/${queryFiltros(filtro, precio)}`}
-            className={styles.verMapa}
-          >
-            Ver mapa
-          </Link>
+          <EnlaceCuenta />
         </div>
         <div className={styles.reel}>
           {FILTROS.map((f) => (
@@ -164,6 +160,8 @@ function ListaPantalla() {
           ))}
         </div>
       </div>
+
+      <BarraInferior />
     </div>
   );
 }

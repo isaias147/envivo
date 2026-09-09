@@ -115,6 +115,14 @@ cambiar, se me pregunta primero.
 **Usuario (sin registro, nunca ve un login):**
 1. `/` — mapa con pines, geolocalización, radio 1/3/5 km, filtro Hoy / Este finde / Próximos
 2. `/lista` — los mismos eventos en lista
+
+**Barra inferior de tabs** (`components/BarraInferior`, Sesión 14 paso 5):
+Mapa `/` · Lista `/lista` · Siguiendo `/siguiendo`. Está en `/`, `/lista`,
+`/siguiendo` y `/yo` (en `/yo` sin tab activo). Mapa/Lista conservan los
+filtros (`?t=&p=`); Siguiendo no. Badge en Siguiendo = nº de perfiles
+seguidos cuyo próximo evento está marcado "Nuevo" (misma `useSeguidos` de
+`lib/siguiendo.ts`). El acceso a `/yo` es `components/EnlaceCuenta` (avatar
+de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 3. `/evento/[id]` — detalle. Si el evento tiene `perfil_id`, la tarjeta
    "Publicado por" es tocable y lleva a `/p/[slug]` (Sesión 13, paso 2); los
    datos del perfil ya vienen en `eventos_publicos` por LEFT JOIN. Sin
@@ -135,7 +143,9 @@ cambiar, se me pregunta primero.
     no tienen evento salen igual con "Sin eventos próximos". Badge **"Nuevo"**
     = el próximo evento se publicó (`events.created_at`) en las últimas 72 h
     y después de `user_metadata.ultima_visita_siguiendo` (que se actualiza al
-    entrar; sin tabla nueva). Solo se llega desde `/yo`.
+    entrar; sin tabla nueva). Es un tab de la barra inferior. La lógica de
+    datos vive en `lib/siguiendo.ts` (`useSeguidos`), compartida con el badge
+    de la barra.
 3d. `/yo` — cuenta del **usuario final** (Sesión 14, paso 4). Distinta de
     `/perfil` (cuenta del publicador). Client Component. Sin sesión → estado
     vacío + "Entrar con Google". Con sesión: nombre + email de Google
@@ -143,7 +153,8 @@ cambiar, se me pregunta primero.
     eventos" (guarda `user_metadata.avisos`, default true; **no hay sistema
     de envío todavía**), "Perfiles que seguís" → `/siguiendo`, "Cerrar
     sesión" (`signOut` → `/`), "Borrar mi cuenta" (confirmación en dos
-    pasos → `POST /api/yo/eliminar`). **Nav todavía sin enlace a `/yo`.**
+    pasos → `POST /api/yo/eliminar`). Se llega por `EnlaceCuenta` (arriba a
+    la derecha en `/`, `/lista`, `/siguiendo`). No es un tab de la barra.
 - `POST /api/yo/eliminar` — `auth.admin.deleteUser` es solo service_role.
   Valida el Bearer token con `getUser()`, borra `seguimientos` del usuario
   (belt-and-suspenders; la FK ya es `ON DELETE CASCADE`) y luego

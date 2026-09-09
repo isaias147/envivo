@@ -36,17 +36,6 @@
   font-style: normal;
 }
 
-.verMapa {
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--hueso-tenue);
-  padding: 6px 0;
-}
-.verMapa:hover {
-  color: var(--hueso);
-}
-
 .reel {
   display: flex;
   gap: 7px;
@@ -78,8 +67,9 @@
 
 /* ---------- lista ---------- */
 .lista {
-  /* el padding inferior deja aire para la barra de precio flotante */
-  padding: 6px 18px calc(env(safe-area-inset-bottom) + 92px);
+  /* aire abajo para la cápsula de precio flotante + la barra de tabs */
+  padding: 6px 18px
+    calc(env(safe-area-inset-bottom) + var(--barra-inf) + 96px);
 }
 
 .dia {
@@ -136,7 +126,7 @@
   z-index: 30;
   display: flex;
   justify-content: center;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
   pointer-events: none;
 }
 

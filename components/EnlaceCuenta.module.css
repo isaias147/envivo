@@ -1,0 +1,23 @@
+/* ===== EnVivo · botón "Mi cuenta" (→ /yo) ===== */
+
+.enlace {
+  composes: cristal from global;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hueso);
+}
+.enlace img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.enlace svg {
+  width: 18px;
+  height: 18px;
+}

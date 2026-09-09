@@ -60,20 +60,12 @@
   font-style: normal;
 }
 
-/* ---------- "Ver lista": cápsula de cristal arriba a la derecha ---------- */
-.verLista {
-  composes: cristal from global;
+/* ---------- "Mi cuenta" (→ /yo): arriba a la derecha ---------- */
+.cuenta {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 12px);
   right: 16px;
   z-index: 500;
-  padding: 9px 16px;
-  border-radius: 100px;
-  color: var(--hueso);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 600;
-  font-size: 12.5px;
-  letter-spacing: 0;
 }
 
 /* ---------- filtros de tiempo: cápsula de cristal ---------- */
@@ -193,7 +185,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 22px);
   pointer-events: none;
 }
 
@@ -243,7 +235,7 @@
 .atribucion {
   position: absolute;
   right: 8px;
-  bottom: calc(env(safe-area-inset-bottom) + 4px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 6px);
   z-index: 400;
   padding: 2px 7px;
   border-radius: 8px;

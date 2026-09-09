@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { salir, useUsuario } from "@/lib/authUsuario";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
+import BarraInferior from "@/components/BarraInferior";
 import styles from "./page.module.css";
 
 export default function Yo() {
@@ -99,9 +100,6 @@ export default function Yo() {
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <Link href="/" className={styles.verMapa}>
-          Ver mapa
-        </Link>
       </header>
 
       <h1 className={styles.titulo}>Tu cuenta</h1>
@@ -214,6 +212,8 @@ export default function Yo() {
         titulo="Entra a EnVivo"
         descripcion="Con tu cuenta seguís a locales, organizadores y artistas y recibís un aviso cuando publican algo nuevo."
       />
+
+      <BarraInferior />
     </div>
   );
 }

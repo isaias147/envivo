@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +26,8 @@ import {
   type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
+import BarraInferior from "@/components/BarraInferior";
+import EnlaceCuenta from "@/components/EnlaceCuenta";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import styles from "./page.module.css";
 
@@ -190,14 +191,10 @@ function MapaPantalla() {
         En<i>Vivo</i>
       </div>
 
-      {/* "Ver lista": cápsula de cristal, arriba a la derecha. Lleva los
-          filtros actuales para que la lista abra igual. */}
-      <Link
-        href={`/lista${queryFiltros(filtro, precio)}`}
-        className={styles.verLista}
-      >
-        Ver lista
-      </Link>
+      {/* Mi cuenta (→ /yo): arriba a la derecha. */}
+      <div className={styles.cuenta}>
+        <EnlaceCuenta />
+      </div>
 
       {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
       <div className={styles.reel}>
@@ -274,6 +271,8 @@ function MapaPantalla() {
 
       {/* Atribución de Leaflet: obligatoria, discreta, esquina inferior derecha. */}
       <p className={styles.atribucion}>{TILES_ATRIBUCION}</p>
+
+      <BarraInferior />
     </div>
   );
 }

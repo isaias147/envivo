@@ -18,6 +18,10 @@
   /* Líneas */
   --linea: rgba(244, 241, 232, 0.14);
 
+  /* Alto de la barra inferior de tabs (Mapa · Lista · Siguiendo). Sin el
+     safe-area: cada pantalla lo suma aparte donde hace falta. */
+  --barra-inf: 56px;
+
   /* Cristal: superficies flotantes translúcidas (barras, paneles, tarjetas).
      Nunca para botones de acción ni estados activos: esos van en latón sólido. */
   --cristal-fondo: rgba(22, 26, 61, 0.38);

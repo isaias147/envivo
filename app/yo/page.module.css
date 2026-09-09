@@ -6,6 +6,7 @@
   background: var(--noche);
   max-width: 480px;
   margin: 0 auto;
+  padding-bottom: calc(var(--barra-inf) + env(safe-area-inset-bottom) + 8px);
 }
 
 .top {
@@ -23,15 +24,6 @@
 .marca i {
   color: var(--laton);
   font-style: normal;
-}
-.verMapa {
-  composes: cristal from global;
-  padding: 7px 13px;
-  border-radius: 100px;
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 12.5px;
-  color: var(--hueso);
 }
 
 .titulo {
