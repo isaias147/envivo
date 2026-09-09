@@ -1,8 +1,9 @@
 "use client";
 
-// Formulario para publicar un evento. Sin registro: cualquiera con el
-// link puede llegar aquí. Sigue los bloques "1 · Publicar evento" y
-// "3 · Enviado" de envivo-pantallas-organizador.html.
+// Formulario para publicar un evento. Exige cuenta: sin sesión de
+// publicador (cookie `envivo_publicador`) la pantalla redirige a /registro.
+// Sigue los bloques "1 · Publicar evento" y "3 · Enviado" de
+// envivo-pantallas-organizador.html.
 //
 // - Bifurca desde la primera pregunta: una sola vez / se repite.
 // - La ubicación se marca con un pin arrastrable, nunca escribiendo dirección.
@@ -15,6 +16,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   componerWhatsapp,
@@ -22,6 +24,7 @@ import {
   PAIS_WHATSAPP_POR_DEFECTO,
   PAISES_WHATSAPP,
 } from "@/lib/eventos";
+import { esTipoPerfil, type TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./page.module.css";
 
 const MapaSelector = dynamic(() => import("@/components/MapaSelector"), {
@@ -174,6 +177,8 @@ type ResultadoGeo = {
 };
 
 export default function PublicarNuevo() {
+  const router = useRouter();
+
   // bifurcación
   const [serie, setSerie] = useState(false);
   const [cadaDias, setCadaDias] = useState<7 | 14>(7);
@@ -207,24 +212,24 @@ export default function PublicarNuevo() {
   const [descripcion, setDescripcion] = useState("");
   const [reel, setReel] = useState("");
 
-  // quién publica y contacto
-  const [quien, setQuien] = useState<"local" | "organizador" | "artista">("local");
-  const [quienNombre, setQuienNombre] = useState("");
+  // contacto
   const [paisWa, setPaisWa] = useState<string>(PAIS_WHATSAPP_POR_DEFECTO); // Colombia
   const [whatsapp, setWhatsapp] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [tiktok, setTiktok] = useState("");
 
   // Perfil del publicador autenticado (cookie `envivo_publicador`, Sesión 12).
-  // Si existe, el evento hereda `perfil_id` + nombre + redes del perfil y esos
-  // campos no se piden en el formulario. Si no, sigue el flujo viejo (sin
-  // perfil): cualquiera con el link publica y escribe su nombre a mano.
+  // Publicar exige cuenta: sin sesión, esta pantalla redirige a /registro
+  // (ver más abajo). El evento hereda `perfil_id` + nombre + tipo + redes del
+  // perfil, así que esos campos no se piden en el formulario.
   const [perfilSesion, setPerfilSesion] = useState<{
     perfilId: string;
     nombre: string | null;
+    tipo: TipoPerfil;
   } | null>(null);
   const [sesionLista, setSesionLista] = useState(false);
-  const conPerfil = perfilSesion !== null;
+
+  // El tipo del perfil (local / organizador / artista) decide "quién publica":
+  // ya no se elige en el formulario.
+  const quien: TipoPerfil = perfilSesion?.tipo ?? "local";
 
   // flyer
   const [flyer, setFlyer] = useState<File | null>(null);
@@ -251,10 +256,14 @@ export default function PublicarNuevo() {
         const r = await fetch("/api/publicador/sesion", { cache: "no-store" });
         const j = await r.json();
         if (vivo && j.activa && j.perfilId) {
-          setPerfilSesion({ perfilId: j.perfilId, nombre: j.nombre ?? null });
+          setPerfilSesion({
+            perfilId: j.perfilId,
+            nombre: j.nombre ?? null,
+            tipo: esTipoPerfil(j.tipo) ? j.tipo : "local",
+          });
         }
       } catch {
-        // sin sesión o sin red: flujo viejo, con los campos a mano
+        // sin sesión o sin red: se resuelve abajo con la redirección
       }
       if (vivo) setSesionLista(true);
     })();
@@ -262,6 +271,14 @@ export default function PublicarNuevo() {
       vivo = false;
     };
   }, []);
+
+  // Publicar exige cuenta. En cuanto sabemos que no hay sesión de publicador,
+  // mandamos a /registro en vez de mostrar el formulario.
+  useEffect(() => {
+    if (sesionLista && !perfilSesion) {
+      router.replace("/registro");
+    }
+  }, [sesionLista, perfilSesion, router]);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -499,10 +516,6 @@ export default function PublicarNuevo() {
       setError("La descripción no puede pasar de 200 caracteres.");
       return;
     }
-    if (!conPerfil && !quienNombre.trim()) {
-      setError("Escribe el nombre de quien publica.");
-      return;
-    }
     if (!whatsapp.trim()) {
       setError("Falta el WhatsApp de contacto.");
       return;
@@ -669,16 +682,12 @@ export default function PublicarNuevo() {
           : null,
         series_id: seriesId,
         publisher_type: quien,
-        // Con perfil: el nombre y las redes salen del perfil (por eso no se
-        // piden en el form). `perfil_id` enlaza el evento → /p/[slug]. Sin
-        // perfil: como siempre, lo que escribió la persona.
-        publisher_name: conPerfil
-          ? perfilSesion.nombre ?? null
-          : quienNombre.trim(),
+        // El nombre, el tipo y las redes los impone el servidor desde el
+        // perfil (POST /api/publicador/evento/crear); acá van solo como
+        // referencia. `perfil_id` enlaza el evento → /p/[slug].
+        publisher_name: perfilSesion?.nombre ?? null,
         whatsapp: componerWhatsapp(paisWa, whatsapp),
-        instagram: conPerfil ? null : instagram.trim() || null,
-        tiktok: conPerfil ? null : tiktok.trim() || null,
-        perfil_id: conPerfil ? perfilSesion.perfilId : null,
+        perfil_id: perfilSesion?.perfilId ?? null,
         post_url: reelUrl,
         city: "Cali",
       };
@@ -688,9 +697,14 @@ export default function PublicarNuevo() {
         starts_at: isoCali(ymd, hora),
       }));
 
-      const { error: errInsert } = await supabase.from("events").insert(filas);
-      if (errInsert) {
-        setError("No se pudo enviar el evento. Intenta de nuevo.");
+      const r = await fetch("/api/publicador/evento/crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filas }),
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => null);
+        setError(j?.error ?? "No se pudo enviar el evento. Intenta de nuevo.");
         setEnviando(false);
         return;
       }
@@ -715,9 +729,10 @@ export default function PublicarNuevo() {
     }
   }
 
-  // Esperamos a saber si hay publicador autenticado antes de pintar el
-  // formulario, así no se ven y se esconden los campos de nombre/redes.
-  if (!sesionLista) {
+  // Sin sesión de publicador no se pinta el formulario: o todavía estamos
+  // consultando /api/publicador/sesion, o ya arrancó la redirección a
+  // /registro (publicar exige cuenta).
+  if (!sesionLista || !perfilSesion) {
     return (
       <div className={styles.pantalla}>
         <div className={styles.marco}>
@@ -793,7 +808,7 @@ export default function PublicarNuevo() {
           Es gratis. Lo revisamos y queda en el mapa el mismo día.
         </p>
 
-        {conPerfil && perfilSesion.nombre && (
+        {perfilSesion.nombre && (
           <div className={styles.publicandoComo}>
             Publicando como <b>{perfilSesion.nombre}</b>
           </div>
@@ -1124,49 +1139,6 @@ export default function PublicarNuevo() {
           </p>
         </div>
 
-        {/* quién publica */}
-        <div className={styles.campo}>
-          <label>¿Quién publica?</label>
-          <div className={styles.trio}>
-            <button
-              type="button"
-              className={styles.op}
-              aria-pressed={quien === "local"}
-              onClick={() => setQuien("local")}
-            >
-              El local
-            </button>
-            <button
-              type="button"
-              className={styles.op}
-              aria-pressed={quien === "organizador"}
-              onClick={() => setQuien("organizador")}
-            >
-              Organizador
-            </button>
-            <button
-              type="button"
-              className={styles.op}
-              aria-pressed={quien === "artista"}
-              onClick={() => setQuien("artista")}
-            >
-              Artista
-            </button>
-          </div>
-        </div>
-
-        {!conPerfil && (
-          <div className={styles.campo}>
-            <label htmlFor="quien-nombre">Nombre de quien publica</label>
-            <input
-              id="quien-nombre"
-              value={quienNombre}
-              onChange={(e) => setQuienNombre(e.target.value)}
-              placeholder="Bar La Topa Tolondra"
-            />
-          </div>
-        )}
-
         <div className={styles.campo}>
           <label htmlFor="whatsapp">{labelWhatsapp}</label>
           <div className={styles.filaPais}>
@@ -1192,29 +1164,6 @@ export default function PublicarNuevo() {
           </div>
           <p className={styles.ayuda}>{ayudaWhatsapp}</p>
         </div>
-
-        {!conPerfil && (
-          <div className={`${styles.campo} ${styles.duo}`}>
-            <div>
-              <label htmlFor="ig">Instagram</label>
-              <input
-                id="ig"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
-                placeholder="@latopa"
-              />
-            </div>
-            <div>
-              <label htmlFor="tk">TikTok</label>
-              <input
-                id="tk"
-                value={tiktok}
-                onChange={(e) => setTiktok(e.target.value)}
-                placeholder="@latopa"
-              />
-            </div>
-          </div>
-        )}
 
         {/* honeypot: invisible para personas, tentador para bots */}
         <div className={styles.trampa} aria-hidden="true">

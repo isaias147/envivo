@@ -8,16 +8,26 @@
 
 import { NextResponse } from "next/server";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
+import { supabaseServidor } from "@/lib/supabaseServidor";
 
 export async function GET() {
   const sesion = await leerSesionPublicador();
   if (!sesion) {
     return NextResponse.json({ activa: false });
   }
+  // El tipo no viaja en la cookie: se consulta. /publicar/nuevo lo usa para
+  // saber si publica un local, un organizador o un artista, sin preguntarlo.
+  const { data: perfil } = await supabaseServidor
+    .from("perfiles")
+    .select("tipo")
+    .eq("id", sesion.perfilId)
+    .maybeSingle();
+
   return NextResponse.json({
     activa: true,
     perfilId: sesion.perfilId,
     nombre: sesion.nombre,
     whatsapp: sesion.whatsapp,
+    tipo: perfil?.tipo ?? "local",
   });
 }
