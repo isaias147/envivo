@@ -135,7 +135,19 @@ cambiar, se me pregunta primero.
     no tienen evento salen igual con "Sin eventos próximos". Badge **"Nuevo"**
     = el próximo evento se publicó (`events.created_at`) en las últimas 72 h
     y después de `user_metadata.ultima_visita_siguiendo` (que se actualiza al
-    entrar; sin tabla nueva). **Todavía no enlazado desde ningún nav.**
+    entrar; sin tabla nueva). Solo se llega desde `/yo`.
+3d. `/yo` — cuenta del **usuario final** (Sesión 14, paso 4). Distinta de
+    `/perfil` (cuenta del publicador). Client Component. Sin sesión → estado
+    vacío + "Entrar con Google". Con sesión: nombre + email de Google
+    (`user_metadata.full_name` / `avatar_url`), toggle "Avisos de nuevos
+    eventos" (guarda `user_metadata.avisos`, default true; **no hay sistema
+    de envío todavía**), "Perfiles que seguís" → `/siguiendo`, "Cerrar
+    sesión" (`signOut` → `/`), "Borrar mi cuenta" (confirmación en dos
+    pasos → `POST /api/yo/eliminar`). **Nav todavía sin enlace a `/yo`.**
+- `POST /api/yo/eliminar` — `auth.admin.deleteUser` es solo service_role.
+  Valida el Bearer token con `getUser()`, borra `seguimientos` del usuario
+  (belt-and-suspenders; la FK ya es `ON DELETE CASCADE`) y luego
+  `supabaseServidor.auth.admin.deleteUser(user.id)` — el id sale del token.
 
 > Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
 > publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.

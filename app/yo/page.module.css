@@ -1,0 +1,219 @@
+/* ===== EnVivo · /yo (cuenta del usuario final) ===== */
+/* Slot 4 de envivo-grupo1-publico.html. */
+
+.pantalla {
+  min-height: 100dvh;
+  background: var(--noche);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 10px;
+}
+.marca {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+.marca i {
+  color: var(--laton);
+  font-style: normal;
+}
+.verMapa {
+  composes: cristal from global;
+  padding: 7px 13px;
+  border-radius: 100px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--hueso);
+}
+
+.titulo {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  padding: 6px 18px 14px;
+}
+
+.info {
+  padding: 20px 18px;
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+}
+
+/* ---------- estado sin sesión ---------- */
+.vacio {
+  padding: 56px 34px 0;
+  text-align: center;
+  color: var(--hueso-tenue);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.entrar {
+  margin-top: 20px;
+  background: var(--hueso);
+  color: var(--noche);
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-family: var(--fuente-cuerpo);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ---------- cabecera de cuenta ---------- */
+.cabecera {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 14px 18px 18px;
+  border-bottom: 1px solid var(--linea);
+}
+.avatar {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--noche-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--hueso-tenue);
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.identidad {
+  min-width: 0;
+}
+.nombre {
+  font-size: 14.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.email {
+  font-size: 11.5px;
+  color: var(--hueso-tenue);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- filas de ajuste ---------- */
+.fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 18px;
+  border: 0;
+  border-bottom: 1px solid var(--linea);
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.fila span small {
+  display: block;
+  font-size: 11px;
+  color: var(--hueso-tenue);
+  margin-top: 3px;
+}
+.flecha {
+  flex-shrink: 0;
+  color: var(--hueso-tenue);
+}
+.rojo {
+  color: var(--coral);
+}
+
+/* ---------- switch ---------- */
+.switch {
+  width: 40px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--noche-3);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--hueso);
+  transition: left 0.15s ease;
+}
+.switchOn {
+  background: var(--cana);
+}
+.switchOn::after {
+  left: 19px;
+}
+
+/* ---------- borrar cuenta ---------- */
+.borrarCaja {
+  padding: 16px 18px 24px;
+}
+.borrarCaja p {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--hueso-tenue);
+  margin-bottom: 14px;
+}
+.borrarConfirm {
+  width: 100%;
+  background: var(--coral);
+  color: var(--hueso);
+  border: 0;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.borrarConfirm:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.cancelar {
+  width: 100%;
+  margin-top: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-size: 13px;
+  padding: 8px;
+  cursor: pointer;
+}
+.error {
+  color: var(--coral);
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
