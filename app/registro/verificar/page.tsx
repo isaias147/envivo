@@ -1,67 +1,130 @@
 "use client";
 
-// Pantalla 6 · /registro/verificar — mostrar el código y esperar el mensaje.
-// El código sale de la cookie `envivo_registro` vía /api/registro/estado.
-// "Enviar por WhatsApp" abre wa.me con el mensaje ya escrito al número de
-// EnVivo. Cada 5 s consultamos si el equipo (o el webhook) ya lo confirmó;
-// cuando sí, seguimos a /registro/perfil.
+// Pantalla 6 · /registro/verificar — escribir el código que llegó por SMS.
+// Twilio Verify mandó el SMS al número que se puso en /registro. Acá el
+// usuario escribe los 4 dígitos; al enviar, POST /api/registro/verificar se
+// los pasa a Twilio y, si están bien, seguimos a /registro/perfil.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatearWhatsapp } from "@/lib/eventos";
 import styles from "../registro.module.css";
 
-const NUM_ENVIVO = (process.env.NEXT_PUBLIC_ENVIVO_WHATSAPP ?? "").replace(
-  /\D/g,
-  "",
-);
+const LARGO = 4;
 
 export default function Verificar() {
   const router = useRouter();
-  const [codigo, setCodigo] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [valores, setValores] = useState<string[]>(Array(LARGO).fill(""));
+  const [enviando, setEnviando] = useState(false);
   const [reenviando, setReenviando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const casillas = useRef<(HTMLInputElement | null)[]>([]);
   const yaSalte = useRef(false);
 
-  const consultar = useCallback(async () => {
-    try {
-      const r = await fetch("/api/registro/estado", { cache: "no-store" });
-      const j = await r.json();
-      if (j.sinRegistro) {
-        router.replace("/registro");
-        return;
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/registro/estado", { cache: "no-store" });
+        const j = await r.json();
+        if (!vivo) return;
+        if (j.sinRegistro) {
+          router.replace("/registro");
+          return;
+        }
+        if (j.verificado) {
+          router.replace("/registro/perfil");
+          return;
+        }
+        setWhatsapp(j.whatsapp ?? "");
+      } catch {
+        // sin conexión: mostramos las casillas igual
       }
-      if (j.codigo) setCodigo(String(j.codigo));
-      if (j.verificado && !yaSalte.current) {
-        yaSalte.current = true;
-        router.replace("/registro/perfil");
+      if (vivo) {
+        setCargando(false);
+        casillas.current[0]?.focus();
       }
-    } catch {
-      // reintenta en el siguiente tick
-    } finally {
-      setCargando(false);
-    }
+    })();
+    return () => {
+      vivo = false;
+    };
   }, [router]);
 
-  useEffect(() => {
-    (async () => {
-      await consultar();
-    })();
-    const t = setInterval(consultar, 5000);
-    return () => clearInterval(t);
-  }, [consultar]);
+  const enviar = useCallback(
+    async (codigo: string) => {
+      if (enviando || yaSalte.current) return;
+      setError(null);
+      setEnviando(true);
+      try {
+        const r = await fetch("/api/registro/verificar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ codigo }),
+        });
+        const j = await r.json();
+        if (!r.ok) {
+          setError(j.error ?? "No se pudo verificar el código.");
+          setValores(Array(LARGO).fill(""));
+          casillas.current[0]?.focus();
+          setEnviando(false);
+          return;
+        }
+        yaSalte.current = true;
+        router.replace("/registro/perfil");
+      } catch {
+        setError("Falló la conexión. Intentá de nuevo.");
+        setEnviando(false);
+      }
+    },
+    [enviando, router],
+  );
 
-  async function otroCodigo() {
+  function escribir(i: number, bruto: string) {
+    const digitos = bruto.replace(/\D/g, "");
+    if (!digitos) return;
+    setError(null);
+    setValores((prev) => {
+      const sig = [...prev];
+      // Un dígito por casilla; si pegaron varios, se reparten desde aquí.
+      for (let k = 0; k < digitos.length && i + k < LARGO; k++) {
+        sig[i + k] = digitos[k];
+      }
+      const lleno = sig.every((d) => d !== "");
+      const foco = Math.min(i + digitos.length, LARGO - 1);
+      casillas.current[foco]?.focus();
+      if (lleno) void enviar(sig.join(""));
+      return sig;
+    });
+  }
+
+  function teclear(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace" && !valores[i] && i > 0) {
+      casillas.current[i - 1]?.focus();
+      setValores((prev) => {
+        const sig = [...prev];
+        sig[i - 1] = "";
+        return sig;
+      });
+    }
+  }
+
+  async function reenviar() {
     if (reenviando) return;
     setError(null);
+    setAviso(null);
     setReenviando(true);
     try {
       const r = await fetch("/api/registro/reenviar", { method: "POST" });
       const j = await r.json();
       if (!r.ok) {
-        setError(j.error ?? "No se pudo generar otro código.");
+        setError(j.error ?? "No se pudo reenviar el SMS.");
       } else {
-        setCodigo(String(j.codigo));
+        setAviso("Te mandamos otro SMS.");
+        setValores(Array(LARGO).fill(""));
+        casillas.current[0]?.focus();
       }
     } catch {
       setError("Falló la conexión. Intentá de nuevo.");
@@ -69,11 +132,13 @@ export default function Verificar() {
     setReenviando(false);
   }
 
-  const digitos = (codigo ?? "····").split("");
-  const mensajeWa = `EnVivo ${codigo ?? ""}`.trim();
-  const enlaceWa = NUM_ENVIVO
-    ? `https://wa.me/${NUM_ENVIVO}?text=${encodeURIComponent(mensajeWa)}`
-    : null;
+  if (cargando) {
+    return (
+      <div className={styles.pantalla}>
+        <p className={styles.cargandoPantalla}>Cargando…</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pantalla}>
@@ -83,54 +148,52 @@ export default function Verificar() {
         </div>
         <div className={styles.ruta}>envivo.app/registro/verificar</div>
 
-        <h1 className={styles.tit}>Confirmá que sos vos</h1>
+        <h1 className={styles.tit}>Escribí el código</h1>
         <p className={styles.bajada}>
-          Enviá este código por WhatsApp al número de EnVivo. Es gratis y
-          prueba que el número es tuyo.
+          Te mandamos un SMS con un código de {LARGO} dígitos
+          {whatsapp ? ` al ${formatearWhatsapp(whatsapp)}` : ""}. Escribilo acá.
         </p>
 
-        <div className={styles.codigoCaja}>
-          {digitos.map((d, i) => (
-            <div
+        <div className={styles.codigoInputs}>
+          {valores.map((d, i) => (
+            <input
               key={i}
-              className={`${styles.digito} ${
-                d !== "·" ? styles.lleno : ""
-              }`}
-            >
-              {d === "·" ? "" : d}
-            </div>
+              ref={(el) => {
+                casillas.current[i] = el;
+              }}
+              className={`${styles.digitoInput} ${d ? styles.lleno : ""}`}
+              type="text"
+              inputMode="numeric"
+              autoComplete={i === 0 ? "one-time-code" : "off"}
+              maxLength={LARGO}
+              value={d}
+              disabled={enviando}
+              onChange={(e) => escribir(i, e.target.value)}
+              onKeyDown={(e) => teclear(i, e)}
+              aria-label={`Dígito ${i + 1}`}
+            />
           ))}
-        </div>
-
-        {enlaceWa ? (
-          <a
-            className={styles.waBtn}
-            href={enlaceWa}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Enviar por WhatsApp
-          </a>
-        ) : (
-          <p className={styles.error}>
-            Falta configurar el número de WhatsApp de EnVivo
-            (NEXT_PUBLIC_ENVIVO_WHATSAPP).
-          </p>
-        )}
-
-        <div className={styles.espera}>
-          {cargando ? "Cargando…" : "Esperando tu mensaje…"}
         </div>
 
         <button
           type="button"
-          className={styles.reintento}
-          onClick={otroCodigo}
-          disabled={reenviando}
+          className={styles.principal}
+          disabled={enviando || valores.some((d) => d === "")}
+          onClick={() => enviar(valores.join(""))}
         >
-          {reenviando ? "Generando…" : "¿No llegó? Generar otro código"}
+          {enviando ? "Verificando…" : "Verificar"}
         </button>
 
+        <button
+          type="button"
+          className={styles.reintento}
+          onClick={reenviar}
+          disabled={reenviando}
+        >
+          {reenviando ? "Reenviando…" : "¿No llegó? Reenviar SMS"}
+        </button>
+
+        {aviso && <p className={styles.verificado}>{aviso}</p>}
         {error && <p className={styles.error}>{error}</p>}
       </div>
     </div>

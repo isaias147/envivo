@@ -1,14 +1,14 @@
 // POST /api/registro/iniciar  { tipo, indicativo, whatsapp, nombre }
 //
-// Paso 2 de /registro. Genera un código de 4 dígitos, lo guarda en
-// `phone_codes` (expira en 10 min, tope 3 por hora por número) y deja la
-// cookie provisional `envivo_registro` con tipo + nombre + WhatsApp. No crea
-// perfil todavía: eso ocurre en /api/registro/perfil.
+// Paso 2 de /registro. Le pide a Twilio Verify que mande un SMS con el
+// código al número, y deja la cookie provisional `envivo_registro` con tipo
+// + nombre + WhatsApp (todavía sin el flag `verificado`). No crea perfil
+// todavía: eso ocurre en /api/registro/perfil.
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { componerWhatsapp } from "@/lib/eventos";
-import { esTipoPerfil, generarCodigo } from "@/lib/registroPublicador";
+import { esTipoPerfil, iniciarVerificacion } from "@/lib/registroPublicador";
 import { COOKIE_REGISTRO, crearTokenRegistro } from "@/lib/sesionPublicador";
 
 export async function POST(request: Request) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const res = await generarCodigo(whatsapp);
+  const res = await iniciarVerificacion(whatsapp);
   if (!res.ok) {
     return NextResponse.json({ error: res.error }, { status: res.status });
   }
@@ -60,9 +60,5 @@ export async function POST(request: Request) {
     maxAge,
   });
 
-  return NextResponse.json({
-    ok: true,
-    codigo: res.codigo,
-    expiraEn: res.expiraEn,
-  });
+  return NextResponse.json({ ok: true });
 }

@@ -25,9 +25,12 @@ cambiar, se me pregunta primero.
 - **Registro del público:** con Google, **opcional**, solo para seguir
   publicadores y recibir avisos. **Planeado para Fase 2 (Sesión 14 del spec).**
   Hoy **no existe**: el usuario nunca ve un login.
-- **Registro del publicador:** WhatsApp verificado por **código de 4 dígitos vía
-  `wa.me`**, nunca Google. **Planeado (Fase 2).** Hoy el publicador tampoco ve
-  login: el acceso es por link de QR/WhatsApp.
+- **Registro del publicador:** número verificado por **SMS con código de 4
+  dígitos vía Twilio Verify**, nunca Google. **Planeado (Fase 2).** Hoy el
+  publicador tampoco ve login: el acceso es por link de QR/WhatsApp.
+  (Antes se hizo por `wa.me`; se cambió porque el número no se pudo registrar
+  como empresa en Meta. Twilio Verify maneja generación, expiración y
+  reintentos del código de su lado.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
 - **Monetización (sin puja por posición):** dos productos —
@@ -65,7 +68,7 @@ cambiar, se me pregunta primero.
 ### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
 
 - `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `whatsapp_cuenta` (**clave privada, no se expone al cliente** — se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
-- `phone_codes` — códigos OTP de 4 dígitos para verificar el WhatsApp del publicador. **Cerrada, solo servidor** (`phone_codes_no_client`).
+- ~~`phone_codes`~~ — **sin uso desde el cambio a Twilio Verify** (Sesión 12b). El código de verificación ahora lo genera y valida Twilio de su lado; la "verdad" de que un número quedó verificado vive en el flag `verificado` de la cookie firmada `envivo_registro`. La tabla sigue existiendo vacía en Supabase: se puede dropear con `drop table public.phone_codes;` (arrastra la policy `phone_codes_no_client`).
 - `seguimientos` — un `auth.users` sigue a un `perfiles`. PK `(user_id, perfil_id)`. RLS: insert/delete/select solo del propio `user_id`.
 - `events.perfil_id` — FK opcional a `perfiles`. **Convive** con los campos planos (`publisher_*`, `whatsapp`); no hay backfill todavía.
 - `eventos_publicos` ahora hace LEFT JOIN a `perfiles` y expone `perfil_slug`, `perfil_nombre`, `perfil_tipo`, `perfil_imagen_url`, `perfil_verificado`, `perfil_seguidores_publicos`.
@@ -95,25 +98,32 @@ cambiar, se me pregunta primero.
    mostrar sin el link personal, así que solo explica dónde encontrarlo.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
-**Alta del publicador (Sesión 12 — verificación por WhatsApp, sin Google):**
+**Alta del publicador (Sesión 12 — verificación por SMS con Twilio Verify, sin Google):**
 - `/registro` — paso 1: elegir tipo (local/organizador/artista). Paso 2:
-  nombre + WhatsApp de cuenta. Al enviar → `/api/registro/iniciar` genera un
-  código de 4 dígitos en `phone_codes` (expira 10 min, tope 3/hora/número) y
-  deja la cookie provisional `envivo_registro`.
-- `/registro/verificar` — muestra el código; botón "Enviar por WhatsApp"
-  (`wa.me` al número de EnVivo, mensaje `EnVivo 1234`). Polling a
-  `/api/registro/estado` cada 5 s.
+  nombre + WhatsApp de cuenta. Al enviar → `/api/registro/iniciar` le pide a
+  Twilio Verify que mande un SMS con el código al número, y deja la cookie
+  provisional `envivo_registro` (todavía sin el flag `verificado`).
+- `/registro/verificar` — 4 casillas donde el usuario escribe el código que
+  le llegó por SMS. "Verificar" → `/api/registro/verificar` se lo pasa a
+  Twilio (`VerificationCheck`); si Twilio responde `approved`, re-firma la
+  cookie `envivo_registro` con `verificado: true` y sigue a
+  `/registro/perfil`. Botón "Reenviar SMS" → `/api/registro/reenviar`. Sin
+  polling, sin `wa.me`.
 - `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
-  Instagram, TikTok, WhatsApp público (prellenado). Al enviar crea el
-  `perfiles`, el `access_token`, la sesión `envivo_publicador` (cookie
-  firmada HMAC, como el admin) y va a `/panel`.
+  Instagram, TikTok, WhatsApp público (prellenado). Exige el flag
+  `verificado` de la cookie. Al enviar crea el `perfiles`, el `access_token`,
+  la sesión `envivo_publicador` (cookie firmada HMAC, como el admin) y va a
+  `/panel`.
 - `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
   (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
-- Detección del mensaje de WhatsApp: **modo manual** (`/admin/registro`, el
-  equipo confirma el código a mano). El webhook de la Cloud API está escrito
-  en `/api/wa/webhook` pero **dormido**: se activa solo al definir
-  `WHATSAPP_APP_SECRET` + `WHATSAPP_VERIFY_TOKEN`.
-- Env nueva: `NEXT_PUBLIC_ENVIVO_WHATSAPP` (número de EnVivo para el `wa.me`).
+- El código lo generan, expiran y limitan del lado de Twilio; EnVivo solo
+  hace dos llamadas HTTP a su API (sin SDK). No hay confirmación manual ni
+  webhook: se borró `/admin/registro` y `/api/wa/webhook` al cambiar de
+  `wa.me` a Twilio Verify.
+- Env nuevas: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
+  `TWILIO_VERIFY_SERVICE_SID` (el servicio de Verify configurado con
+  "Code Length = 4"). El WhatsApp Business Manager / Sender de Meta que se
+  configuró en Twilio queda sin usar para este flujo.
 
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
@@ -122,9 +132,6 @@ cambiar, se me pregunta primero.
    `debeCambiarPin` (columna `must_change_pin`), se redirige aquí antes de la
    cola. Usa la función `cambiar_pin_admin` por API route del servidor.
    (Añadida después del arranque; es la única pantalla extra del admin.)
-10. `/admin/registro` — códigos de verificación por confirmar a mano
-    (Sesión 12). Lista los `phone_codes` vigentes con número + código; el
-    botón "Confirmar" marca `used_at`. Poll cada 10 s.
 
 ---
 
@@ -178,7 +185,8 @@ en su sesión del spec — ver "Decisiones fijas"):
 
 - Login con Google para el público — Fase 2, Sesión 14 (seguir publicadores,
   recibir avisos)
-- Verificación del publicador por código de 4 dígitos vía `wa.me` — Fase 2
+- Verificación del publicador por SMS con código de 4 dígitos (Twilio
+  Verify) — Fase 2
 - Lista de seguidores (privada ≤ 25, pública después) — Fase 2
 - Cobro de "pin destacado" y "perfil destacado" — los productos y precios ya
   están decididos; la pasarela de pago va en su propia sesión

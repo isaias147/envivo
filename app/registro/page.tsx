@@ -185,7 +185,7 @@ export default function Registro() {
               style={{ marginTop: 8 }}
               disabled={enviando}
             >
-              {enviando ? "Enviando…" : "Enviar código"}
+              {enviando ? "Enviando…" : "Enviarme el código por SMS"}
             </button>
 
             <button

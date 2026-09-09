@@ -25,6 +25,12 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
+  if (!reg.verificado) {
+    return NextResponse.json(
+      { error: "Ese número todavía no está verificado." },
+      { status: 403 },
+    );
+  }
 
   let cuerpo: {
     imagenUrl?: string;

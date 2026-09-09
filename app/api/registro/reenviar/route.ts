@@ -1,11 +1,11 @@
 // POST /api/registro/reenviar
 //
-// "¿No llegó? Generar otro código" en /registro/verificar. Toma el número de
-// la cookie `envivo_registro` y genera un código nuevo (mismo tope de 3 por
-// hora que /iniciar).
+// "¿No llegó? Reenviar SMS" en /registro/verificar. Toma el número de la
+// cookie `envivo_registro` y le pide a Twilio Verify que mande otro SMS.
+// Twilio aplica su propio tope de reenvíos.
 
 import { NextResponse } from "next/server";
-import { generarCodigo } from "@/lib/registroPublicador";
+import { iniciarVerificacion } from "@/lib/registroPublicador";
 import { leerRegistro } from "@/lib/sesionPublicador";
 
 export async function POST() {
@@ -17,13 +17,9 @@ export async function POST() {
     );
   }
 
-  const res = await generarCodigo(reg.whatsapp);
+  const res = await iniciarVerificacion(reg.whatsapp);
   if (!res.ok) {
     return NextResponse.json({ error: res.error }, { status: res.status });
   }
-  return NextResponse.json({
-    ok: true,
-    codigo: res.codigo,
-    expiraEn: res.expiraEn,
-  });
+  return NextResponse.json({ ok: true });
 }

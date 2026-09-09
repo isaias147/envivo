@@ -7,6 +7,10 @@
 //   envivo_registro   — provisional, dura 20 min. Lleva tipo + nombre +
 //                       WhatsApp de cuenta mientras la persona pasa por
 //                       /registro → /registro/verificar → /registro/perfil.
+//                       El flag `verificado` lo pone /api/registro/verificar
+//                       cuando Twilio Verify aprueba el código: es la única
+//                       prueba de que el número quedó verificado (no hay
+//                       fila en la base). Solo el servidor puede firmarlo.
 //   envivo_publicador — la sesión de verdad (30 días), ya con perfil creado.
 //                       Da acceso a /panel.
 //
@@ -39,6 +43,7 @@ export type DatosRegistro = {
   tipo: TipoPerfil;
   nombre: string;
   whatsapp: string; // indicativo + dígitos, ya normalizado
+  verificado?: boolean; // true recién cuando Twilio Verify aprobó el código
   exp: number; // epoch en segundos
 };
 

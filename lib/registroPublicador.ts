@@ -1,12 +1,15 @@
-// ⚠️ SOLO SERVIDOR. Alta y verificación del publicador por WhatsApp.
+// ⚠️ SOLO SERVIDOR. Alta y verificación del publicador por SMS (Twilio Verify).
 //
-// Usa `supabaseServidor` (service_role) sobre las tablas `phone_codes` y
-// `perfiles` de la Sesión 11. Nunca se importa desde el cliente.
+// Usa `supabaseServidor` (service_role) sobre la tabla `perfiles` de la
+// Sesión 11. Nunca se importa desde el cliente.
 //
-// Modelo: la verdad de "este número está verificado" vive en `phone_codes`
-// (una fila con `used_at` puesto, reciente). El `perfiles` se crea recién al
-// final (/api/registro/perfil), ya con todos los datos. Así no quedan filas
-// de perfil a medio hacer y `confirmarCodigo` no necesita saber el tipo.
+// Verificación: la generación, expiración y reintentos del código los maneja
+// **Twilio Verify** de su lado. Acá solo hay dos llamadas HTTP a su API:
+// `iniciarVerificacion` (les pide que manden el SMS) y `comprobarCodigo`
+// (les pasa lo que escribió el usuario y pregunta si está bien). La "verdad"
+// de "este número quedó verificado" NO vive en la base: vive en la cookie
+// firmada `envivo_registro` (flag `verificado`, que solo pone el servidor).
+// El `perfiles` se crea recién al final (/api/registro/perfil).
 
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { normalizarWhatsapp } from "@/lib/eventos";
@@ -46,155 +49,133 @@ export function esTipoPerfil(v: unknown): v is TipoPerfil {
   return v === "local" || v === "organizador" || v === "artista";
 }
 
-const VENTANA_MIN = 10; // vida de un código
-const LIMITE_HORA = 3; // códigos por número por hora
-const MAX_INTENTOS = 5; // fallos al confirmar un mismo código
-const GRACIA_VERIFICADO_MIN = 30; // cuánto vale un `used_at` para el funnel
+// Largo del código que manda Twilio Verify. El servicio de Verify tiene que
+// estar configurado en la consola de Twilio con "Code Length = 4" para que
+// coincida con las 4 casillas de /registro/verificar.
+export const LARGO_CODIGO = 4;
 
-export type ResultadoCodigo =
-  | { ok: true; codigo: string; expiraEn: string }
+const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID || "";
+const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN || "";
+const TWILIO_SERVICE = process.env.TWILIO_VERIFY_SERVICE_SID || "";
+
+export type ResultadoVerificacion =
+  | { ok: true }
   | { ok: false; error: string; status: number };
 
 /**
- * Genera y guarda un código de 4 dígitos para `whatsapp` (indicativo +
- * dígitos). Aplica el límite de 3 por hora por número.
+ * Una llamada POST a la API de Twilio Verify. `recurso` es "Verifications"
+ * (mandar el SMS) o "VerificationCheck" (comprobar el código). Autentica con
+ * Basic auth (AccountSid:AuthToken) y manda los campos como formulario, que
+ * es lo que espera Twilio. Devuelve el `status` que reporta Twilio
+ * ("pending" / "approved" / "canceled" …).
  */
-export async function generarCodigo(
+async function llamarTwilio(
+  recurso: "Verifications" | "VerificationCheck",
+  campos: Record<string, string>,
+): Promise<
+  { ok: true; estado: string } | { ok: false; error: string; status: number }
+> {
+  if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_SERVICE) {
+    return {
+      ok: false,
+      error: "Falta configurar Twilio Verify en el servidor.",
+      status: 500,
+    };
+  }
+
+  const url = `https://verify.twilio.com/v2/Services/${TWILIO_SERVICE}/${recurso}`;
+  const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString("base64");
+
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(campos).toString(),
+    });
+  } catch {
+    return {
+      ok: false,
+      error: "No se pudo contactar el servicio de SMS. Probá de nuevo.",
+      status: 502,
+    };
+  }
+
+  const cuerpo = (await respuesta.json().catch(() => null)) as
+    | { status?: string; code?: number; message?: string }
+    | null;
+
+  if (!respuesta.ok) {
+    return {
+      ok: false,
+      error: mensajeErrorTwilio(respuesta.status, cuerpo?.code),
+      status: respuesta.status === 429 ? 429 : 400,
+    };
+  }
+
+  return { ok: true, estado: String(cuerpo?.status ?? "") };
+}
+
+/** Traduce los errores más comunes de Twilio Verify a algo legible. */
+function mensajeErrorTwilio(http: number, codigo?: number): string {
+  if (http === 429 || codigo === 60203) {
+    return "Pediste demasiados códigos. Esperá un rato e intentá de nuevo.";
+  }
+  if (codigo === 60200) return "Ese número no parece válido.";
+  if (codigo === 60202) {
+    return "Demasiados intentos con este código. Pedí uno nuevo.";
+  }
+  if (http === 404) return "El código venció. Pedí uno nuevo.";
+  return "No se pudo verificar el número. Intentá de nuevo.";
+}
+
+/**
+ * Le pide a Twilio Verify que mande un SMS con un código al `whatsapp`
+ * (indicativo + dígitos, sin `+`). Twilio se encarga de generarlo, de que
+ * expire y del tope de reenvíos.
+ */
+export async function iniciarVerificacion(
   whatsappCrudo: string,
-): Promise<ResultadoCodigo> {
+): Promise<ResultadoVerificacion> {
   const whatsapp = normalizarWhatsapp(whatsappCrudo);
   if (whatsapp.length < 8) {
     return { ok: false, error: "El WhatsApp no parece válido.", status: 400 };
   }
 
-  const desde = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count, error: errConteo } = await supabaseServidor
-    .from("phone_codes")
-    .select("id", { count: "exact", head: true })
-    .eq("whatsapp", whatsapp)
-    .gte("created_at", desde);
-
-  if (errConteo) {
-    return {
-      ok: false,
-      error: "No se pudo generar el código. Intentá de nuevo.",
-      status: 500,
-    };
-  }
-  if ((count ?? 0) >= LIMITE_HORA) {
-    return {
-      ok: false,
-      error: "Pediste demasiados códigos. Esperá una hora e intentá de nuevo.",
-      status: 429,
-    };
-  }
-
-  const codigo = String(Math.floor(1000 + Math.random() * 9000));
-  const expiraEn = new Date(Date.now() + VENTANA_MIN * 60 * 1000).toISOString();
-
-  const { error } = await supabaseServidor.from("phone_codes").insert({
-    whatsapp,
-    codigo,
-    expires_at: expiraEn,
+  const res = await llamarTwilio("Verifications", {
+    To: `+${whatsapp}`,
+    Channel: "sms",
   });
-  if (error) {
-    return {
-      ok: false,
-      error: "No se pudo generar el código. Intentá de nuevo.",
-      status: 500,
-    };
-  }
-  return { ok: true, codigo, expiraEn };
-}
-
-export type ResultadoConfirmar =
-  | { ok: true }
-  | { ok: false; error: string; status: number };
-
-/**
- * Valida `codigo` para `whatsapp`. Si coincide, marca la fila `used_at`.
- * Cada intento fallido sube `intentos`; pasados MAX_INTENTOS el código deja
- * de servir. La usan el panel de admin (confirmación manual) y, más
- * adelante, el webhook de WhatsApp.
- */
-export async function confirmarCodigo(
-  whatsappCrudo: string,
-  codigoCrudo: string,
-): Promise<ResultadoConfirmar> {
-  const whatsapp = normalizarWhatsapp(whatsappCrudo);
-  const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
-  if (whatsapp.length < 8 || codigo.length !== 4) {
-    return { ok: false, error: "Datos incompletos.", status: 400 };
-  }
-
-  const { data: fila } = await supabaseServidor
-    .from("phone_codes")
-    .select("id, codigo, intentos, used_at")
-    .eq("whatsapp", whatsapp)
-    .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!fila) {
-    return {
-      ok: false,
-      error: "No hay un código vigente para ese número.",
-      status: 404,
-    };
-  }
-  if ((fila.intentos ?? 0) >= MAX_INTENTOS) {
-    return {
-      ok: false,
-      error: "Demasiados intentos con este código. Hay que generar otro.",
-      status: 429,
-    };
-  }
-  if (fila.codigo !== codigo) {
-    await supabaseServidor
-      .from("phone_codes")
-      .update({ intentos: (fila.intentos ?? 0) + 1 })
-      .eq("id", fila.id);
-    return { ok: false, error: "El código no coincide.", status: 401 };
-  }
-
-  const { error } = await supabaseServidor
-    .from("phone_codes")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", fila.id);
-  if (error) {
-    return {
-      ok: false,
-      error: "No se pudo confirmar. Intentá de nuevo.",
-      status: 500,
-    };
-  }
+  if (!res.ok) return res;
   return { ok: true };
 }
 
 /**
- * ¿Este número completó la verificación hace poco? True si hay un
- * `phone_codes` suyo con `used_at` dentro de la ventana de gracia. Es lo que
- * consulta el polling de /registro/verificar.
+ * Le pasa a Twilio Verify el `codigo` que escribió el usuario para ese
+ * `whatsapp`. `ok: true` solo si Twilio responde `status: "approved"`.
  */
-export async function estaVerificado(whatsappCrudo: string): Promise<boolean> {
+export async function comprobarCodigo(
+  whatsappCrudo: string,
+  codigoCrudo: string,
+): Promise<ResultadoVerificacion> {
   const whatsapp = normalizarWhatsapp(whatsappCrudo);
-  if (whatsapp.length < 8) return false;
+  const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
+  if (whatsapp.length < 8 || codigo.length !== LARGO_CODIGO) {
+    return { ok: false, error: "Escribí el código completo.", status: 400 };
+  }
 
-  const desde = new Date(
-    Date.now() - GRACIA_VERIFICADO_MIN * 60 * 1000,
-  ).toISOString();
-  const { data } = await supabaseServidor
-    .from("phone_codes")
-    .select("id")
-    .eq("whatsapp", whatsapp)
-    .not("used_at", "is", null)
-    .gte("used_at", desde)
-    .limit(1)
-    .maybeSingle();
-
-  return !!data;
+  const res = await llamarTwilio("VerificationCheck", {
+    To: `+${whatsapp}`,
+    Code: codigo,
+  });
+  if (!res.ok) return res;
+  if (res.estado !== "approved") {
+    return { ok: false, error: "El código no coincide o venció.", status: 401 };
+  }
+  return { ok: true };
 }
 
 /** "Salsa Viva" → "salsa-viva". Vacío → "perfil". */
@@ -238,20 +219,15 @@ export type ResultadoPerfil =
   | { ok: false; error: string; status: number };
 
 /**
- * Crea el `perfiles` (o lo actualiza, si el número ya tenía uno). Exige que
- * `whatsapp` esté verificado. Devuelve el id para armar la sesión.
+ * Crea el `perfiles` (o lo actualiza, si el número ya tenía uno). El chequeo
+ * de "este número está verificado" lo hace la ruta que llama a esta función,
+ * leyendo el flag de la cookie `envivo_registro`. Devuelve el id para armar
+ * la sesión.
  */
 export async function crearOActualizarPerfil(
   d: DatosPerfil,
 ): Promise<ResultadoPerfil> {
   const whatsapp = normalizarWhatsapp(d.whatsapp);
-  if (!(await estaVerificado(whatsapp))) {
-    return {
-      ok: false,
-      error: "Ese número todavía no está verificado.",
-      status: 403,
-    };
-  }
 
   const campos = {
     tipo: d.tipo,
