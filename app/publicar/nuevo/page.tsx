@@ -205,7 +205,12 @@ export default function PublicarNuevo() {
   const ignorarBusquedaCiudad = useRef(false);
   const [fecha, setFecha] = useState(hoyCali());
   const [hora, setHora] = useState("20:00");
+  const [horaFin, setHoraFin] = useState("23:00");
   const [hasta, setHasta] = useState(sumarDiasYmd(hoyCali(), 56));
+  const [aforo, setAforo] = useState("");
+  const [tipoEspacio, setTipoEspacio] = useState<"abierto" | "cerrado">(
+    "cerrado",
+  );
   const [tipo, setTipo] = useState(TIPOS[0].valor);
   const [entrada, setEntrada] = useState<"gratis" | "cover" | "rango">("cover");
   const [monto, setMonto] = useState("");
@@ -500,6 +505,15 @@ export default function PublicarNuevo() {
       setError("La fecha y la hora deben ser futuras.");
       return;
     }
+    if (!horaFin) {
+      setError("Falta la hora en que termina el evento.");
+      return;
+    }
+    const aforoNum = Number(aforo.replace(/[^\d]/g, ""));
+    if (!Number.isInteger(aforoNum) || aforoNum <= 0) {
+      setError("Escribe cuántas personas caben (el aforo).");
+      return;
+    }
     if (serie && (!hasta || hasta < fecha)) {
       setError("Elige hasta cuándo se repite (una fecha posterior a la primera).");
       return;
@@ -673,7 +687,6 @@ export default function PublicarNuevo() {
         is_free: esGratis,
         price: esGratis ? null : montoNum,
         price_label: etiquetaPrecio,
-        status: "pendiente" as const,
         is_recurring: serie,
         recurrence_rule: serie
           ? cadaDias === 7
@@ -700,7 +713,13 @@ export default function PublicarNuevo() {
       const r = await fetch("/api/publicador/evento/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filas }),
+        body: JSON.stringify({
+          filas,
+          aforo: Number(aforo.replace(/[^\d]/g, "")),
+          tipo_espacio: tipoEspacio,
+          hora_inicio: hora,
+          hora_fin: horaFin,
+        }),
       });
       if (!r.ok) {
         const j = await r.json().catch(() => null);
@@ -761,10 +780,10 @@ export default function PublicarNuevo() {
               <path d="M4 12.5l5.5 5.5L20 7" />
             </svg>
           </div>
-          <h1 className={styles.tit}>Tu evento va en camino</h1>
+          <h1 className={styles.tit}>Tu evento ya está en el mapa</h1>
           <p className={styles.bajada}>
-            Lo revisamos hoy mismo y aparece en el mapa. Te avisamos por
-            WhatsApp cuando esté arriba.
+            Quedó publicado al instante. Cualquiera que abra EnVivo cerca
+            puede verlo. Podés editarlo o bajarlo desde «Mis eventos».
           </p>
 
           <div className={styles.tarjetaRes}>
@@ -805,7 +824,7 @@ export default function PublicarNuevo() {
         <div className={styles.ruta}>envivo.app/publicar</div>
         <h1 className={styles.tit}>Publica tu evento</h1>
         <p className={styles.bajada}>
-          Es gratis. Lo revisamos y queda en el mapa el mismo día.
+          Es gratis y queda en el mapa al instante.
         </p>
 
         {perfilSesion.nombre && (
@@ -939,7 +958,7 @@ export default function PublicarNuevo() {
             />
           </div>
           <div>
-            <label htmlFor="hora">Hora</label>
+            <label htmlFor="hora">Empieza</label>
             <input
               id="hora"
               type="time"
@@ -947,6 +966,58 @@ export default function PublicarNuevo() {
               onChange={(e) => setHora(e.target.value)}
             />
           </div>
+        </div>
+
+        {/* termina / aforo */}
+        <div className={`${styles.campo} ${styles.duo}`}>
+          <div>
+            <label htmlFor="hora-fin">Termina</label>
+            <input
+              id="hora-fin"
+              type="time"
+              value={horaFin}
+              onChange={(e) => setHoraFin(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="aforo">¿Cuántas personas caben?</label>
+            <input
+              id="aforo"
+              inputMode="numeric"
+              value={aforo}
+              onChange={(e) => {
+                setAforo(e.target.value);
+                setError(null);
+              }}
+              placeholder="120"
+            />
+          </div>
+        </div>
+
+        {/* tipo de espacio */}
+        <div className={styles.campo}>
+          <label>¿El espacio es abierto o cerrado?</label>
+          <div className={styles.trio}>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={tipoEspacio === "cerrado"}
+              onClick={() => setTipoEspacio("cerrado")}
+            >
+              Cerrado
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={tipoEspacio === "abierto"}
+              onClick={() => setTipoEspacio("abierto")}
+            >
+              Abierto
+            </button>
+          </div>
+          <p className={styles.ayuda}>
+            Cerrado: bar, salón, teatro. Abierto: parque, plaza, calle.
+          </p>
         </div>
 
         {/* caja de serie */}

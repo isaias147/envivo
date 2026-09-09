@@ -13,6 +13,7 @@ import {
   type EventoPublico,
 } from "@/lib/eventos";
 import BotonSeguir from "@/components/BotonSeguir";
+import BotonDenunciar from "@/components/BotonDenunciar";
 import styles from "./page.module.css";
 
 type Estado = "cargando" | "listo" | "no-existe" | "error";
@@ -244,6 +245,8 @@ function Detalle({ evento }: { evento: EventoPublico }) {
             )}
           </div>
         </div>
+
+        <BotonDenunciar eventId={evento.id} />
       </div>
     </>
   );

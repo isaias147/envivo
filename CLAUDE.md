@@ -60,8 +60,16 @@ cambiar, se me pregunta primero.
 - El frontend usa **solo la anon key**, en variables de entorno.
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
 - **Barrera server/cliente:** `lib/supabaseServidor.ts`, `sesionPublicador.ts`, `adminSesion.ts`, `tokenOrganizador.ts` y `registroPublicador.ts` empiezan con `import "server-only";` — si un Client Component los importa (directa o transitivamente), el **build falla**. Lo que sí necesita el cliente de esos módulos (hoy: `TipoPerfil`, `TIPOS_PERFIL`, `esTipoPerfil`) vive en `lib/tiposPerfil.ts`, que no importa nada de servidor. No mover cosas de `tiposPerfil.ts` de vuelta a `registroPublicador.ts`.
-- Tabla principal: `events`. Vista pública: `eventos_publicos` (ya filtra aprobados y futuros).
+- Tabla principal: `events`. Vista pública: `eventos_publicos` (filtra `status = 'aprobado'` y futuros). **Ojo:** todavía **no** filtra `oculto_por_denuncias` — un evento bajado por denuncias sigue saliendo en el mapa y la lista hasta que se agregue `AND e.oculto_por_denuncias = false` a la vista (pendiente, lo decide el dueño).
 - `events.reubicado_pendiente` (boolean, default false) — Sesión 13, paso 6: el publicador movió el pin >500 m al editar un evento publicado. Solo bandera; el conteo (`veces_movido`, aviso a las 2 reubicaciones) es de la Sesión 18, que la reemplaza o complementa.
+- **Publicación directa + moderación (Sesión 18).** `events.status` nace en `'aprobado'` (default de la base): el evento sale al mapa al instante, sin cola de aprobación. Columnas nuevas en `events`:
+  - `aforo` (int) — cuántas personas caben. **Obligatorio** al publicar; lo valida `POST /api/publicador/evento/crear`.
+  - `tipo_espacio` (`'abierto'` | `'cerrado'`).
+  - `hora_inicio`, `hora_fin` (`time`) — el formulario manda `hora_inicio` = la misma hora de `starts_at`; `hora_fin` es el campo nuevo "Termina".
+  - `veces_movido` (int, default 0) y `ultima_ubicacion_pregunta_enviada` (timestamptz) — andamiaje del aviso por reubicaciones repetidas; sin uso todavía.
+  - `oculto_por_denuncias` (boolean, default false) — lo pone la ruta de denuncias al pasar el umbral (ver abajo). No hay UI para devolverlo a `false` todavía.
+- `reportes` — denuncias del usuario final sobre un evento. Columnas: `event_id` (FK `events`, ON DELETE CASCADE), `user_id` (FK `auth.users`), `motivo` (CHECK: `no_existe` | `info_falsa` | `lugar_equivocado` | `inapropiado` | `otro`), `creado_en`. **UNIQUE (event_id, user_id)**: una persona denuncia un evento una sola vez. RLS: insert y select solo de lo propio (`user_id = auth.uid()`). El conteo total para el umbral se hace con service_role.
+- `POST /api/eventos/denunciar { eventId, motivo }` (Sesión 18) — exige el `access_token` del usuario final en `Authorization: Bearer`, lo valida con `getUser()` e inserta en `reportes` COMO el usuario (`upsert` que ignora el duplicado). Después cuenta las denuncias del evento y, si llegan a `max(6, aforo · 0.05)`, pone `events.oculto_por_denuncias = true` con service_role.
 - Función de choques: `hay_choque(whatsapp, lat, lng, starts_at)`.
 - **WhatsApp del organizador**: se guarda como indicativo de país + dígitos, sin espacios ni símbolos (`573001234567`). El formulario `/publicar/nuevo` tiene un selector de país (`PAISES_WHATSAPP` en `lib/eventos.ts`; Colombia +57 por defecto). Helpers: `componerWhatsapp(indicativo, campo)` (solo el formulario antepone indicativo, con esto), `normalizarWhatsapp()` (solo limpia caracteres, nunca antepone nada — para comparar en panel/tokens/`/mis-eventos`), `formatearWhatsapp()` (para mostrar). Es la clave que une `events.whatsapp`, `access_tokens.whatsapp` y `hay_choque`. El `phone` del admin es otro campo y no se toca.
 - Login admin: `verificar_admin(phone, pin)`. Cambio de PIN: `cambiar_pin_admin(phone, pin_actual, pin_nuevo)` (PIN nuevo de 4 dígitos). Ambas solo desde API routes del servidor.
@@ -129,6 +137,9 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
    "Publicado por" es tocable y lleva a `/p/[slug]` (Sesión 13, paso 2); los
    datos del perfil ya vienen en `eventos_publicos` por LEFT JOIN. Sin
    `perfil_id` (eventos viejos) se muestra el nombre plano de siempre.
+   Al final, botón discreto **"Reportar un problema"** (`components/BotonDenunciar`,
+   Sesión 18): sin sesión de usuario final abre `ModalEntrarConGoogle`; con
+   sesión, hoja inferior con los 5 motivos → `POST /api/eventos/denunciar`.
 3b. `/p/[slug]` — perfil público de un local/organizador/artista (Sesión 13,
     paso 1). Server Component: foto, tipo, redes; "Próximos eventos"
     (mini-mapa + lista desde `eventos_publicos` por `perfil_id`) y "Ya
@@ -167,15 +178,22 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 
 **Organizador (sin registro, link entregado por QR o WhatsApp):**
 4. `/publicar` — el mapa con botón "Publicar evento"
-5. `/publicar/nuevo` — el formulario. Si hay sesión de publicador (cookie
-   `envivo_publicador`, leída vía `GET /api/publicador/sesion`), el evento
-   hereda `perfil_id` + nombre + redes del perfil: esos campos no se piden,
-   sale el encabezado "Publicando como [nombre]" y se guarda
-   `events.perfil_id` (Sesión 13, paso 3). Sin sesión → flujo viejo intacto
-   (campos de nombre/redes a mano, `perfil_id` NULL).
+5. `/publicar/nuevo` — el formulario. **Exige sesión de publicador** (cookie
+   `envivo_publicador`, leída vía `GET /api/publicador/sesion`); sin ella
+   redirige a `/registro`. El evento hereda `perfil_id` + nombre + tipo +
+   redes del perfil (esos campos no se piden; encabezado "Publicando como
+   [nombre]"). El INSERT pasa por `POST /api/publicador/evento/crear`
+   (service_role, impone nombre/tipo/redes desde el perfil). **Sesión 18:**
+   el formulario pide además `aforo` (obligatorio), `tipo_espacio`
+   (abierto/cerrado) y hora de fin; el evento sale **publicado al instante**
+   (`status` = `'aprobado'` por defecto) y la pantalla final ya no dice "lo
+   revisamos".
 6. `/mis-eventos/[token]` — lo que ha publicado ese WhatsApp, en cuatro
    secciones (En el mapa / En revisión / No publicado / Ya pasaron). Solo
-   lectura. El token vive en `access_tokens` y se genera (o se reutiliza)
+   lectura. (Desde la Sesión 18 los eventos nuevos salen directo a "En el
+   mapa"; "En revisión" solo retiene `pendiente`s antiguos. Los eventos con
+   `oculto_por_denuncias = true` no tienen sección propia todavía.) El token
+   vive en `access_tokens` y se genera (o se reutiliza)
    desde la API route del servidor al aprobar o fusionar el primer evento
    de ese WhatsApp.
    `/mis-eventos` (sin token) tiene dos caras (Sesión 13, paso 4): con
@@ -189,7 +207,7 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
    paso 6). **Solo con sesión de publicador**, y solo eventos de su
    `perfil_id`. Cambia **flyer, video y ubicación**, nada más; se guarda
    directo por `POST /api/publicador/evento/editar` (service_role, verifica
-   dueño), **sin re-revisión** (ese modelo se reemplaza en la Sesión 18). Si
+   dueño), **sin re-revisión** (la Sesión 18 quitó la cola de aprobación). Si
    el evento es una serie, el cambio aplica a todas sus fechas. Mover el pin
    >500 m del punto original marca `events.reubicado_pendiente = true` — se
    detecta, no bloquea. Nombre/hora/descripción no se editan aquí. Enlace
@@ -247,7 +265,11 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
-8. `/admin/cola` — aprobar, rechazar, fusionar
+8. `/admin/cola` — aprobar, rechazar, fusionar. Desde la Sesión 18 los
+   eventos ya no esperan aprobación (nacen `'aprobado'`); la cola queda para
+   `pendiente`s antiguos, duplicados y fusiones. La moderación nueva es a
+   posteriori, por denuncias (`reportes` + `oculto_por_denuncias`), y todavía
+   no tiene pantalla de admin.
 9. `/admin/cambiar-pin` — cambiar el PIN provisional. Si el login devuelve
    `debeCambiarPin` (columna `must_change_pin`), se redirige aquí antes de la
    cola. Usa la función `cambiar_pin_admin` por API route del servidor.
@@ -262,7 +284,8 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 - El WhatsApp es siempre **del local u organizador**, nunca del artista.
 - Eventos recurrentes: se generan como **filas reales** (una por fecha), agrupadas por `series_id`. Tope 3 meses.
 - Un evento choca solo si coinciden **mismo WhatsApp + mismo lugar + misma hora**. Varios eventos el mismo día en sitios distintos son válidos.
-- Todo evento entra como `pendiente`. Yo apruebo desde `/admin/cola`.
+- **Publicación directa (Sesión 18).** El evento sale al mapa apenas se publica (`status` nace en `'aprobado'`, no hay cola de aprobación previa). La moderación es **a posteriori**, por denuncias: cuando un evento junta `max(6, aforo · 5%)` denuncias en `reportes`, `POST /api/eventos/denunciar` le pone `oculto_por_denuncias = true`.
+- Al publicar se piden ahora **aforo** (obligatorio), **tipo de espacio** (abierto/cerrado) y **hora de fin**, además de la hora de inicio.
 - La ubicación se marca con **pin arrastrable**, nunca escribiendo una dirección.
 
 ## Diseño
@@ -295,7 +318,9 @@ buena idea o "ya que estamos".
 - Dashboard de métricas o estadísticas
 - Notificaciones push del navegador
 - Sistema de moods o filtros por estado de ánimo
-- Ofertas, reseñas, check-ins, ranking, comentarios
+- Ofertas, reseñas, check-ins, ranking, comentarios (la **denuncia** de la
+  Sesión 18 no es esto: no es texto público ni puntúa nada, solo marca un
+  motivo cerrado para moderación)
 - Venta de boletas de eventos (ticketing)
 - Chat interno
 - Puja por posición en el mapa (el orden es cronológico y no se toca)
