@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
+import RestaurarScrollLogin from "@/components/RestaurarScrollLogin";
 
 // Archivo: títulos, horas y botones principales (700/800)
 const archivo = Archivo({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         {children}
         <RegisterSW />
+        <RestaurarScrollLogin />
       </body>
     </html>
   );

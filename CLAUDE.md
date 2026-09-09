@@ -67,6 +67,28 @@ cambiar, se me pregunta primero.
 - Bucket de flyers: `flyers` (público, 3 MB, solo JPG/PNG/WebP).
 - Tablas `admins` y `access_tokens`: cerradas al cliente, solo desde servidor.
 
+### Auth del usuario final (Sesión 14 — en construcción)
+
+- **Dos sistemas de sesión que NO se mezclan:** el *publicador* usa la cookie
+  HMAC `envivo_publicador` (servidor, `lib/sesionPublicador.ts`); el *usuario
+  final* usa **Supabase Auth** (`auth.users`, token en `localStorage`, cliente
+  del navegador). El usuario final solo sirve para *seguir* publicadores; no
+  publica ni ve panel.
+- `lib/authUsuario.ts` — cliente. `entrarConGoogle()` (OAuth con `redirectTo`
+  = la URL actual, nunca fija; guarda el scroll en `sessionStorage` para
+  restaurarlo al volver, vía `<RestaurarScrollLogin>` en el layout),
+  `useUsuario()` (hook), `salir()`.
+- `components/ModalEntrarConGoogle.tsx` — hoja inferior (portal a `<body>`),
+  patrón del slot 2 de `envivo-grupo1-publico.html`. Paso 1: **no está
+  conectado a ningún botón**; se prueba desde `/pruebas/entrar` (página
+  **temporal**, borrar en el paso 2).
+- **Falta configurar Google en el dashboard** (Supabase Auth → Providers →
+  Google + Google Cloud Console; redirect URI
+  `https://ktzrqeoemyzqdcljqeaq.supabase.co/auth/v1/callback`). Hoy
+  `settings.external.google = false`: el botón muestra error hasta que se
+  habilite. Y en Auth → URL Configuration agregar la URL de Netlify y
+  `http://localhost:3000/**` a Redirect URLs.
+
 ### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
 
 - `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `whatsapp_cuenta` (**clave privada, no se expone al cliente** — se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
