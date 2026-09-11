@@ -272,7 +272,7 @@ export async function crearPerfil(
   if (yaTienePerfil?.id) {
     return {
       ok: false,
-      error: "Esta cuenta de Google ya tiene un perfil de publicador.",
+      error: "Ya tienes un perfil como publicador.",
       status: 409,
     };
   }
@@ -331,7 +331,7 @@ export async function crearPerfil(
       return {
         ok: false,
         error: porUserId
-          ? "Esta cuenta de Google ya tiene un perfil de publicador."
+          ? "Ya tienes un perfil como publicador."
           : "Ese celular ya tiene un perfil registrado.",
         status: 409,
       };
