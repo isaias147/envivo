@@ -18,6 +18,8 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUsuario } from "@/lib/authUsuario";
+import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
 import {
   componerWhatsapp,
   GRANADA_CALI,
@@ -179,6 +181,13 @@ type ResultadoGeo = {
 export default function PublicarNuevo() {
   const router = useRouter();
 
+  // Publicar exige cuenta de Google primero (después, la sesión de
+  // publicador de abajo). Sin Google, ni se consulta /api/publicador/sesion.
+  // El modal se abre solo (derivado, sin efecto) mientras falte Google y no
+  // lo hayan cerrado a mano con "Ahora no"; el botón de la puerta lo reabre.
+  const { usuario, cargando: cargandoUsuario } = useUsuario();
+  const [modalCerrado, setModalCerrado] = useState(false);
+
   // bifurcación
   const [serie, setSerie] = useState(false);
   const [cadaDias, setCadaDias] = useState<7 | 14>(7);
@@ -253,8 +262,10 @@ export default function PublicarNuevo() {
 
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // ¿Hay publicador autenticado? Una sola consulta al montar.
+  // ¿Hay publicador autenticado? Una sola consulta al montar, y solo una vez
+  // que sabemos que hay cuenta de Google (si no, ni tiene sentido preguntar).
   useEffect(() => {
+    if (cargandoUsuario || !usuario) return;
     let vivo = true;
     (async () => {
       try {
@@ -275,15 +286,15 @@ export default function PublicarNuevo() {
     return () => {
       vivo = false;
     };
-  }, []);
+  }, [cargandoUsuario, usuario]);
 
   // Publicar exige cuenta. En cuanto sabemos que no hay sesión de publicador,
   // mandamos a /registro en vez de mostrar el formulario.
   useEffect(() => {
-    if (sesionLista && !perfilSesion) {
+    if (usuario && sesionLista && !perfilSesion) {
       router.replace("/registro");
     }
-  }, [sesionLista, perfilSesion, router]);
+  }, [usuario, sesionLista, perfilSesion, router]);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -710,9 +721,15 @@ export default function PublicarNuevo() {
         starts_at: isoCali(ymd, hora),
       }));
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const r = await fetch("/api/publicador/evento/crear", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
         body: JSON.stringify({
           filas,
           aforo: Number(aforo.replace(/[^\d]/g, "")),
@@ -748,10 +765,43 @@ export default function PublicarNuevo() {
     }
   }
 
+  // Publicar exige cuenta de Google, primero. Sin ella, ni se pregunta por
+  // la sesión de publicador: solo la puerta + el modal (vuelve acá al
+  // terminar, entrarConGoogle usa la URL actual).
+  if (!cargandoUsuario && !usuario) {
+    return (
+      <div className={styles.pantalla}>
+        <div className={styles.marco}>
+          <div className={styles.marca}>
+            En<i>Vivo</i>
+          </div>
+          <div className={styles.ruta}>envivo.app/publicar</div>
+          <h1 className={styles.tit}>Publica tu evento</h1>
+          <p className={styles.bajada}>
+            Primero entrá con tu cuenta de Google para publicar.
+          </p>
+          <button
+            type="button"
+            className={styles.enviar}
+            onClick={() => setModalCerrado(false)}
+          >
+            Entrar con Google
+          </button>
+        </div>
+        <ModalEntrarConGoogle
+          abierto={!modalCerrado}
+          onCerrar={() => setModalCerrado(true)}
+          titulo="Entrá para publicar"
+          descripcion="Necesitamos tu cuenta de Google antes de registrarte como publicador."
+        />
+      </div>
+    );
+  }
+
   // Sin sesión de publicador no se pinta el formulario: o todavía estamos
   // consultando /api/publicador/sesion, o ya arrancó la redirección a
   // /registro (publicar exige cuenta).
-  if (!sesionLista || !perfilSesion) {
+  if (cargandoUsuario || !sesionLista || !perfilSesion) {
     return (
       <div className={styles.pantalla}>
         <div className={styles.marco}>

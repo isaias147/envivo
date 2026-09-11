@@ -1,14 +1,19 @@
 // POST /api/registro/iniciar
 //   { tipo, indicativo, whatsapp, nombre,
 //     adminNombre, adminApellido, adminEdad, correo }
+//   Authorization: Bearer <access_token de Google>
 //
-// Pantalla /registro (5a+5b fusionadas). Valida todo, le pide a Twilio
-// Verify que mande los DOS códigos (SMS + correo) y deja la cookie
-// provisional `envivo_registro` con todos los datos (sin los flags smsOk /
-// correoOk todavía). El perfil se crea recién en /api/registro/perfil.
+// Pantalla /registro (5a+5b fusionadas). Exige sesión de Google: la valida
+// con auth.getUser() (nunca confía en un userId del body) y guarda ese id en
+// la cookie provisional para que /api/registro/perfil lo use al crear el
+// `perfiles` (nunca del body). Valida todo, le pide a Twilio Verify que
+// mande los DOS códigos (SMS + correo) y deja la cookie provisional
+// `envivo_registro` con todos los datos (sin los flags smsOk / correoOk
+// todavía). El perfil se crea recién en /api/registro/perfil.
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import { componerWhatsapp } from "@/lib/eventos";
 import {
   esCorreoValido,
@@ -17,7 +22,37 @@ import {
 import { esTipoPerfil } from "@/lib/tiposPerfil";
 import { COOKIE_REGISTRO, crearTokenRegistro } from "@/lib/sesionPublicador";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 export async function POST(request: Request) {
+  if (!SUPABASE_URL || !ANON_KEY) {
+    return NextResponse.json({ error: "Config incompleta." }, { status: 500 });
+  }
+
+  const cabecera = request.headers.get("authorization") ?? "";
+  const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
+  if (!token) {
+    return NextResponse.json(
+      { error: "Necesitás entrar con Google antes de registrarte." },
+      { status: 401 },
+    );
+  }
+  const comoUsuario = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const {
+    data: { user },
+    error: errUser,
+  } = await comoUsuario.auth.getUser();
+  if (errUser || !user) {
+    return NextResponse.json(
+      { error: "Tu sesión de Google venció. Entrá de nuevo." },
+      { status: 401 },
+    );
+  }
+
   let cuerpo: {
     tipo?: string;
     indicativo?: string;
@@ -93,7 +128,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: sms.error }, { status: sms.status });
   }
 
-  const { token, maxAge } = crearTokenRegistro({
+  const { token: tokenRegistro, maxAge } = crearTokenRegistro({
     tipo,
     nombre,
     whatsapp,
@@ -101,9 +136,10 @@ export async function POST(request: Request) {
     adminNombre,
     adminApellido,
     adminEdad,
+    userId: user.id,
   });
   const tarro = await cookies();
-  tarro.set(COOKIE_REGISTRO, token, {
+  tarro.set(COOKIE_REGISTRO, tokenRegistro, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

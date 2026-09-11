@@ -9,8 +9,10 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import {
   dentroDeCaja,
   GRANADA_CALI,
@@ -61,6 +63,10 @@ export default function Home() {
 
 function MapaPantalla() {
   const sp = useSearchParams();
+  // Publicadores registrados (cuenta de Google con perfil, ver
+  // lib/cuentaPublicador.ts): les mostramos el atajo a publicar. Para el
+  // usuario final (sin perfil) el mapa queda idéntico a como estaba.
+  const { perfil: perfilPublicador } = useCuentaPublicador();
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
   const [error, setError] = useState<string | null>(null);
   // Filtros iniciales desde la URL (?t=&p=), para conservarlos al venir
@@ -195,6 +201,21 @@ function MapaPantalla() {
       <div className={styles.cuenta}>
         <EnlaceCuenta />
       </div>
+
+      {/* Atajo a publicar: solo si la cuenta de Google ya tiene perfil. Ícono
+          compacto (como EnlaceCuenta) para no chocar con el reel de filtros a
+          360px de ancho; ver lib/cuentaPublicador.ts. */}
+      {perfilPublicador && (
+        <Link
+          href="/publicar/nuevo"
+          className={styles.publicarBtn}
+          aria-label="Publicar evento"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </Link>
+      )}
 
       {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
       <div className={styles.reel}>

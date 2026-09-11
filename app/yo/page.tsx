@@ -12,19 +12,26 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { salir, useUsuario } from "@/lib/authUsuario";
+import { salir } from "@/lib/authUsuario";
+import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
 import BarraInferior from "@/components/BarraInferior";
 import styles from "./page.module.css";
 
 export default function Yo() {
   const router = useRouter();
-  const { usuario, cargando } = useUsuario();
+  const {
+    usuario,
+    cargandoUsuario: cargando,
+    perfil: perfilPublicador,
+    cargandoPerfil: cargandoPerfilPublicador,
+  } = useCuentaPublicador();
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [avisos, setAvisos] = useState(true);
   const [nSigue, setNSigue] = useState<number | null>(null);
   const [confirmarBorrar, setConfirmarBorrar] = useState(false);
+  const [avisoPerfilActivo, setAvisoPerfilActivo] = useState(false);
   const [borrando, setBorrando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cargadoParaId = useRef<string | null>(null);
@@ -162,6 +169,28 @@ export default function Yo() {
             </span>
           </Link>
 
+          {!cargandoPerfilPublicador &&
+            (perfilPublicador ? (
+              <>
+                <Link href="/mis-eventos" className={styles.fila}>
+                  <span>Mis eventos</span>
+                  <span className={styles.flecha}>→</span>
+                </Link>
+                <Link href="/perfil" className={styles.fila}>
+                  <span>Mi perfil de publicador</span>
+                  <span className={styles.flecha}>→</span>
+                </Link>
+              </>
+            ) : (
+              <Link href="/registro" className={styles.fila}>
+                <span>
+                  Quiero publicar
+                  <small>Anunciá tus eventos en el mapa.</small>
+                </span>
+                <span className={styles.flecha}>→</span>
+              </Link>
+            ))}
+
           <button
             type="button"
             className={`${styles.fila} ${styles.rojo}`}
@@ -170,11 +199,29 @@ export default function Yo() {
             <span>Cerrar sesión</span>
           </button>
 
-          {!confirmarBorrar ? (
+          {avisoPerfilActivo ? (
+            <div className={styles.borrarCaja}>
+              <p>
+                Tenés un perfil de publicador activo; escribinos para
+                cerrarlo.
+              </p>
+              <button
+                type="button"
+                className={styles.cancelar}
+                onClick={() => setAvisoPerfilActivo(false)}
+              >
+                Entendido
+              </button>
+            </div>
+          ) : !confirmarBorrar ? (
             <button
               type="button"
               className={`${styles.fila} ${styles.rojo}`}
-              onClick={() => setConfirmarBorrar(true)}
+              onClick={() =>
+                perfilPublicador
+                  ? setAvisoPerfilActivo(true)
+                  : setConfirmarBorrar(true)
+              }
             >
               <span>Borrar mi cuenta</span>
             </button>

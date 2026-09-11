@@ -241,6 +241,7 @@ export type DatosPerfil = {
   adminNombre: string;
   adminApellido: string;
   adminEdad: number;
+  userId: string; // auth.users.id de Google (perfiles.user_id, UNIQUE)
 };
 
 export type ResultadoPerfil =
@@ -248,15 +249,32 @@ export type ResultadoPerfil =
   | { ok: false; error: string; status: number };
 
 /**
- * Crea el `perfiles` (o lo actualiza, si el número ya tenía uno). El chequeo
- * de "este número está verificado" lo hace la ruta que llama a esta función,
- * leyendo el flag de la cookie `envivo_registro`. Devuelve el id para armar
- * la sesión.
+ * Crea el `perfiles`. Nunca actualiza uno existente ni le reasigna el
+ * user_id: si la cuenta de Google ya tiene perfil, o si el WhatsApp ya
+ * pertenece a otro perfil (con otro user_id, o con user_id todavía null),
+ * responde 409 en vez de tocarlo. El chequeo de "este número está
+ * verificado" lo hace la ruta que llama a esta función, leyendo el flag de
+ * la cookie `envivo_registro`. Devuelve el id para armar la sesión.
  */
-export async function crearOActualizarPerfil(
+export async function crearPerfil(
   d: DatosPerfil,
 ): Promise<ResultadoPerfil> {
   const whatsapp = normalizarWhatsapp(d.whatsapp);
+
+  // Esta cuenta de Google ya tiene un perfil de publicador (perfiles.user_id
+  // es UNIQUE): no se crea uno segundo con la misma cuenta.
+  const { data: yaTienePerfil } = await supabaseServidor
+    .from("perfiles")
+    .select("id")
+    .eq("user_id", d.userId)
+    .maybeSingle();
+  if (yaTienePerfil?.id) {
+    return {
+      ok: false,
+      error: "Esta cuenta de Google ya tiene un perfil de publicador.",
+      status: 409,
+    };
+  }
 
   const campos = {
     tipo: d.tipo,
@@ -271,26 +289,24 @@ export async function crearOActualizarPerfil(
     admin_apellido: d.adminApellido.trim() || null,
     admin_edad: Number.isFinite(d.adminEdad) ? d.adminEdad : null,
     verified_at: new Date().toISOString(),
+    user_id: d.userId,
   };
 
+  // Ya sabemos (chequeo de arriba) que ningún perfil tiene este user_id. Si
+  // el whatsapp ya pertenece a OTRO perfil (con otro user_id, o con
+  // user_id null), ese perfil ya tiene o tuvo otro dueño: nunca se le
+  // reasigna el user_id por acá. Se bloquea con 409 en vez de actualizarlo.
   const { data: existente } = await supabaseServidor
     .from("perfiles")
-    .select("id, nombre")
+    .select("id")
     .eq("whatsapp_cuenta", whatsapp)
     .maybeSingle();
 
   if (existente?.id) {
-    const { error } = await supabaseServidor
-      .from("perfiles")
-      .update(campos)
-      .eq("id", existente.id);
-    if (error) {
-      return { ok: false, error: "No se pudo guardar el perfil.", status: 500 };
-    }
     return {
-      ok: true,
-      perfilId: existente.id,
-      nombre: campos.nombre ?? existente.nombre ?? null,
+      ok: false,
+      error: "Ese WhatsApp ya tiene un perfil registrado.",
+      status: 409,
     };
   }
 

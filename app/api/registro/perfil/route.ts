@@ -1,14 +1,21 @@
 // POST /api/registro/perfil  { imagenUrl?, instagram?, tiktok?, indicativoPublico?, whatsappPublico? }
+//   Authorization: Bearer <access_token de Google>
 //
 // Último paso del alta. Exige la cookie `envivo_registro` y que el número
-// esté verificado. Crea (o actualiza) el `perfiles`, deja el `access_token`
-// de /mis-eventos, cambia la cookie provisional por la sesión real
-// `envivo_publicador` y responde con el destino (/panel).
+// esté verificado. Además vuelve a validar la sesión de Google con
+// auth.getUser() y exige que sea LA MISMA cuenta que inició el registro
+// (reg.userId): si alguien arrancó /registro con una cuenta y llega hasta
+// acá con otra (sesión cambiada a medio camino), se corta y se borra la
+// cookie provisional, en vez de crear el perfil con un userId que ya no es
+// el de quien está pidiendo esto. Crea el `perfiles`, deja el
+// `access_token` de /mis-eventos, cambia la cookie provisional por la
+// sesión real `envivo_publicador` y responde con el destino (/panel).
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import { componerWhatsapp, sinArroba } from "@/lib/eventos";
-import { crearOActualizarPerfil } from "@/lib/registroPublicador";
+import { crearPerfil } from "@/lib/registroPublicador";
 import { tokenParaWhatsapp } from "@/lib/tokenOrganizador";
 import {
   COOKIE_PUBLICADOR,
@@ -17,7 +24,14 @@ import {
   leerRegistro,
 } from "@/lib/sesionPublicador";
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 export async function POST(request: Request) {
+  if (!SUPABASE_URL || !ANON_KEY) {
+    return NextResponse.json({ error: "Config incompleta." }, { status: 500 });
+  }
+
   const reg = await leerRegistro();
   if (!reg) {
     return NextResponse.json(
@@ -25,6 +39,29 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   }
+
+  const cabecera = request.headers.get("authorization") ?? "";
+  const bearer = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
+  const comoUsuario = bearer
+    ? createClient(SUPABASE_URL, ANON_KEY, {
+        global: { headers: { Authorization: `Bearer ${bearer}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : null;
+  const { data: userData } = comoUsuario
+    ? await comoUsuario.auth.getUser()
+    : { data: { user: null } };
+  const user = userData?.user ?? null;
+
+  if (!user || user.id !== reg.userId) {
+    const tarro = await cookies();
+    tarro.delete(COOKIE_REGISTRO);
+    return NextResponse.json(
+      { error: "Tu sesión de Google cambió. Empezá el registro de nuevo." },
+      { status: 401 },
+    );
+  }
+
   if (!reg.smsOk || !reg.correoOk) {
     return NextResponse.json(
       { error: "Todavía faltan verificar el WhatsApp y el correo." },
@@ -54,7 +91,7 @@ export async function POST(request: Request) {
   const igRaw = String(cuerpo.instagram ?? "").trim();
   const ttRaw = String(cuerpo.tiktok ?? "").trim();
 
-  const res = await crearOActualizarPerfil({
+  const res = await crearPerfil({
     tipo: reg.tipo,
     nombre: reg.nombre,
     whatsapp: reg.whatsapp,
@@ -66,6 +103,7 @@ export async function POST(request: Request) {
     adminNombre: reg.adminNombre,
     adminApellido: reg.adminApellido,
     adminEdad: reg.adminEdad,
+    userId: reg.userId,
   });
 
   if (!res.ok) {

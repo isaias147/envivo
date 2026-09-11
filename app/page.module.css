@@ -68,6 +68,30 @@
   z-index: 500;
 }
 
+/* ---------- atajo a publicar (solo con perfil de publicador) ---------- */
+/* Ícono redondo, no cápsula con texto: a 360px de ancho una cápsula con
+   "Publicar evento" se monta sobre el reel de filtros (verificado
+   renderizando a ese ancho). Debajo del reel, no de la cuenta: hay 46px
+   libres bajo el avatar y el reel llega hasta ~96px. */
+.publicarBtn {
+  composes: cristal from global;
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 100px);
+  right: 16px;
+  z-index: 500;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--laton);
+}
+.publicarBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* ---------- filtros de tiempo: cápsula de cristal ---------- */
 .reel {
   composes: cristal from global;

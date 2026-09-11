@@ -52,6 +52,7 @@ export type DatosRegistro = {
   adminNombre: string;
   adminApellido: string;
   adminEdad: number;
+  userId: string; // auth.users.id de Google, tomado de auth.getUser() en /api/registro/iniciar
   smsOk?: boolean; // Twilio Verify aprobó el código del SMS
   correoOk?: boolean; // …y el del correo. Ambos hacen falta para seguir.
   exp: number; // epoch en segundos
@@ -128,7 +129,7 @@ export function verificarTokenRegistro(
   token: string | undefined,
 ): DatosRegistro | null {
   const d = desempaquetar<DatosRegistro>(token);
-  if (!d || !d.tipo || !d.whatsapp || !d.correo) return null;
+  if (!d || !d.tipo || !d.whatsapp || !d.correo || !d.userId) return null;
   return d;
 }
 

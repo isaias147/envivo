@@ -112,9 +112,15 @@ export default function PerfilNuevo() {
     setError(null);
     setEnviando(true);
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const r = await fetch("/api/registro/perfil", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
         body: JSON.stringify({
           imagenUrl,
           instagram,

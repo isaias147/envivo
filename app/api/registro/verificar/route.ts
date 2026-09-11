@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     adminNombre: reg.adminNombre,
     adminApellido: reg.adminApellido,
     adminEdad: reg.adminEdad,
+    userId: reg.userId,
     smsOk,
     correoOk,
   });
