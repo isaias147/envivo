@@ -182,13 +182,16 @@ export default function Yo() {
                 </Link>
               </>
             ) : (
-              <Link href="/registro" className={styles.fila}>
+              <a
+                href="mailto:medrano.isaias@gmail.com?subject=Quiero publicar en EnVivo"
+                className={styles.fila}
+              >
                 <span>
-                  Quiero publicar
-                  <small>Anuncia tus eventos en el mapa.</small>
+                  ¿Quieres publicar con nosotros?
+                  <small>Contáctanos.</small>
                 </span>
                 <span className={styles.flecha}>→</span>
-              </Link>
+              </a>
             ))}
 
           <button
