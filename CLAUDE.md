@@ -34,16 +34,18 @@ cambiar, se me pregunta primero.
   Hoy **no existe**: el usuario nunca ve un login.
 - **Registro del publicador:** primero cuenta de **Google** (obligatoria,
   `perfiles.user_id` NOT NULL), después verificación por **DOS canales
-  obligatorios — SMS y correo — con código vía Twilio Verify** (el celular
-  del SMS es `celular_cuenta`, **no es WhatsApp**). Ambos deben confirmarse
-  para continuar. Ya implementado (ya no es "Planeado Fase 2"). El link de
-  QR/WhatsApp sigue siendo cómo el organizador llega a `/publicar` (el mapa
-  con el botón "Publicar evento"); pero `/registro` y `/publicar/nuevo` ya
-  exigen esa cuenta de Google antes de mostrar el formulario.
+  obligatorios — SMS y correo** (el celular del SMS es `celular_cuenta`,
+  **no es WhatsApp**). Ambos deben confirmarse para continuar. Ya
+  implementado (ya no es "Planeado Fase 2"). El link de QR/WhatsApp sigue
+  siendo cómo el organizador llega a `/publicar` (el mapa con el botón
+  "Publicar evento"); pero `/registro` y `/publicar/nuevo` ya exigen esa
+  cuenta de Google antes de mostrar el formulario.
   (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo → + Google. El
   `wa.me` se descartó porque el número no se pudo registrar como empresa en
-  Meta. Twilio Verify maneja generación, expiración y reintentos; el canal
-  email necesita SendGrid conectado al servicio de Verify.)
+  Meta. **El SMS usa Twilio Verify** (genera, expira y limita el código de
+  su lado); **el correo usa un endpoint propio** (`lib/codigoCorreo.ts`) que
+  manda el código directo por **Mailgun**, sin pasar por Twilio — Twilio
+  Verify nunca llegó a usar SendGrid para esto.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
 
@@ -235,8 +237,8 @@ Google primero, luego SMS + correo, ver "Alta del publicador"):**
    "Editar…" en las tarjetas de "En el mapa" de `/mis-eventos`.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
-**Alta del publicador (Sesión 12, revisada — Google primero, después SMS +
-correo con Twilio Verify):**
+**Alta del publicador (Sesión 12, revisada — Google primero, después SMS por
+Twilio Verify + correo por Mailgun):**
 - `/registro` y `/publicar/nuevo` **exigen sesión de Google** (Supabase Auth)
   antes de mostrar nada: sin ella, una puerta abre `ModalEntrarConGoogle` y
   vuelve a la misma ruta al terminar. La cuenta de Google se valida en el
@@ -247,12 +249,14 @@ correo con Twilio Verify):**
   del administrador** (nombre, apellido, edad), celular de cuenta (con nota
   "solo para verificarte, no tiene que ser el que publiques") y **correo**.
   Al enviar → `/api/registro/iniciar` valida el Bearer de Google, valida
-  todo lo demás y le pide a Twilio Verify que mande **los dos códigos** (SMS
-  + email); deja la cookie `envivo_registro` con todos los datos y el
-  `userId` de Google (sin `smsOk` / `correoOk` todavía).
+  todo lo demás y manda **los dos códigos** — el SMS vía Twilio Verify, el
+  correo vía Mailgun (`lib/codigoCorreo.ts`); deja la cookie
+  `envivo_registro` con todos los datos y el `userId` de Google (sin
+  `smsOk` / `correoOk` todavía).
 - `/registro/verificar` — **dos tarjetas de canal** (SMS, Correo), cada una
-  con 4 casillas. `/api/registro/verificar { canal, codigo }` valida contra
-  Twilio y re-firma la cookie poniendo `smsOk` o `correoOk`. "Continuar" se
+  con 4 casillas. `/api/registro/verificar { canal, codigo }` valida el SMS
+  contra Twilio Verify y el correo contra `codigos_correo` (Mailgun, ver
+  abajo), y re-firma la cookie poniendo `smsOk` o `correoOk`. "Continuar" se
   habilita solo con los dos verificados. "Reenviar" por canal
   (`/api/registro/reenviar { canal }`).
 - `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
@@ -281,16 +285,19 @@ correo con Twilio Verify):**
     IG/WA pone `ultimo_cambio_contacto = now()`. Helper `candadoContacto()` +
     `VENTANA_CANDADO_DIAS` en `lib/registroPublicador.ts`. Sigue la pantalla
     8 de `envivo-grupo2-publicador.html`.
-- El código lo generan, expiran y limitan del lado de Twilio; EnVivo solo
-  hace dos llamadas HTTP a su API (sin SDK). No hay confirmación manual ni
-  webhook: se borró `/admin/registro` y `/api/wa/webhook` al cambiar de
-  `wa.me` a Twilio Verify.
-- Env: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`
-  (el servicio de Verify configurado con "Code Length = 4"). **Para el canal
-  email hay que conectar SendGrid** al servicio de Verify en la consola de
-  Twilio (Email Integration); hasta entonces el código del correo no se
-  entrega y el registro no se puede terminar. El Sender de Meta que se
-  configuró en Twilio queda sin usar.
+- **SMS:** el código lo generan, expiran y limitan del lado de Twilio;
+  EnVivo solo hace dos llamadas HTTP a su API (sin SDK). No hay confirmación
+  manual ni webhook: se borró `/admin/registro` y `/api/wa/webhook` al
+  cambiar de `wa.me` a Twilio Verify. Env: `TWILIO_ACCOUNT_SID`,
+  `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` (servicio de Verify
+  configurado con "Code Length = 4"). El Sender de Meta que se configuró en
+  Twilio queda sin usar.
+- **Correo:** no pasa por Twilio Verify — Twilio Verify nunca llegó a usar
+  SendGrid para esto. Es un endpoint propio (`lib/codigoCorreo.ts`): genera
+  el código, lo guarda hasheado (HMAC) en la tabla `codigos_correo` y lo
+  manda directo por **Mailgun**. Env: `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`,
+  `MAILGUN_FROM`, `CODIGO_CORREO_SECRET` (`MAILGUN_API_BASE` es opcional,
+  tiene default).
 - `perfiles`: columnas `admin_nombre`, `admin_apellido`, `admin_edad` (CHECK
   14–120), `correo_admin`, `correo_verificado` (migración
   `envivo_perfiles_admin_y_correo`). Son PII: **sin grant a `anon`/
