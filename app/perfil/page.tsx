@@ -15,7 +15,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { normalizarWhatsapp } from "@/lib/eventos";
-import { candadoContacto } from "@/lib/registroPublicador";
+import { candadoContacto } from "@/lib/candadoContacto";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 import EditarPerfilForm from "@/components/EditarPerfilForm";
 import styles from "./page.module.css";

@@ -17,7 +17,7 @@ import {
   normalizarWhatsapp,
   sinArroba,
 } from "@/lib/eventos";
-import { candadoContacto } from "@/lib/registroPublicador";
+import { candadoContacto } from "@/lib/candadoContacto";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 
 export async function POST(request: Request) {
