@@ -4,8 +4,8 @@
 //
 // Server Component (como /mis-eventos/[token]): lee con la service_role key
 // porque necesita contar filas de `seguimientos`, que por RLS solo puede
-// leer el propio usuario logueado. NUNCA selecciona `whatsapp_cuenta` (la
-// clave privada del perfil).
+// leer el propio usuario logueado. NUNCA selecciona `celular_cuenta` (la
+// clave privada del perfil, verificada por SMS — no es WhatsApp).
 //
 // - Perfil por `slug`; si no existe → 404.
 // - "Próximos eventos": mini-mapa + lista, desde `eventos_publicos`

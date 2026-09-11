@@ -23,7 +23,7 @@ type Canal = "sms" | "email";
 export default function Verificar() {
   const router = useRouter();
   const [cargando, setCargando] = useState(true);
-  const [whatsapp, setWhatsapp] = useState("");
+  const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
   const [smsOk, setSmsOk] = useState(false);
   const [correoOk, setCorreoOk] = useState(false);
@@ -40,7 +40,7 @@ export default function Verificar() {
           router.replace("/registro");
           return;
         }
-        setWhatsapp(j.whatsapp ?? "");
+        setCelular(j.celular ?? "");
         setCorreo(j.correo ?? "");
         setSmsOk(!!j.smsOk);
         setCorreoOk(!!j.correoOk);
@@ -99,7 +99,7 @@ export default function Verificar() {
         <Canal
           canal="sms"
           titulo="📱 SMS"
-          destino={whatsapp ? formatearWhatsapp(whatsapp) : ""}
+          destino={celular ? formatearWhatsapp(celular) : ""}
           verificado={smsOk}
           onVerificado={() => marcar("sms", true)}
         />

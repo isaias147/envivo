@@ -1,7 +1,7 @@
 // POST /api/registro/verificar  { canal: "sms" | "email", codigo }
 //
 // Lo llama /registro/verificar por cada canal. Toma el destino de la cookie
-// `envivo_registro` (whatsapp o correo según el canal), se lo pasa a Twilio
+// `envivo_registro` (celular o correo según el canal), se lo pasa a Twilio
 // Verify y, si lo aprueba, vuelve a firmar la cookie con el flag del canal
 // (`smsOk` / `correoOk`) en true, conservando el otro y el resto de datos.
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   const canal: Canal = cuerpo.canal === "email" ? "email" : "sms";
-  const destino = canal === "email" ? reg.correo : reg.whatsapp;
+  const destino = canal === "email" ? reg.correo : reg.celular;
 
   const res = await comprobarCodigo(destino, String(cuerpo.codigo ?? ""), canal);
   if (!res.ok) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const { token, maxAge } = crearTokenRegistro({
     tipo: reg.tipo,
     nombre: reg.nombre,
-    whatsapp: reg.whatsapp,
+    celular: reg.celular,
     correo: reg.correo,
     adminNombre: reg.adminNombre,
     adminApellido: reg.adminApellido,

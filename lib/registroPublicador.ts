@@ -145,8 +145,8 @@ function destinoTwilio(destinoCrudo: string, canal: Canal): string | null {
     const correo = String(destinoCrudo ?? "").trim().toLowerCase();
     return esCorreoValido(correo) ? correo : null;
   }
-  const whatsapp = normalizarWhatsapp(destinoCrudo);
-  return whatsapp.length >= 8 ? `+${whatsapp}` : null;
+  const celular = normalizarWhatsapp(destinoCrudo);
+  return celular.length >= 8 ? `+${celular}` : null;
 }
 
 /**
@@ -161,7 +161,7 @@ export async function iniciarVerificacion(
   if (!to) {
     return {
       ok: false,
-      error: canal === "email" ? "El correo no parece válido." : "El WhatsApp no parece válido.",
+      error: canal === "email" ? "El correo no parece válido." : "El celular no parece válido.",
       status: 400,
     };
   }
@@ -232,7 +232,7 @@ async function slugLibre(nombre: string): Promise<string> {
 export type DatosPerfil = {
   tipo: TipoPerfil;
   nombre: string;
-  whatsapp: string; // cuenta (indicativo + dígitos)
+  celular: string; // celular de cuenta, verificado por SMS (indicativo + dígitos)
   whatsappPublico: string;
   instagram: string | null;
   tiktok: string | null;
@@ -250,16 +250,17 @@ export type ResultadoPerfil =
 
 /**
  * Crea el `perfiles`. Nunca actualiza uno existente ni le reasigna el
- * user_id: si la cuenta de Google ya tiene perfil, o si el WhatsApp ya
- * pertenece a otro perfil (con otro user_id, o con user_id todavía null),
- * responde 409 en vez de tocarlo. El chequeo de "este número está
- * verificado" lo hace la ruta que llama a esta función, leyendo el flag de
- * la cookie `envivo_registro`. Devuelve el id para armar la sesión.
+ * user_id: si la cuenta de Google ya tiene perfil, o si el celular
+ * (verificado por SMS) ya pertenece a otro perfil (con otro user_id, o con
+ * user_id todavía null), responde 409 en vez de tocarlo. El chequeo de
+ * "este número está verificado" lo hace la ruta que llama a esta función,
+ * leyendo el flag de la cookie `envivo_registro`. Devuelve el id para armar
+ * la sesión.
  */
 export async function crearPerfil(
   d: DatosPerfil,
 ): Promise<ResultadoPerfil> {
-  const whatsapp = normalizarWhatsapp(d.whatsapp);
+  const celular = normalizarWhatsapp(d.celular);
 
   // Esta cuenta de Google ya tiene un perfil de publicador (perfiles.user_id
   // es UNIQUE): no se crea uno segundo con la misma cuenta.
@@ -293,19 +294,19 @@ export async function crearPerfil(
   };
 
   // Ya sabemos (chequeo de arriba) que ningún perfil tiene este user_id. Si
-  // el whatsapp ya pertenece a OTRO perfil (con otro user_id, o con
+  // el celular ya pertenece a OTRO perfil (con otro user_id, o con
   // user_id null), ese perfil ya tiene o tuvo otro dueño: nunca se le
   // reasigna el user_id por acá. Se bloquea con 409 en vez de actualizarlo.
   const { data: existente } = await supabaseServidor
     .from("perfiles")
     .select("id")
-    .eq("whatsapp_cuenta", whatsapp)
+    .eq("celular_cuenta", celular)
     .maybeSingle();
 
   if (existente?.id) {
     return {
       ok: false,
-      error: "Ese WhatsApp ya tiene un perfil registrado.",
+      error: "Ese celular ya tiene un perfil registrado.",
       status: 409,
     };
   }
@@ -314,7 +315,7 @@ export async function crearPerfil(
     .from("perfiles")
     .insert({
       ...campos,
-      whatsapp_cuenta: whatsapp,
+      celular_cuenta: celular,
       slug: await slugLibre(d.nombre),
     })
     .select("id, nombre")

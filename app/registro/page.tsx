@@ -11,7 +11,7 @@
 // POST /api/registro/iniciar, nunca se confía en el del cliente.
 //
 // Tipo de perfil = <select> (ya no tarjetas). Además del nombre y el
-// WhatsApp, pide los datos del administrador (nombre, apellido, edad) y el
+// celular, pide los datos del administrador (nombre, apellido, edad) y el
 // correo. Al enviar → POST /api/registro/iniciar manda los DOS códigos
 // (SMS + correo) y seguimos a /registro/verificar.
 
@@ -38,7 +38,7 @@ export default function Registro() {
   const [adminApellido, setAdminApellido] = useState("");
   const [adminEdad, setAdminEdad] = useState("");
   const [indicativo, setIndicativo] = useState(PAIS_WHATSAPP_POR_DEFECTO);
-  const [whatsapp, setWhatsapp] = useState("");
+  const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
 
   const [enviando, setEnviando] = useState(false);
@@ -86,8 +86,8 @@ export default function Registro() {
       setError("Escribí una edad válida.");
       return;
     }
-    if (!whatsapp.trim()) {
-      setError("Falta el WhatsApp.");
+    if (!celular.trim()) {
+      setError("Falta el celular.");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
@@ -110,7 +110,7 @@ export default function Registro() {
           tipo,
           nombre,
           indicativo,
-          whatsapp,
+          celular,
           correo,
           adminNombre,
           adminApellido,
@@ -152,7 +152,7 @@ export default function Registro() {
           <h1 className={styles.tit}>Creá tu cuenta</h1>
           <p className={styles.bajada}>
             Primero entrá con tu cuenta de Google. Después te pedimos el
-            WhatsApp y el correo para verificarte.
+            celular y el correo para verificarte.
           </p>
           <button
             type="button"
@@ -167,7 +167,7 @@ export default function Registro() {
           abierto={!modalCerrado}
           onCerrar={() => setModalCerrado(true)}
           titulo="Entrá para registrar tu perfil"
-          descripcion="Necesitamos tu cuenta de Google para saber quién administra el perfil. Después verificamos el WhatsApp y el correo del negocio."
+          descripcion="Necesitamos tu cuenta de Google para saber quién administra el perfil. Después verificamos el celular y el correo del negocio."
         />
       </div>
     );
@@ -279,7 +279,7 @@ export default function Registro() {
             </div>
 
             <div className={styles.campo}>
-              <label htmlFor="wa">WhatsApp / número que recibe SMS</label>
+              <label htmlFor="celular">Celular (recibe el código por SMS)</label>
               <div className={styles.telFila}>
                 <select
                   aria-label="Indicativo de país"
@@ -293,14 +293,14 @@ export default function Registro() {
                   ))}
                 </select>
                 <input
-                  id="wa"
+                  id="celular"
                   type="tel"
                   inputMode="numeric"
                   autoComplete="tel-national"
                   placeholder="300 291 7326"
-                  value={whatsapp}
+                  value={celular}
                   onChange={(e) => {
-                    setWhatsapp(e.target.value);
+                    setCelular(e.target.value);
                     setError(null);
                   }}
                 />

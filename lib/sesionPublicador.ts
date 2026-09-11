@@ -5,7 +5,8 @@
 // Hay dos cookies distintas:
 //
 //   envivo_registro   — provisional, dura 20 min. Lleva tipo + nombre +
-//                       WhatsApp de cuenta mientras la persona pasa por
+//                       celular de cuenta (verificado por SMS, no es
+//                       WhatsApp) mientras la persona pasa por
 //                       /registro → /registro/verificar → /registro/perfil.
 //                       El flag `verificado` lo pone /api/registro/verificar
 //                       cuando Twilio Verify aprueba el código: es la única
@@ -47,7 +48,7 @@ export type { TipoPerfil } from "@/lib/tiposPerfil";
 export type DatosRegistro = {
   tipo: TipoPerfil;
   nombre: string;
-  whatsapp: string; // indicativo + dígitos, ya normalizado
+  celular: string; // celular de cuenta, verificado por SMS (NO es WhatsApp); indicativo + dígitos, ya normalizado
   correo: string;
   adminNombre: string;
   adminApellido: string;
@@ -61,7 +62,7 @@ export type DatosRegistro = {
 export type SesionPublicador = {
   perfilId: string;
   nombre: string | null;
-  whatsapp: string;
+  celular: string; // celular de cuenta, verificado por SMS (NO es WhatsApp)
   exp: number;
 };
 
@@ -129,7 +130,7 @@ export function verificarTokenRegistro(
   token: string | undefined,
 ): DatosRegistro | null {
   const d = desempaquetar<DatosRegistro>(token);
-  if (!d || !d.tipo || !d.whatsapp || !d.correo || !d.userId) return null;
+  if (!d || !d.tipo || !d.celular || !d.correo || !d.userId) return null;
   return d;
 }
 
@@ -144,13 +145,13 @@ export async function leerRegistro(): Promise<DatosRegistro | null> {
 export function crearTokenPublicador(
   perfilId: string,
   nombre: string | null,
-  whatsapp: string,
+  celular: string,
 ): { token: string; maxAge: number } {
   const maxAge = SESION_DIAS * 24 * 3600;
   const datos: SesionPublicador = {
     perfilId,
     nombre,
-    whatsapp,
+    celular,
     exp: Math.floor(Date.now() / 1000) + maxAge,
   };
   return { token: empaquetar(datos), maxAge };

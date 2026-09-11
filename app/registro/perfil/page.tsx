@@ -62,7 +62,7 @@ export default function PerfilNuevo() {
           router.replace("/registro/verificar");
           return;
         }
-        const { indicativo: ind, nacional } = partirWhatsapp(j.whatsapp ?? "");
+        const { indicativo: ind, nacional } = partirWhatsapp(j.celular ?? "");
         setIndicativo(ind);
         setWhatsapp(nacional);
       } catch {

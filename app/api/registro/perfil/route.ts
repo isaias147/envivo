@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
   if (!reg.smsOk || !reg.correoOk) {
     return NextResponse.json(
-      { error: "Todavía faltan verificar el WhatsApp y el correo." },
+      { error: "Todavía faltan verificar el celular y el correo." },
       { status: 403 },
     );
   }
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     String(cuerpo.indicativoPublico ?? "57").replace(/\D/g, "") || "57";
   const whatsappPublico = cuerpo.whatsappPublico
     ? componerWhatsapp(indPub, cuerpo.whatsappPublico)
-    : reg.whatsapp;
+    : reg.celular;
 
   const igRaw = String(cuerpo.instagram ?? "").trim();
   const ttRaw = String(cuerpo.tiktok ?? "").trim();
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
   const res = await crearPerfil({
     tipo: reg.tipo,
     nombre: reg.nombre,
-    whatsapp: reg.whatsapp,
+    celular: reg.celular,
     whatsappPublico,
     instagram: igRaw ? sinArroba(igRaw) : null,
     tiktok: ttRaw ? sinArroba(ttRaw) : null,
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
   // Link de /mis-eventos (se reutiliza si el número ya publicó antes). Best
   // effort: si falla, el alta sigue en pie.
   try {
-    await tokenParaWhatsapp(reg.whatsapp);
+    await tokenParaWhatsapp(reg.celular);
   } catch {
     // sin link; no es bloqueante
   }
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
   const { token, maxAge } = crearTokenPublicador(
     res.perfilId,
     res.nombre,
-    reg.whatsapp,
+    reg.celular,
   );
   const tarro = await cookies();
   tarro.set(COOKIE_PUBLICADOR, token, {

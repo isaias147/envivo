@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     cuerpo = {};
   }
   const canal: Canal = cuerpo.canal === "email" ? "email" : "sms";
-  const destino = canal === "email" ? reg.correo : reg.whatsapp;
+  const destino = canal === "email" ? reg.correo : reg.celular;
 
   const res = await iniciarVerificacion(destino, canal);
   if (!res.ok) {

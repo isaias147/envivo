@@ -15,11 +15,12 @@ export default async function Panel() {
   const sesion = await leerSesionPublicador();
   if (!sesion) redirect("/registro");
 
-  // Link a /mis-eventos si ese WhatsApp ya tiene token.
+  // Link a /mis-eventos si ese celular de cuenta ya tiene token (access_tokens
+  // sigue keyeado por el WhatsApp/celular con el que se publicaron eventos).
   const { data: tk } = await supabaseServidor
     .from("access_tokens")
     .select("token")
-    .eq("whatsapp", sesion.whatsapp)
+    .eq("whatsapp", sesion.celular)
     .maybeSingle();
   const misEventos = tk?.token ? `/mis-eventos/${tk.token}` : "/mis-eventos";
 

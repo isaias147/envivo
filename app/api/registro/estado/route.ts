@@ -18,7 +18,7 @@ export async function GET() {
     smsOk: !!reg.smsOk,
     correoOk: !!reg.correoOk,
     nombre: reg.nombre,
-    whatsapp: reg.whatsapp,
+    celular: reg.celular,
     correo: reg.correo,
   });
 }

@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
     const { data: perfil } = await supabaseServidor
       .from("perfiles")
-      .select("id, nombre, whatsapp_cuenta, tipo")
+      .select("id, nombre, celular_cuenta, tipo")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!perfil) return NextResponse.json({ activa: false });
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       activa: true,
       perfilId: perfil.id,
       nombre: perfil.nombre,
-      whatsapp: perfil.whatsapp_cuenta,
+      celular: perfil.celular_cuenta,
       tipo: perfil.tipo,
     });
   }
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     activa: true,
     perfilId: sesion.perfilId,
     nombre: sesion.nombre,
-    whatsapp: sesion.whatsapp,
+    celular: sesion.celular,
     tipo: perfil?.tipo ?? "local",
   });
 }

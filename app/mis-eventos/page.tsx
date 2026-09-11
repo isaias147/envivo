@@ -4,8 +4,8 @@
 //
 //  - **Cuenta registrada** (cookie `envivo_publicador`, Sesión 12): trae sus
 //    eventos por `perfil_id` (y, por si publicó antes de registrarse y aún
-//    no hay backfill, también por su WhatsApp de cuenta) y muestra la lista
-//    en las cuatro secciones de siempre.
+//    no hay backfill, también por su celular de cuenta, verificado por SMS)
+//    y muestra la lista en las cuatro secciones de siempre.
 //  - **Sin sesión**: pantalla puente. El organizador sin cuenta entra por su
 //    link personal /mis-eventos/<token> (que le llega por WhatsApp). Sin ese
 //    token no hay nada que mostrar; esta ruta solo explica dónde encontrarlo.
@@ -38,8 +38,8 @@ export default async function MisEventos() {
 
   // ---------- cuenta registrada: eventos por perfil ----------
   if (sesion?.perfilId) {
-    const wa = normalizarWhatsapp(sesion.whatsapp);
-    // Por `perfil_id` (lo que enlaza el form nuevo) o por el WhatsApp de la
+    const wa = normalizarWhatsapp(sesion.celular);
+    // Por `perfil_id` (lo que enlaza el form nuevo) o por el celular de la
     // cuenta (eventos publicados antes de registrarse, aún sin backfill).
     const filtro = wa
       ? `perfil_id.eq.${sesion.perfilId},whatsapp.eq.${wa}`

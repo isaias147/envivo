@@ -111,7 +111,7 @@ cambiar, se me pregunta primero.
 
 ### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
 
-- `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `whatsapp_cuenta` (**clave privada, no se expone al cliente** — se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
+- `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `celular_cuenta` (el celular verificado por SMS al registrarse — **no es WhatsApp** — **clave privada, no se expone al cliente**, se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
 - ~~`phone_codes`~~ — **sin uso desde el cambio a Twilio Verify** (Sesión 12b). El código de verificación ahora lo genera y valida Twilio de su lado; la "verdad" de que un número quedó verificado vive en el flag `verificado` de la cookie firmada `envivo_registro`. La tabla sigue existiendo vacía en Supabase: se puede dropear con `drop table public.phone_codes;` (arrastra la policy `phone_codes_no_client`).
 - `seguimientos` — un `auth.users` sigue a un `perfiles`. PK `(user_id, perfil_id)`. RLS: insert/delete/select solo del propio `user_id`.
 - `events.perfil_id` — FK opcional a `perfiles`. **Convive** con los campos planos (`publisher_*`, `whatsapp`); no hay backfill todavía.
@@ -217,7 +217,7 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 **Alta del publicador (Sesión 12, revisada — verificación por SMS + correo con Twilio Verify, sin Google):**
 - `/registro` — **una sola pantalla** (antes 5a+5b). Tipo de perfil por
   `<select>` (ya no tarjetas). Pide: tipo, nombre del local/marca, **datos
-  del administrador** (nombre, apellido, edad), WhatsApp de cuenta (con nota
+  del administrador** (nombre, apellido, edad), celular de cuenta (con nota
   "solo para verificarte, no tiene que ser el que publiques") y **correo**.
   Al enviar → `/api/registro/iniciar` valida todo y le pide a Twilio Verify
   que mande **los dos códigos** (SMS + email); deja la cookie

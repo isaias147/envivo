@@ -1,5 +1,5 @@
 // POST /api/registro/iniciar
-//   { tipo, indicativo, whatsapp, nombre,
+//   { tipo, indicativo, celular, nombre,
 //     adminNombre, adminApellido, adminEdad, correo }
 //   Authorization: Bearer <access_token de Google>
 //
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   let cuerpo: {
     tipo?: string;
     indicativo?: string;
-    whatsapp?: string;
+    celular?: string;
     nombre?: string;
     adminNombre?: string;
     adminApellido?: string;
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
   const adminEdad = Number(cuerpo.adminEdad);
   const correo = String(cuerpo.correo ?? "").trim().toLowerCase();
   const indicativo = String(cuerpo.indicativo ?? "57").replace(/\D/g, "") || "57";
-  const whatsapp = componerWhatsapp(indicativo, cuerpo.whatsapp);
+  const celular = componerWhatsapp(indicativo, cuerpo.celular);
 
   if (!esTipoPerfil(tipo)) {
     return NextResponse.json({ error: "Elegí un tipo." }, { status: 400 });
@@ -105,9 +105,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  if (whatsapp.length < 8) {
+  if (celular.length < 8) {
     return NextResponse.json(
-      { error: "Escribí un WhatsApp válido." },
+      { error: "Escribí un celular válido." },
       { status: 400 },
     );
   }
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
   // Manda los dos códigos. Si ninguno sale, no avanzamos. Si sale al menos
   // uno, seguimos: /registro/verificar tiene "reenviar" por canal.
   const [sms, email] = await Promise.all([
-    iniciarVerificacion(whatsapp, "sms"),
+    iniciarVerificacion(celular, "sms"),
     iniciarVerificacion(correo, "email"),
   ]);
   if (!sms.ok && !email.ok) {
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
   const { token: tokenRegistro, maxAge } = crearTokenRegistro({
     tipo,
     nombre,
-    whatsapp,
+    celular,
     correo,
     adminNombre,
     adminApellido,
