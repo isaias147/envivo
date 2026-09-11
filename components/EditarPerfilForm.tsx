@@ -93,14 +93,14 @@ export default function EditarPerfilForm({
       );
       router.refresh();
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
     }
     setGuardando(false);
   }
 
   const candadoTexto =
     bloqueado && desbloqueaEn
-      ? `🔒 Podés cambiarlo desde el ${fechaLarga(desbloqueaEn)}`
+      ? `🔒 Puedes cambiarlo desde el ${fechaLarga(desbloqueaEn)}`
       : null;
 
   const igPreview = sinArroba(instagram);

@@ -121,7 +121,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { error: "No se pudo guardar. Intentá de nuevo." },
+      { error: "No se pudo guardar. Intenta de nuevo." },
       { status: 500 },
     );
   }

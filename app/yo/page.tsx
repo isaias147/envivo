@@ -86,7 +86,7 @@ export default function Yo() {
       await salir(); // limpia el token local
       router.push("/");
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
       setBorrando(false);
     }
   }
@@ -116,8 +116,8 @@ export default function Yo() {
       ) : !usuario ? (
         <div className={styles.vacio}>
           <p>
-            Entrá con tu cuenta para manejar tus avisos y los perfiles que
-            seguís.
+            Entra con tu cuenta para manejar tus avisos y los perfiles que
+            sigues.
           </p>
           <button
             type="button"
@@ -154,7 +154,7 @@ export default function Yo() {
           >
             <span>
               Avisos de nuevos eventos
-              <small>Cuando alguien que seguís publique algo.</small>
+              <small>Cuando alguien que sigues publique algo.</small>
             </span>
             <span
               className={`${styles.switch} ${avisos ? styles.switchOn : ""}`}
@@ -163,7 +163,7 @@ export default function Yo() {
           </button>
 
           <Link href="/siguiendo" className={styles.fila}>
-            <span>Perfiles que seguís</span>
+            <span>Perfiles que sigues</span>
             <span className={styles.flecha}>
               {nSigue ?? "—"} →
             </span>
@@ -185,7 +185,7 @@ export default function Yo() {
               <Link href="/registro" className={styles.fila}>
                 <span>
                   Quiero publicar
-                  <small>Anunciá tus eventos en el mapa.</small>
+                  <small>Anuncia tus eventos en el mapa.</small>
                 </span>
                 <span className={styles.flecha}>→</span>
               </Link>
@@ -202,7 +202,7 @@ export default function Yo() {
           {avisoPerfilActivo ? (
             <div className={styles.borrarCaja}>
               <p>
-                Tenés un perfil de publicador activo; escribinos para
+                Tienes un perfil de publicador activo; escríbenos para
                 cerrarlo.
               </p>
               <button
@@ -228,7 +228,7 @@ export default function Yo() {
           ) : (
             <div className={styles.borrarCaja}>
               <p>
-                Esto borra tu cuenta y todo lo que seguís. No se puede
+                Esto borra tu cuenta y todo lo que sigues. No se puede
                 deshacer.
               </p>
               <button
@@ -257,7 +257,7 @@ export default function Yo() {
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}
         titulo="Entra a EnVivo"
-        descripcion="Con tu cuenta seguís a locales, organizadores y artistas y recibís un aviso cuando publican algo nuevo."
+        descripcion="Con tu cuenta sigues a locales, organizadores y artistas y recibes un aviso cuando publican algo nuevo."
       />
 
       <BarraInferior />

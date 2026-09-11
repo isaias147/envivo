@@ -16,7 +16,7 @@ import styles from "./ModalEntrarConGoogle.module.css";
 
 const TITULO_DEFECTO = "Entra a EnVivo";
 const DESCRIPCION_DEFECTO =
-  "Con tu cuenta podés seguir a locales, organizadores y artistas y recibir un aviso cuando publiquen algo nuevo. No hace falta para ver el mapa.";
+  "Con tu cuenta puedes seguir a locales, organizadores y artistas y recibir un aviso cuando publiquen algo nuevo. No hace falta para ver el mapa.";
 
 type Props = {
   abierto: boolean;
@@ -58,7 +58,7 @@ export default function ModalEntrarConGoogle({
     setError(null);
     const err = await entrarConGoogle();
     if (err) {
-      setError("No se pudo iniciar sesión. Probá de nuevo.");
+      setError("No se pudo iniciar sesión. Prueba de nuevo.");
       setYendo(false);
     }
     // Sin error: el navegador ya está saliendo hacia Google.

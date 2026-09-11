@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   );
   if (errDel) {
     return NextResponse.json(
-      { error: "No se pudo borrar la cuenta. Intentá de nuevo." },
+      { error: "No se pudo borrar la cuenta. Intenta de nuevo." },
       { status: 500 },
     );
   }

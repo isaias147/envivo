@@ -82,7 +82,7 @@ export async function generateMetadata({
   const nombre = perfil.nombre ?? "Perfil";
   return {
     title: `${nombre} · EnVivo`,
-    description: `${etiqueta} en EnVivo. Mirá sus próximos eventos en Cali.`,
+    description: `${etiqueta} en EnVivo. Mira sus próximos eventos en Cali.`,
     openGraph: perfil.imagen_url ? { images: [perfil.imagen_url] } : undefined,
   };
 }

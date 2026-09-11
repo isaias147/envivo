@@ -778,7 +778,7 @@ export default function PublicarNuevo() {
           <div className={styles.ruta}>envivo.app/publicar</div>
           <h1 className={styles.tit}>Publica tu evento</h1>
           <p className={styles.bajada}>
-            Primero entrá con tu cuenta de Google para publicar.
+            Primero entra con tu cuenta de Google para publicar.
           </p>
           <button
             type="button"
@@ -791,7 +791,7 @@ export default function PublicarNuevo() {
         <ModalEntrarConGoogle
           abierto={!modalCerrado}
           onCerrar={() => setModalCerrado(true)}
-          titulo="Entrá para publicar"
+          titulo="Entra para publicar"
           descripcion="Necesitamos tu cuenta de Google antes de registrarte como publicador."
         />
       </div>
@@ -833,7 +833,7 @@ export default function PublicarNuevo() {
           <h1 className={styles.tit}>Tu evento ya está en el mapa</h1>
           <p className={styles.bajada}>
             Quedó publicado al instante. Cualquiera que abra EnVivo cerca
-            puede verlo. Podés editarlo o bajarlo desde «Mis eventos».
+            puede verlo. Puedes editarlo o bajarlo desde «Mis eventos».
           </p>
 
           <div className={styles.tarjetaRes}>

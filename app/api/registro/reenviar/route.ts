@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const reg = await leerRegistro();
   if (!reg) {
     return NextResponse.json(
-      { error: "Empezá el registro de nuevo." },
+      { error: "Empieza el registro de nuevo." },
       { status: 401 },
     );
   }

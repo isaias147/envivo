@@ -4,13 +4,15 @@
 // `events` con el cliente anónimo (política `events_anon_insert`, ya
 // eliminada); ahora el INSERT pasa por acá con service_role.
 //
-// - Auth: cookie `envivo_publicador` y/o `Authorization: Bearer` (Google).
-//   El `perfil_id` sale de ahí, nunca del cuerpo:
-//     · Con Bearer, se resuelve por `perfiles.user_id` (auth.getUser()).
-//     · Con cookie, se resuelve por la sesión firmada de siempre.
-//     · Si llegan los dos y apuntan a perfiles distintos, 403 (la sesión de
-//       Google y la del publicador no coinciden: no se adivina cuál vale).
-//     · Sin ninguno de los dos, 401.
+// - Auth: `Authorization: Bearer` (Google) es OBLIGATORIO — /publicar/nuevo
+//   ya exige sesión de Google antes de llegar acá. El `perfil_id` sale
+//   SOLO de `perfiles.user_id` (auth.getUser() sobre el Bearer), nunca del
+//   cuerpo ni de la cookie:
+//     · Sin Bearer, o Bearer inválido/vencido → 401.
+//     · Bearer válido pero esa cuenta de Google no tiene perfil → 403.
+//     · La cookie `envivo_publicador` (si llega) NO resuelve el perfil; solo
+//       se usa para el cruce: si apunta a OTRO perfil distinto del de
+//       Google, 403 (las dos sesiones no coinciden, no se adivina cuál vale).
 // - `perfil_id`, `publisher_name` e `instagram`/`tiktok` NO se leen del
 //   cuerpo: salen del perfil en la base. El navegador no puede publicar a
 //   nombre de otro perfil aunque lo mande.
@@ -34,47 +36,54 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function POST(request: Request) {
-  // Cookie: la sesión de publicador de siempre.
-  const sesion = await leerSesionPublicador();
-
-  // Bearer opcional: si llega, resuelve el perfil por user_id (Google).
-  let perfilIdBearer: string | null = null;
-  const cabecera = request.headers.get("authorization") ?? "";
-  const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
-  if (token && SUPABASE_URL && ANON_KEY) {
-    const comoUsuario = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const {
-      data: { user },
-    } = await comoUsuario.auth.getUser();
-    if (user) {
-      const { data: perfilPorUserId } = await supabaseServidor
-        .from("perfiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      perfilIdBearer = perfilPorUserId?.id ?? null;
-    }
+  if (!SUPABASE_URL || !ANON_KEY) {
+    return NextResponse.json({ error: "Config incompleta." }, { status: 500 });
   }
 
-  if (
-    perfilIdBearer &&
-    sesion?.perfilId &&
-    perfilIdBearer !== sesion.perfilId
-  ) {
+  const cabecera = request.headers.get("authorization") ?? "";
+  const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
+  if (!token) {
     return NextResponse.json(
-      { error: "Tu sesión de Google y tu sesión de publicador no coinciden." },
+      { error: "Necesitas una cuenta de Google para publicar." },
+      { status: 401 },
+    );
+  }
+
+  const comoUsuario = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const {
+    data: { user },
+    error: errUser,
+  } = await comoUsuario.auth.getUser();
+  if (errUser || !user) {
+    return NextResponse.json(
+      { error: "Tu sesión de Google venció. Entra de nuevo." },
+      { status: 401 },
+    );
+  }
+
+  // El perfil sale SOLO del user_id de Google. La cookie de abajo nunca lo
+  // resuelve: solo sirve para detectar un cruce entre las dos sesiones.
+  const { data: perfilPorUserId } = await supabaseServidor
+    .from("perfiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const perfilId = perfilPorUserId?.id ?? null;
+  if (!perfilId) {
+    return NextResponse.json(
+      { error: "Esta cuenta de Google todavía no tiene perfil de publicador." },
       { status: 403 },
     );
   }
 
-  const perfilId = perfilIdBearer ?? sesion?.perfilId ?? null;
-  if (!perfilId) {
+  const sesion = await leerSesionPublicador();
+  if (sesion?.perfilId && sesion.perfilId !== perfilId) {
     return NextResponse.json(
-      { error: "Necesitás una cuenta para publicar." },
-      { status: 401 },
+      { error: "Tu sesión de Google y tu sesión de publicador no coinciden." },
+      { status: 403 },
     );
   }
 
@@ -113,7 +122,7 @@ export async function POST(request: Request) {
       : null;
   if (!tipoEspacio) {
     return NextResponse.json(
-      { error: "Elegí si el espacio es abierto o cerrado." },
+      { error: "Elige si el espacio es abierto o cerrado." },
       { status: 400 },
     );
   }
@@ -170,7 +179,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { error: "No se pudo enviar el evento. Intentá de nuevo." },
+      { error: "No se pudo enviar el evento. Intenta de nuevo." },
       { status: 500 },
     );
   }

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
   if (!token) {
     return NextResponse.json(
-      { error: "Necesitás entrar con Google antes de registrarte." },
+      { error: "Necesitas entrar con Google antes de registrarte." },
       { status: 401 },
     );
   }
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   } = await comoUsuario.auth.getUser();
   if (errUser || !user) {
     return NextResponse.json(
-      { error: "Tu sesión de Google venció. Entrá de nuevo." },
+      { error: "Tu sesión de Google venció. Entra de nuevo." },
       { status: 401 },
     );
   }
@@ -79,41 +79,41 @@ export async function POST(request: Request) {
   const celular = componerWhatsapp(indicativo, cuerpo.celular);
 
   if (!esTipoPerfil(tipo)) {
-    return NextResponse.json({ error: "Elegí un tipo." }, { status: 400 });
+    return NextResponse.json({ error: "Elige un tipo." }, { status: 400 });
   }
   if (nombre.length < 2 || nombre.length > 80) {
     return NextResponse.json(
-      { error: "Escribí el nombre del local o marca (2 a 80 letras)." },
+      { error: "Escribe el nombre del local o marca (2 a 80 letras)." },
       { status: 400 },
     );
   }
   if (adminNombre.length < 2 || adminNombre.length > 60) {
     return NextResponse.json(
-      { error: "Escribí el nombre del administrador." },
+      { error: "Escribe el nombre del administrador." },
       { status: 400 },
     );
   }
   if (adminApellido.length < 2 || adminApellido.length > 60) {
     return NextResponse.json(
-      { error: "Escribí el apellido del administrador." },
+      { error: "Escribe el apellido del administrador." },
       { status: 400 },
     );
   }
   if (!Number.isInteger(adminEdad) || adminEdad < 14 || adminEdad > 120) {
     return NextResponse.json(
-      { error: "Escribí una edad válida." },
+      { error: "Escribe una edad válida." },
       { status: 400 },
     );
   }
   if (celular.length < 8) {
     return NextResponse.json(
-      { error: "Escribí un celular válido." },
+      { error: "Escribe un celular válido." },
       { status: 400 },
     );
   }
   if (!esCorreoValido(correo)) {
     return NextResponse.json(
-      { error: "Escribí un correo válido." },
+      { error: "Escribe un correo válido." },
       { status: 400 },
     );
   }

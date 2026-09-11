@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     );
   if (errIns) {
     return NextResponse.json(
-      { error: "No se pudo enviar la denuncia. Intentá de nuevo." },
+      { error: "No se pudo enviar la denuncia. Intenta de nuevo." },
       { status: 500 },
     );
   }

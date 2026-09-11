@@ -81,7 +81,7 @@ export default function PruebaEntrar() {
         abierto={abierto}
         onCerrar={() => setAbierto(false)}
         titulo="Entra para seguir a La Topa Tolondra"
-        descripcion="Vas a ver sus próximos eventos en «Siguiendo». No publicás nada ni es obligatorio para usar el mapa."
+        descripcion="Vas a ver sus próximos eventos en «Siguiendo». No publicas nada ni es obligatorio para usar el mapa."
       />
     </main>
   );

@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       );
     if (error) {
       return NextResponse.json(
-        { error: "No se pudo seguir. Intentá de nuevo." },
+        { error: "No se pudo seguir. Intenta de nuevo." },
         { status: 500 },
       );
     }
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     .eq("perfil_id", perfilId);
   if (error) {
     return NextResponse.json(
-      { error: "No se pudo dejar de seguir. Intentá de nuevo." },
+      { error: "No se pudo dejar de seguir. Intenta de nuevo." },
       { status: 500 },
     );
   }

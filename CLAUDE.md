@@ -25,14 +25,18 @@ cambiar, se me pregunta primero.
 - **Registro del público:** con Google, **opcional**, solo para seguir
   publicadores y recibir avisos. **Planeado para Fase 2 (Sesión 14 del spec).**
   Hoy **no existe**: el usuario nunca ve un login.
-- **Registro del publicador:** verificación por **DOS canales obligatorios —
-  SMS y correo — con código de 4 dígitos vía Twilio Verify**, nunca Google.
-  Ambos deben confirmarse para continuar. **Planeado (Fase 2).** Hoy el
-  publicador tampoco ve login: el acceso es por link de QR/WhatsApp.
-  (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo. El `wa.me` se
-  descartó porque el número no se pudo registrar como empresa en Meta.
-  Twilio Verify maneja generación, expiración y reintentos; el canal email
-  necesita SendGrid conectado al servicio de Verify.)
+- **Registro del publicador:** primero cuenta de **Google** (obligatoria,
+  `perfiles.user_id` NOT NULL), después verificación por **DOS canales
+  obligatorios — SMS y correo — con código vía Twilio Verify** (el celular
+  del SMS es `celular_cuenta`, **no es WhatsApp**). Ambos deben confirmarse
+  para continuar. Ya implementado (ya no es "Planeado Fase 2"). El link de
+  QR/WhatsApp sigue siendo cómo el organizador llega a `/publicar` (el mapa
+  con el botón "Publicar evento"); pero `/registro` y `/publicar/nuevo` ya
+  exigen esa cuenta de Google antes de mostrar el formulario.
+  (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo → + Google. El
+  `wa.me` se descartó porque el número no se pudo registrar como empresa en
+  Meta. Twilio Verify maneja generación, expiración y reintentos; el canal
+  email necesita SendGrid conectado al servicio de Verify.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
 - **Monetización (sin puja por posición):** dos productos —
@@ -111,7 +115,7 @@ cambiar, se me pregunta primero.
 
 ### Capa de identidad (Sesión 11 — andamiaje de Fase 2, todavía sin UI)
 
-- `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `celular_cuenta` (el celular verificado por SMS al registrarse — **no es WhatsApp** — **clave privada, no se expone al cliente**, se oculta por privilegios de columna), `whatsapp_publico`, redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (la policy de "dueño" se añade en Sesión 14, cuando exista la auth del publicador).
+- `perfiles` — perfil público de EnVivo: `tipo` (`local`/`organizador`/`artista`), `slug`, `nombre`, `celular_cuenta` (el celular verificado por SMS al registrarse — **no es WhatsApp** — **clave privada, no se expone al cliente**, se oculta por privilegios de columna), `whatsapp_publico`, `user_id` (uuid, **NOT NULL**, UNIQUE, FK a `auth.users` — la cuenta de Google del publicador; el alta la exige antes del SMS y el correo, ver "Registro del publicador" y "Alta del publicador"), redes, `imagen_url`, `verified_at`, `seguidores_publicos`. RLS: lectura pública; escritura solo servidor (no hay policy de "dueño" vía RLS: los cambios siguen pasando por API routes con service_role, no por escritura directa del cliente).
 - ~~`phone_codes`~~ — **sin uso desde el cambio a Twilio Verify** (Sesión 12b). El código de verificación ahora lo genera y valida Twilio de su lado; la "verdad" de que un número quedó verificado vive en el flag `verificado` de la cookie firmada `envivo_registro`. La tabla sigue existiendo vacía en Supabase: se puede dropear con `drop table public.phone_codes;` (arrastra la policy `phone_codes_no_client`).
 - `seguimientos` — un `auth.users` sigue a un `perfiles`. PK `(user_id, perfil_id)`. RLS: insert/delete/select solo del propio `user_id`.
 - `events.perfil_id` — FK opcional a `perfiles`. **Convive** con los campos planos (`publisher_*`, `whatsapp`); no hay backfill todavía.
@@ -176,14 +180,21 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 > Fase 2 (Sesión 14 del spec): login con Google **opcional** para seguir
 > publicadores y recibir avisos. No se adelanta; hoy el usuario nunca ve un login.
 
-**Organizador (sin registro, link entregado por QR o WhatsApp):**
+**Organizador (link entregado por QR o WhatsApp; publicar exige cuenta —
+Google primero, luego SMS + correo, ver "Alta del publicador"):**
 4. `/publicar` — el mapa con botón "Publicar evento"
-5. `/publicar/nuevo` — el formulario. **Exige sesión de publicador** (cookie
-   `envivo_publicador`, leída vía `GET /api/publicador/sesion`); sin ella
-   redirige a `/registro`. El evento hereda `perfil_id` + nombre + tipo +
-   redes del perfil (esos campos no se piden; encabezado "Publicando como
-   [nombre]"). El INSERT pasa por `POST /api/publicador/evento/crear`
-   (service_role, impone nombre/tipo/redes desde el perfil). **Sesión 18:**
+5. `/publicar/nuevo` — el formulario. **Exige sesión de Google** (si no hay,
+   puerta + `ModalEntrarConGoogle`) y **sesión de publicador** (cookie
+   `envivo_publicador`, leída vía `GET /api/publicador/sesion`); sin
+   perfil redirige a `/registro`. El evento hereda `perfil_id` + nombre +
+   tipo + redes del perfil (esos campos no se piden; encabezado "Publicando
+   como [nombre]"). El INSERT pasa por `POST /api/publicador/evento/crear`
+   (service_role, impone nombre/tipo/redes desde el perfil). Esa ruta exige
+   el `Authorization: Bearer` de Google como **única fuente** del
+   `perfil_id` (resuelto por `perfiles.user_id`): sin Bearer o con uno
+   vencido, 401; cuenta de Google sin perfil, 403; la cookie
+   `envivo_publicador` ya no resuelve nada ahí, solo se usa para el cruce
+   (si apunta a otro perfil distinto, 403). **Sesión 18:**
    el formulario pide además `aforo` (obligatorio), `tipo_espacio`
    (abierto/cerrado) y hora de fin; el evento sale **publicado al instante**
    (`status` = `'aprobado'` por defecto) y la pantalla final ya no dice "lo
@@ -214,14 +225,21 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
    "Editar…" en las tarjetas de "En el mapa" de `/mis-eventos`.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
-**Alta del publicador (Sesión 12, revisada — verificación por SMS + correo con Twilio Verify, sin Google):**
+**Alta del publicador (Sesión 12, revisada — Google primero, después SMS +
+correo con Twilio Verify):**
+- `/registro` y `/publicar/nuevo` **exigen sesión de Google** (Supabase Auth)
+  antes de mostrar nada: sin ella, una puerta abre `ModalEntrarConGoogle` y
+  vuelve a la misma ruta al terminar. La cuenta de Google se valida en el
+  servidor (`auth.getUser()` sobre el `Authorization: Bearer` que manda el
+  cliente), nunca se confía en un `userId` del body.
 - `/registro` — **una sola pantalla** (antes 5a+5b). Tipo de perfil por
   `<select>` (ya no tarjetas). Pide: tipo, nombre del local/marca, **datos
   del administrador** (nombre, apellido, edad), celular de cuenta (con nota
   "solo para verificarte, no tiene que ser el que publiques") y **correo**.
-  Al enviar → `/api/registro/iniciar` valida todo y le pide a Twilio Verify
-  que mande **los dos códigos** (SMS + email); deja la cookie
-  `envivo_registro` con todos los datos (sin `smsOk` / `correoOk` todavía).
+  Al enviar → `/api/registro/iniciar` valida el Bearer de Google, valida
+  todo lo demás y le pide a Twilio Verify que mande **los dos códigos** (SMS
+  + email); deja la cookie `envivo_registro` con todos los datos y el
+  `userId` de Google (sin `smsOk` / `correoOk` todavía).
 - `/registro/verificar` — **dos tarjetas de canal** (SMS, Correo), cada una
   con 4 casillas. `/api/registro/verificar { canal, codigo }` valida contra
   Twilio y re-firma la cookie poniendo `smsOk` o `correoOk`. "Continuar" se
@@ -229,9 +247,14 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
   (`/api/registro/reenviar { canal }`).
 - `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
   Instagram, TikTok, WhatsApp público (prellenado). Exige `smsOk && correoOk`
-  en la cookie. Al enviar crea el `perfiles` (con `admin_nombre/apellido/edad`,
-  `correo_admin`, `correo_verificado = true`), el `access_token`, la sesión
-  `envivo_publicador` y va a `/panel`.
+  en la cookie, y vuelve a validar el Bearer de Google contra el `userId` de
+  esa cookie (si cambió a mitad de camino, 401 y borra la cookie). Al
+  enviar crea el `perfiles` (con `user_id`, `admin_nombre/apellido/edad`,
+  `correo_admin`, `correo_verificado = true`) — 409 si esa cuenta de Google
+  o ese celular ya tienen perfil, nunca reasigna el `user_id` de uno
+  existente —, el `access_token`, la sesión `envivo_publicador` y va al
+  mapa (`/`, donde ya aparece el botón "Publicar evento"; `/panel` sigue
+  vacío, ver abajo).
 - `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
   (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
 - `/perfil` — vista **privada** del dueño (Sesión 13). Server Component sin
@@ -242,7 +265,7 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
     `/p/[slug]` público sigue oculto por debajo de 25).
   - Paso 7: edita **nombre** (libre) e **Instagram + WhatsApp público** con
     **candado de 30 días** desde `perfiles.ultimo_cambio_contacto`. Bloqueado
-    → campos en lectura + "Podés cambiarlo desde el [fecha]". Guarda por
+    → campos en lectura + "Puedes cambiarlo desde el [fecha]". Guarda por
     `POST /api/publicador/perfil/editar` (service_role) que **revalida el
     candado** con el valor de la base, no confía en el frontend; al cambiar
     IG/WA pone `ultimo_cambio_contacto = now()`. Helper `candadoContacto()` +

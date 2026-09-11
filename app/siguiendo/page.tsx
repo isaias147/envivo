@@ -67,8 +67,8 @@ export default function Siguiendo() {
       ) : estado === "sin-sesion" ? (
         <div className={styles.vacio}>
           <p>
-            Entrá con tu cuenta para ver acá a los locales, organizadores y
-            artistas que seguís y su próximo evento.
+            Entra con tu cuenta para ver acá a los locales, organizadores y
+            artistas que sigues y su próximo evento.
           </p>
           <button
             type="button"
@@ -80,12 +80,12 @@ export default function Siguiendo() {
         </div>
       ) : estado === "error" ? (
         <p className={styles.info}>
-          No se pudo cargar. Recargá la página e intentá de nuevo.
+          No se pudo cargar. Recarga la página e intenta de nuevo.
         </p>
       ) : items.length === 0 ? (
         <div className={styles.vacio}>
           <p>
-            Todavía no seguís a nadie. Tocá “Seguir” en cualquier perfil o
+            Todavía no sigues a nadie. Toca “Seguir” en cualquier perfil o
             evento y aparece acá.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function Siguiendo() {
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}
         titulo="Entra a EnVivo"
-        descripcion="Con tu cuenta ves acá a los locales, organizadores y artistas que seguís y recibís un aviso cuando publican algo nuevo."
+        descripcion="Con tu cuenta ves acá a los locales, organizadores y artistas que sigues y recibes un aviso cuando publican algo nuevo."
       />
 
       <BarraInferior />

@@ -9,7 +9,8 @@
 // cookie provisional, en vez de crear el perfil con un userId que ya no es
 // el de quien está pidiendo esto. Crea el `perfiles`, deja el
 // `access_token` de /mis-eventos, cambia la cookie provisional por la
-// sesión real `envivo_publicador` y responde con el destino (/panel).
+// sesión real `envivo_publicador` y responde con el destino (/, el mapa:
+// /panel todavía es un placeholder vacío de la Sesión 15).
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   const reg = await leerRegistro();
   if (!reg) {
     return NextResponse.json(
-      { error: "Empezá el registro de nuevo." },
+      { error: "Empieza el registro de nuevo." },
       { status: 401 },
     );
   }
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     const tarro = await cookies();
     tarro.delete(COOKIE_REGISTRO);
     return NextResponse.json(
-      { error: "Tu sesión de Google cambió. Empezá el registro de nuevo." },
+      { error: "Tu sesión de Google cambió. Empieza el registro de nuevo." },
       { status: 401 },
     );
   }
@@ -133,5 +134,5 @@ export async function POST(request: Request) {
   });
   tarro.delete(COOKIE_REGISTRO);
 
-  return NextResponse.json({ ok: true, destino: "/panel" });
+  return NextResponse.json({ ok: true, destino: "/" });
 }

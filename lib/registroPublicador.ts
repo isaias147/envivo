@@ -95,7 +95,7 @@ async function llamarTwilio(
   } catch {
     return {
       ok: false,
-      error: "No se pudo contactar el servicio de SMS. Probá de nuevo.",
+      error: "No se pudo contactar el servicio de SMS. Prueba de nuevo.",
       status: 502,
     };
   }
@@ -118,14 +118,14 @@ async function llamarTwilio(
 /** Traduce los errores más comunes de Twilio Verify a algo legible. */
 function mensajeErrorTwilio(http: number, codigo?: number): string {
   if (http === 429 || codigo === 60203) {
-    return "Pediste demasiados códigos. Esperá un rato e intentá de nuevo.";
+    return "Pediste demasiados códigos. Espera un rato e intenta de nuevo.";
   }
   if (codigo === 60200) return "Ese dato no parece válido.";
   if (codigo === 60202) {
-    return "Demasiados intentos con este código. Pedí uno nuevo.";
+    return "Demasiados intentos con este código. Pide uno nuevo.";
   }
-  if (http === 404) return "El código venció. Pedí uno nuevo.";
-  return "No se pudo verificar. Intentá de nuevo.";
+  if (http === 404) return "El código venció. Pide uno nuevo.";
+  return "No se pudo verificar. Intenta de nuevo.";
 }
 
 export type Canal = "sms" | "email";
@@ -185,14 +185,14 @@ export async function comprobarCodigo(
   const to = destinoTwilio(destinoCrudo, canal);
   const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
   if (!to) {
-    return { ok: false, error: "Escribí el código completo.", status: 400 };
+    return { ok: false, error: "Escribe el código completo.", status: 400 };
   }
 
   // El correo usa su propio largo (4) y valida adentro; el SMS usa el de Twilio (6).
   if (canal === "email") return comprobarCodigoCorreo(to, codigo);
 
   if (codigo.length !== LARGO_CODIGO) {
-    return { ok: false, error: "Escribí el código completo.", status: 400 };
+    return { ok: false, error: "Escribe el código completo.", status: 400 };
   }
 
   const res = await llamarTwilio("VerificationCheck", { To: to, Code: codigo });
@@ -321,7 +321,24 @@ export async function crearPerfil(
     .select("id, nombre")
     .single();
 
-  if (error || !creado) {
+  if (error) {
+    // 23505 = unique_violation: dos registros a la vez pasaron los chequeos
+    // de arriba y llegaron juntos al insert. No es un error del servidor
+    // (500): es la misma condición de negocio (409), solo detectada tarde.
+    if (error.code === "23505") {
+      const porUserId =
+        error.message?.includes("user_id") || error.details?.includes("user_id");
+      return {
+        ok: false,
+        error: porUserId
+          ? "Esta cuenta de Google ya tiene un perfil de publicador."
+          : "Ese celular ya tiene un perfil registrado.",
+        status: 409,
+      };
+    }
+    return { ok: false, error: "No se pudo crear el perfil.", status: 500 };
+  }
+  if (!creado) {
     return { ok: false, error: "No se pudo crear el perfil.", status: 500 };
   }
   return { ok: true, perfilId: creado.id, nombre: creado.nombre ?? null };

@@ -91,7 +91,7 @@ export default function Verificar() {
         </div>
         <div className={styles.ruta}>envivo.app/registro/verificar</div>
 
-        <h1 className={styles.tit}>Confirmá los dos</h1>
+        <h1 className={styles.tit}>Confirma los dos</h1>
         <p className={styles.bajada}>
           Necesitamos verificar tu número y tu correo antes de continuar.
         </p>
@@ -173,7 +173,7 @@ function Canal({
         }
         onVerificado();
       } catch {
-        setError("Falló la conexión. Intentá de nuevo.");
+        setError("Falló la conexión. Intenta de nuevo.");
         setEnviando(false);
       }
     },
@@ -226,7 +226,7 @@ function Canal({
         casillas.current[0]?.focus();
       }
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
     }
     setReenviando(false);
   }

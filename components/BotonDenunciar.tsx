@@ -97,7 +97,7 @@ export default function BotonDenunciar({ eventId }: { eventId: string }) {
         abierto={modalGoogle}
         onCerrar={() => setModalGoogle(false)}
         titulo="Entra para reportar"
-        descripcion="Con tu cuenta podés avisarnos si un evento no existe o tiene datos falsos. No publicás nada."
+        descripcion="Con tu cuenta puedes avisarnos si un evento no existe o tiene datos falsos. No publicas nada."
       />
 
       {hojaAbierta &&
@@ -150,7 +150,7 @@ export default function BotonDenunciar({ eventId }: { eventId: string }) {
 
                   {fase === "error" && (
                     <p className={styles.error}>
-                      No se pudo enviar. Probá de nuevo.
+                      No se pudo enviar. Prueba de nuevo.
                     </p>
                   )}
 

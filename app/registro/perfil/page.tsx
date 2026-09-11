@@ -3,7 +3,7 @@
 // Pantalla 7 · /registro/perfil — así te van a ver.
 // Foto (opcional), Instagram, TikTok (opcional) y WhatsApp público
 // (prellenado con el de cuenta). Al enviar: POST /api/registro/perfil crea el
-// perfil, deja la sesión y redirige a /panel.
+// perfil, deja la sesión y redirige al mapa (/).
 //
 // La foto se sube al bucket `flyers` (prefijo `perfiles/`) con la anon key,
 // igual que el flyer de un evento.
@@ -95,13 +95,13 @@ export default function PerfilNuevo() {
         .from("flyers")
         .upload(ruta, file, { contentType: file.type, upsert: false });
       if (errSubida) {
-        setError("No se pudo subir la foto. Intentá de nuevo.");
+        setError("No se pudo subir la foto. Intenta de nuevo.");
       } else {
         const { data } = supabase.storage.from("flyers").getPublicUrl(ruta);
         setImagenUrl(data.publicUrl);
       }
     } catch {
-      setError("No se pudo subir la foto. Intentá de nuevo.");
+      setError("No se pudo subir la foto. Intenta de nuevo.");
     }
     setSubiendoFoto(false);
   }
@@ -135,9 +135,9 @@ export default function PerfilNuevo() {
         setEnviando(false);
         return;
       }
-      router.replace(j.destino ?? "/panel");
+      router.replace(j.destino ?? "/");
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
       setEnviando(false);
     }
   }

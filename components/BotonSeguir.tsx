@@ -133,7 +133,7 @@ export default function BotonSeguir({
         abierto={modalAbierto}
         onCerrar={() => setModalAbierto(false)}
         titulo={`Entra para seguir a ${nombre}`}
-        descripcion="Vas a ver sus próximos eventos en «Siguiendo». No publicás nada ni es obligatorio para usar el mapa."
+        descripcion="Vas a ver sus próximos eventos en «Siguiendo». No publicas nada ni es obligatorio para usar el mapa."
       />
     </>
   );

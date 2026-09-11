@@ -60,7 +60,7 @@ async function enviarPorMailgun(
     subject: `Tu código de EnVivo: ${codigo}`,
     text:
       `Tu código para verificar el correo en EnVivo es ${codigo}.\n\n` +
-      `Vence en ${VIGENCIA_MIN} minutos. Si no lo pediste, ignorá este mensaje.`,
+      `Vence en ${VIGENCIA_MIN} minutos. Si no lo pediste, ignora este mensaje.`,
   });
 
   let respuesta: Response;
@@ -76,7 +76,7 @@ async function enviarPorMailgun(
   } catch {
     return {
       ok: false,
-      error: "No se pudo enviar el correo. Probá de nuevo.",
+      error: "No se pudo enviar el correo. Prueba de nuevo.",
       status: 502,
     };
   }
@@ -84,7 +84,7 @@ async function enviarPorMailgun(
   if (!respuesta.ok) {
     return {
       ok: false,
-      error: "No se pudo enviar el correo. Revisá la dirección.",
+      error: "No se pudo enviar el correo. Revisa la dirección.",
       status: respuesta.status === 429 ? 429 : 400,
     };
   }
@@ -113,7 +113,7 @@ export async function enviarCodigoCorreo(correo: string): Promise<Resultado> {
   if ((count ?? 0) >= MAX_ENVIOS) {
     return {
       ok: false,
-      error: "Pediste demasiados códigos. Esperá un rato e intentá de nuevo.",
+      error: "Pediste demasiados códigos. Espera un rato e intenta de nuevo.",
       status: 429,
     };
   }
@@ -155,7 +155,7 @@ export async function comprobarCodigoCorreo(
 ): Promise<Resultado> {
   const codigo = String(codigoCrudo ?? "").replace(/\D/g, "");
   if (!SECRETO || codigo.length !== LARGO) {
-    return { ok: false, error: "Escribí el código completo.", status: 400 };
+    return { ok: false, error: "Escribe el código completo.", status: 400 };
   }
 
   const { data: fila } = await supabaseServidor
@@ -169,13 +169,13 @@ export async function comprobarCodigoCorreo(
     .maybeSingle();
 
   if (!fila) {
-    return { ok: false, error: "El código venció. Pedí uno nuevo.", status: 401 };
+    return { ok: false, error: "El código venció. Pide uno nuevo.", status: 401 };
   }
 
   if (fila.intentos >= MAX_INTENTOS) {
     return {
       ok: false,
-      error: "Demasiados intentos con este código. Pedí uno nuevo.",
+      error: "Demasiados intentos con este código. Pide uno nuevo.",
       status: 429,
     };
   }

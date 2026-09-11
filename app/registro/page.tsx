@@ -75,7 +75,7 @@ export default function Registro() {
 
     const edad = Number(adminEdad);
     if (nombre.trim().length < 2) {
-      setError("Escribí el nombre del local o marca.");
+      setError("Escribe el nombre del local o marca.");
       return;
     }
     if (adminNombre.trim().length < 2 || adminApellido.trim().length < 2) {
@@ -83,7 +83,7 @@ export default function Registro() {
       return;
     }
     if (!Number.isInteger(edad) || edad < 14 || edad > 120) {
-      setError("Escribí una edad válida.");
+      setError("Escribe una edad válida.");
       return;
     }
     if (!celular.trim()) {
@@ -91,7 +91,7 @@ export default function Registro() {
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
-      setError("Escribí un correo válido.");
+      setError("Escribe un correo válido.");
       return;
     }
 
@@ -125,7 +125,7 @@ export default function Registro() {
       }
       router.push("/registro/verificar");
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
       setEnviando(false);
     }
   }
@@ -149,9 +149,9 @@ export default function Registro() {
           </div>
           <div className={styles.ruta}>envivo.app/registro</div>
 
-          <h1 className={styles.tit}>Creá tu cuenta</h1>
+          <h1 className={styles.tit}>Crea tu cuenta</h1>
           <p className={styles.bajada}>
-            Primero entrá con tu cuenta de Google. Después te pedimos el
+            Primero entra con tu cuenta de Google. Después te pedimos el
             celular y el correo para verificarte.
           </p>
           <button
@@ -166,7 +166,7 @@ export default function Registro() {
         <ModalEntrarConGoogle
           abierto={!modalCerrado}
           onCerrar={() => setModalCerrado(true)}
-          titulo="Entrá para registrar tu perfil"
+          titulo="Entra para registrar tu perfil"
           descripcion="Necesitamos tu cuenta de Google para saber quién administra el perfil. Después verificamos el celular y el correo del negocio."
         />
       </div>
@@ -181,7 +181,7 @@ export default function Registro() {
         </div>
         <div className={styles.ruta}>envivo.app/registro</div>
 
-        <h1 className={styles.tit}>Creá tu cuenta</h1>
+        <h1 className={styles.tit}>Crea tu cuenta</h1>
         <p className={styles.bajada}>
           Estos datos son para saber con quién nos comunicamos. No se muestran
           en público.
@@ -189,7 +189,7 @@ export default function Registro() {
 
         <form onSubmit={enviar}>
           <div className={styles.campo}>
-            <label htmlFor="tipo">¿Cómo publicás?</label>
+            <label htmlFor="tipo">¿Cómo publicas?</label>
             <select
               id="tipo"
               value={tipo}
@@ -317,7 +317,7 @@ export default function Registro() {
                 id="correo"
                 type="email"
                 autoComplete="email"
-                placeholder="vos@correo.com"
+                placeholder="tu@correo.com"
                 value={correo}
                 onChange={(e) => {
                   setCorreo(e.target.value);

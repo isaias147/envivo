@@ -80,7 +80,7 @@ export default function EditarEventoForm({ evento }: { evento: Evento }) {
             upsert: false,
           });
         if (errSubida) {
-          setError("No se pudo subir el flyer. Intentá de nuevo.");
+          setError("No se pudo subir el flyer. Intenta de nuevo.");
           setGuardando(false);
           return;
         }
@@ -109,7 +109,7 @@ export default function EditarEventoForm({ evento }: { evento: Evento }) {
       setHecho({ reubicado: Boolean(j.reubicado) });
       router.refresh();
     } catch {
-      setError("Falló la conexión. Intentá de nuevo.");
+      setError("Falló la conexión. Intenta de nuevo.");
       setGuardando(false);
     }
   }
