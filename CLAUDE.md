@@ -39,10 +39,13 @@ cambiar, se me pregunta primero.
   email necesita SendGrid conectado al servicio de Verify.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
-- **Monetización (sin puja por posición):** dos productos —
-  - *Pin destacado* por evento puntual: **$15.000–20.000 COP**.
-  - *Perfil destacado* mensual: **$40.000–60.000 COP**.
-  - **3 meses gratis** de lanzamiento.
+
+## Monetización
+
+En el MVP actual no hay ningún cobro ni sistema de monetización: publicar es
+gratis. Habrá una suscripción del publicador más adelante, cuando exista la
+app nativa — se cobrará por la web (envivoapp.com), nunca dentro de la app ni
+del MVP. El precio todavía no está definido.
 
 ---
 
@@ -361,8 +364,8 @@ en su sesión del spec — ver "Decisiones fijas"):
 - Verificación del publicador por SMS con código de 4 dígitos (Twilio
   Verify) — Fase 2
 - Lista de seguidores (privada ≤ 25, pública después) — Fase 2
-- Cobro de "pin destacado" y "perfil destacado" — los productos y precios ya
-  están decididos; la pasarela de pago va en su propia sesión
+- Suscripción del publicador — precio y mecanismo aún sin definir; se cobra
+  por la web cuando exista la app
 
 Si crees que algo de esto hace falta antes de tiempo, dímelo y lo decido yo.
 
