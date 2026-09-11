@@ -54,6 +54,52 @@
   margin-bottom: 8px;
 }
 
+.seguidores {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  color: var(--hueso-tenue);
+}
+.seguidoresNum {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--laton);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+}
+.tabla th,
+.tabla td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--linea);
+}
+.tabla th {
+  color: var(--hueso-tenue);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tabla th:not(:first-child),
+.tabla td:not(:first-child) {
+  text-align: right;
+}
+.tabla td:first-child {
+  color: var(--hueso);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .accesos {
   margin-top: 14px;
 }

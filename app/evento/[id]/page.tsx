@@ -46,6 +46,13 @@ export default function EventoDetalle({ params }: PageProps<"/evento/[id]">) {
     };
   }, [id]);
 
+  // Cuenta la vista para el panel de métricas del publicador (Sesión 15).
+  // Una sola vez por evento montado; el duplicado lo filtra el propio
+  // servidor (unique por día), así que no hace falta más cuidado acá.
+  useEffect(() => {
+    fetch(`/api/eventos/${id}/vista`, { method: "POST" }).catch(() => {});
+  }, [id]);
+
   // "Volver" a la pantalla anterior; si se entró directo al enlace, al mapa.
   function volver() {
     if (typeof window !== "undefined" && window.history.length > 1) router.back();

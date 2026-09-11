@@ -99,6 +99,11 @@ function fechaCali(instante: Date): { ymd: string; dow: number } {
   };
 }
 
+/** "YYYY-MM-DD" de hoy en hora de Cali. Para agrupar vistas por día. */
+export function hoyCali(ahora: Date = new Date()): string {
+  return fechaCali(ahora).ymd;
+}
+
 /** Construye un instante a partir de una fecha y hora de pared en Cali. */
 function instanteCali(ymd: string, hms: string): Date {
   return new Date(`${ymd}T${hms}${OFFSET_CALI}`);

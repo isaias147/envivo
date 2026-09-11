@@ -1,9 +1,17 @@
-// Pantalla 9 · /panel — inicio del publicador. PLACEHOLDER.
+// Pantalla 9 · /panel — inicio del publicador.
 //
-// La Sesión 12 solo necesita que exista y reciba la sesión recién creada.
-// El contenido real (y la decisión sobre qué métricas mostrar, que hoy
-// chocan con la línea roja) es de la Sesión 15. Server Component: lee la
-// cookie `envivo_publicador` y, si no hay, manda a /registro.
+// Server Component: lee la cookie `envivo_publicador` y, si no hay (nunca se
+// registró, o cerró sesión), manda a /yo en vez de /registro — /panel es del
+// publicador, /yo decide desde ahí si quiere registrarse.
+//
+// Sesión 15: además del acceso a Publicar/Mis eventos, muestra el panel de
+// métricas del dueño — seguidores del perfil y, por cada evento suyo,
+// cuántas vistas (`vistas_evento`) y denuncias (`reportes`) acumuló. Son
+// conteos crudos y privados (solo el dueño los ve, como el nº real de
+// seguidores en /perfil): no hay ranking entre publicadores ni comparación
+// con nadie más, así que no es el "dashboard" que la línea roja del spec
+// prohíbe — pero si esa lectura no es la que quiere el dueño del proyecto,
+// se ajusta.
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -11,9 +19,11 @@ import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 import styles from "./page.module.css";
 
+type FilaMetrica = { id: string; titulo: string; vistas: number; denuncias: number };
+
 export default async function Panel() {
   const sesion = await leerSesionPublicador();
-  if (!sesion) redirect("/registro");
+  if (!sesion) redirect("/yo");
 
   // Link a /mis-eventos si ese celular de cuenta ya tiene token (access_tokens
   // sigue keyeado por el WhatsApp/celular con el que se publicaron eventos).
@@ -23,6 +33,42 @@ export default async function Panel() {
     .eq("whatsapp", sesion.celular)
     .maybeSingle();
   const misEventos = tk?.token ? `/mis-eventos/${tk.token}` : "/mis-eventos";
+
+  const { count: nSeguidores } = await supabaseServidor
+    .from("seguimientos")
+    .select("*", { count: "exact", head: true })
+    .eq("perfil_id", sesion.perfilId);
+
+  const { data: eventosPerfil } = await supabaseServidor
+    .from("events")
+    .select("id, title")
+    .eq("perfil_id", sesion.perfilId);
+
+  const ids = (eventosPerfil ?? []).map((e) => e.id as string);
+
+  const vistasPorEvento = new Map<string, number>();
+  const denunciasPorEvento = new Map<string, number>();
+  if (ids.length > 0) {
+    const [{ data: vistasRows }, { data: reportesRows }] = await Promise.all([
+      supabaseServidor.from("vistas_evento").select("event_id").in("event_id", ids),
+      supabaseServidor.from("reportes").select("event_id").in("event_id", ids),
+    ]);
+    for (const r of vistasRows ?? []) {
+      vistasPorEvento.set(r.event_id, (vistasPorEvento.get(r.event_id) ?? 0) + 1);
+    }
+    for (const r of reportesRows ?? []) {
+      denunciasPorEvento.set(r.event_id, (denunciasPorEvento.get(r.event_id) ?? 0) + 1);
+    }
+  }
+
+  const filas: FilaMetrica[] = (eventosPerfil ?? [])
+    .map((e) => ({
+      id: e.id as string,
+      titulo: e.title as string,
+      vistas: vistasPorEvento.get(e.id as string) ?? 0,
+      denuncias: denunciasPorEvento.get(e.id as string) ?? 0,
+    }))
+    .sort((a, b) => b.vistas - a.vistas);
 
   return (
     <div className={styles.pantalla}>
@@ -37,6 +83,32 @@ export default async function Panel() {
           Tu cuenta ya está lista. Desde acá vas a manejar tus eventos y tu
           perfil.
         </p>
+
+        <div className={styles.seguidores}>
+          <span className={styles.seguidoresNum}>{nSeguidores ?? 0}</span>
+          <span>{nSeguidores === 1 ? "seguidor" : "seguidores"}</span>
+        </div>
+
+        {filas.length > 0 && (
+          <table className={styles.tabla}>
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Vistas</th>
+                <th>Denuncias</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filas.map((f) => (
+                <tr key={f.id}>
+                  <td>{f.titulo}</td>
+                  <td>{f.vistas}</td>
+                  <td>{f.denuncias}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
         <nav className={styles.accesos}>
           <Link className={styles.acceso} href="/publicar">
