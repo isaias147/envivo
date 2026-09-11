@@ -338,7 +338,12 @@ buena idea o "ya que estamos".
 **Prohibido siempre:**
 
 - Perfiles de usuario con avatar, biografía o muro
-- Dashboard de métricas o estadísticas
+- Dashboard de métricas o estadísticas — **acotado en la Sesión 15**: sí se
+  permite un panel privado del propio publicador con conteos crudos de sus
+  propios eventos (vistas, seguidores, denuncias; hoy en `/panel`). Sigue
+  prohibido cualquier ranking, comparación o exposición pública entre
+  publicadores, y cualquier métrica visible para alguien que no sea el dueño
+  del perfil.
 - Notificaciones push del navegador
 - Sistema de moods o filtros por estado de ánimo
 - Ofertas, reseñas, check-ins, ranking, comentarios (la **denuncia** de la

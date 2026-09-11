@@ -7,11 +7,10 @@
 // Sesión 15: además del acceso a Publicar/Mis eventos, muestra el panel de
 // métricas del dueño — seguidores del perfil y, por cada evento suyo,
 // cuántas vistas (`vistas_evento`) y denuncias (`reportes`) acumuló. Son
-// conteos crudos y privados (solo el dueño los ve, como el nº real de
-// seguidores en /perfil): no hay ranking entre publicadores ni comparación
-// con nadie más, así que no es el "dashboard" que la línea roja del spec
-// prohíbe — pero si esa lectura no es la que quiere el dueño del proyecto,
-// se ajusta.
+// conteos crudos y privados, solo visibles para el dueño (como el nº real de
+// seguidores en /perfil). La línea roja del spec quedó acotada para permitir
+// justo esto: sigue prohibido cualquier ranking, comparación o métrica
+// visible entre publicadores (ver CLAUDE.md, "Línea roja").
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
