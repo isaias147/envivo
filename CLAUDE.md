@@ -12,8 +12,15 @@ Estas decisiones ya se tomaron y se evaluaron a fondo. Una sesión de Claude Cod
 **no las revierte ni las "mejora"** por su cuenta. Si algo parece que hace falta
 cambiar, se me pregunta primero.
 
-- **Una sola PWA, dos entradas por rol:** `/` para el público, `/publicar` para
-  el publicador. **Nunca** dos apps separadas.
+- **Una sola PWA, dos entradas por rol — ajustado 2026-09-11:** `/` para el
+  público, `/publicar` para el publicador ya registrado (mis-eventos, perfil,
+  publicar). Sigue siendo una sola PWA para el uso diario de los dos roles.
+  **Excepción:** el *alta* del publicador (registro + verificación por SMS y
+  correo) se muda a una web aparte, `envivo-publisher` (repo propio, todavía
+  sin desplegar). No es por cobro ni monetización — eso sigue sin decidir,
+  ver "Monetización". Mientras esa migración no esté lista, `/registro` de
+  este repo (ver "Alta del publicador" más abajo) sigue siendo lo que corre
+  en producción; cuando `envivo-publisher` reemplace ese flujo, se avisa acá.
 - **Mapa: OpenStreetMap servido por Stadia Maps, en modo oscuro.** No Google Maps
   (decisión final tras evaluar costos). El detalle de tiles y filtro está en la
   memoria `tiles-mapa-oscuro`; el estilo objetivo es *Alidade Smooth Dark* del
