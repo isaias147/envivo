@@ -9,8 +9,15 @@
 // El candado se revalida SIEMPRE aquí con el valor de la base, no se confía
 // en el frontend (igual que la edición de eventos del paso 6). Escritura por
 // service_role: `perfiles` no tiene policy de dueño todavía (Sesión 14).
+//
+// Resolución de sesión — mismo patrón que /api/publicador/sesion: si viene
+// `Authorization: Bearer <access_token>` (cuenta de Google, registrada en
+// envivo-publisher), resuelve el perfil por `user_id` con `auth.getUser()`
+// sobre ese token. Sin esa cabecera, sigue con la cookie `envivo_publicador`
+// de siempre, para no romper nada que dependa de eso.
 
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import {
   componerWhatsapp,
@@ -20,9 +27,38 @@ import {
 import { candadoContacto } from "@/lib/candadoContacto";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 
-export async function POST(request: Request) {
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+async function resolverPerfilId(request: Request): Promise<string | null> {
+  const cabecera = request.headers.get("authorization") ?? "";
+  const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7) : "";
+
+  if (token && SUPABASE_URL && ANON_KEY) {
+    const comoUsuario = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const {
+      data: { user },
+    } = await comoUsuario.auth.getUser();
+    if (!user) return null;
+
+    const { data: perfil } = await supabaseServidor
+      .from("perfiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    return perfil?.id ?? null;
+  }
+
   const sesion = await leerSesionPublicador();
-  if (!sesion?.perfilId) {
+  return sesion?.perfilId ?? null;
+}
+
+export async function POST(request: Request) {
+  const perfilId = await resolverPerfilId(request);
+  if (!perfilId) {
     return NextResponse.json({ error: "Sin sesión." }, { status: 401 });
   }
 
@@ -49,7 +85,7 @@ export async function POST(request: Request) {
   const { data: perfil } = await supabaseServidor
     .from("perfiles")
     .select("instagram, whatsapp_publico, ultimo_cambio_contacto")
-    .eq("id", sesion.perfilId)
+    .eq("id", perfilId)
     .maybeSingle();
 
   if (!perfil) {
@@ -98,7 +134,7 @@ export async function POST(request: Request) {
   const { error } = await supabaseServidor
     .from("perfiles")
     .update(patch)
-    .eq("id", sesion.perfilId);
+    .eq("id", perfilId);
 
   if (error) {
     return NextResponse.json(

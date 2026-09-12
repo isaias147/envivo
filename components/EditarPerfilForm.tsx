@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import {
   PAISES_WHATSAPP,
   partirWhatsapp,
@@ -64,9 +65,15 @@ export default function EditarPerfilForm({
     setAviso(null);
     setGuardando(true);
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const r = await fetch("/api/publicador/perfil/editar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
         body: JSON.stringify({
           nombre,
           instagram,

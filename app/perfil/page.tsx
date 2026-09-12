@@ -1,3 +1,5 @@
+"use client";
+
 // Pantalla · /perfil — vista privada del dueño de un perfil.
 //
 // Sesión 13:
@@ -5,27 +7,29 @@
 //  - paso 7: editar nombre (libre) e Instagram + WhatsApp público (con
 //    candado de 30 días desde `perfiles.ultimo_cambio_contacto`).
 //
-// Privacidad: la ruta no recibe slug ni id. El perfil consultado es siempre
-// el de la cookie `envivo_publicador` (`sesion.perfilId`), así que solo se
-// ve el propio. Sin sesión → /registro. Toda escritura pasa por
-// `/api/publicador/perfil/editar` (service_role, revalida el candado).
+// La sesión ya no se resuelve por la cookie `envivo_publicador`
+// (`leerSesionPublicador`): esa cookie no se activa para cuentas
+// registradas en envivo-publisher (otro dominio). Ahora usa
+// useCuentaPublicador() — Bearer del access_token de Google, igual que
+// /publicar/nuevo y /yo — para saber si hay perfil, y GET
+// /api/publicador/perfil (mismo Bearer) para traer sus datos completos.
+// Sin perfil → a envivo-publisher (con window.location.href, cross-origin;
+// /registro ya no existe en este repo). Toda escritura sigue pasando por
+// `/api/publicador/perfil/editar` (service_role, revalida el candado; ese
+// endpoint ya acepta el mismo Bearer, con la cookie como respaldo).
+//
+// Pendiente menor: al pasar a "use client" se perdió el `metadata` de la
+// página (título "Tu perfil · EnVivo" + robots noindex) — un Client
+// Component no puede exportarlo. /yo ya vive así; no se resuelve acá.
 
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabaseServidor } from "@/lib/supabaseServidor";
+import { supabase } from "@/lib/supabase";
+import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import { normalizarWhatsapp } from "@/lib/eventos";
 import { candadoContacto } from "@/lib/candadoContacto";
-import { leerSesionPublicador } from "@/lib/sesionPublicador";
 import EditarPerfilForm from "@/components/EditarPerfilForm";
 import styles from "./page.module.css";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Tu perfil · EnVivo",
-  robots: { index: false, follow: false },
-};
 
 const SEGUIDORES_MIN_PUBLICO = 25;
 
@@ -35,40 +39,96 @@ const TIPO_ETIQUETA: Record<string, string> = {
   artista: "Artista",
 };
 
-export default async function MiPerfil() {
-  const sesion = await leerSesionPublicador();
-  if (!sesion?.perfilId) redirect("/registro");
+type PerfilCompleto = {
+  slug: string | null;
+  nombre: string | null;
+  tipo: string | null;
+  instagram: string | null;
+  whatsappPublico: string | null;
+  ultimoCambioContacto: string | null;
+  seguidores: number;
+};
 
-  const [perfilRes, seguidoresRes] = await Promise.all([
-    supabaseServidor
-      .from("perfiles")
-      .select("slug, nombre, tipo, instagram, whatsapp_publico, ultimo_cambio_contacto")
-      .eq("id", sesion.perfilId)
-      .maybeSingle(),
-    supabaseServidor
-      .from("seguimientos")
-      .select("*", { count: "exact", head: true })
-      .eq("perfil_id", sesion.perfilId),
-  ]);
+export default function MiPerfil() {
+  const {
+    cargandoUsuario,
+    perfil: perfilCuenta,
+    cargandoPerfil,
+  } = useCuentaPublicador();
+  // null = todavía no llegó (o no aplica, sin perfil de cuenta).
+  const [perfil, setPerfil] = useState<PerfilCompleto | null>(null);
+  const [errorDatos, setErrorDatos] = useState(false);
 
-  const perfil = perfilRes.data as
-    | {
-        slug: string | null;
-        nombre: string | null;
-        tipo: string | null;
-        instagram: string | null;
-        whatsapp_publico: string | null;
-        ultimo_cambio_contacto: string | null;
+  useEffect(() => {
+    if (cargandoUsuario || cargandoPerfil) return;
+    if (!perfilCuenta) {
+      window.location.href =
+        "https://envivo-publisher.imsoluciones.com/registro";
+      return;
+    }
+    let vivo = true;
+    (async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const r = await fetch("/api/publicador/perfil", {
+          headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+          cache: "no-store",
+        });
+        const j = await r.json();
+        if (!vivo) return;
+        if (r.ok) setPerfil(j);
+        else setErrorDatos(true);
+      } catch {
+        if (vivo) setErrorDatos(true);
       }
-    | null;
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [cargandoUsuario, cargandoPerfil, perfilCuenta]);
 
-  const nombre = perfil?.nombre ?? sesion.nombre ?? "";
-  const etiqueta = perfil?.tipo ? TIPO_ETIQUETA[perfil.tipo] ?? null : null;
+  if (
+    cargandoUsuario ||
+    cargandoPerfil ||
+    !perfilCuenta ||
+    (!perfil && !errorDatos)
+  ) {
+    return (
+      <div className={styles.pantalla}>
+        <div className={styles.marco}>
+          <div className={styles.marca}>
+            En<i>Vivo</i>
+          </div>
+          <div className={styles.ruta}>envivo.app/perfil</div>
+          <p>Cargando…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!perfil) {
+    return (
+      <div className={styles.pantalla}>
+        <div className={styles.marco}>
+          <div className={styles.marca}>
+            En<i>Vivo</i>
+          </div>
+          <div className={styles.ruta}>envivo.app/perfil</div>
+          <p>No pudimos cargar tu perfil. Intenta de nuevo más tarde.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const nombre = perfil.nombre ?? perfilCuenta.nombre ?? "";
+  const etiqueta = perfil.tipo ? TIPO_ETIQUETA[perfil.tipo] ?? null : null;
   const { bloqueado, desbloqueaEn } = candadoContacto(
-    perfil?.ultimo_cambio_contacto,
+    perfil.ultimoCambioContacto,
   );
 
-  const seguidores = seguidoresRes.count ?? 0;
+  const seguidores = perfil.seguidores;
   const publico = seguidores >= SEGUIDORES_MIN_PUBLICO;
   const faltan = SEGUIDORES_MIN_PUBLICO - seguidores;
 
@@ -84,8 +144,8 @@ export default async function MiPerfil() {
 
         <EditarPerfilForm
           nombre={nombre}
-          instagram={perfil?.instagram ?? ""}
-          whatsappPublico={normalizarWhatsapp(perfil?.whatsapp_publico)}
+          instagram={perfil.instagram ?? ""}
+          whatsappPublico={normalizarWhatsapp(perfil.whatsappPublico)}
           tipoEtiqueta={etiqueta}
           bloqueado={bloqueado}
           desbloqueaEn={desbloqueaEn}
@@ -107,7 +167,7 @@ export default async function MiPerfil() {
         </p>
 
         <nav className={styles.accesos}>
-          {perfil?.slug && (
+          {perfil.slug && (
             <Link className={styles.acceso} href={`/p/${perfil.slug}`}>
               <span>Ver mi perfil público</span>
               <span className={styles.flecha}>→</span>
