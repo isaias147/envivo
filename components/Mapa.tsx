@@ -3,7 +3,7 @@
 // El mapa vive solo en el navegador: Leaflet necesita `window`.
 // En app/page.tsx se importa con next/dynamic y ssr:false.
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -21,6 +21,9 @@ type Props = {
   radioKm: number;
   /** true si el punto sigue en la ubicación real (el mapa lo recentra). */
   anclado: boolean;
+  /** Cambia (se incrementa) cada vez que el buscador elige un resultado:
+   * fuerza que la cámara vuele ahí aunque el punto no esté anclado. */
+  volarId: number;
   seleccionadoId: string | null;
   onSeleccionar: (id: string) => void;
   onMoverCentro: (lat: number, lng: number) => void;
@@ -99,25 +102,35 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
 /**
  * Recentra y ajusta el zoom del mapa cuando el punto está anclado a la
  * ubicación real. Si el usuario lo recolocó a mano, solo ajusta el zoom
- * y respeta dónde dejó el punto.
+ * y respeta dónde dejó el punto — salvo que `volarId` haya cambiado (el
+ * buscador eligió un resultado): ahí la cámara vuela siempre, esté o no
+ * anclado el punto.
  */
 function Vista({
   centro,
   zoom,
   anclado,
+  volarId,
 }: {
   centro: { lat: number; lng: number };
   zoom: number;
   anclado: boolean;
+  volarId: number;
 }) {
   const map = useMap();
+  const volarIdRef = useRef(volarId);
   useEffect(() => {
+    if (volarId !== volarIdRef.current) {
+      volarIdRef.current = volarId;
+      map.setView([centro.lat, centro.lng], zoom, { animate: true });
+      return;
+    }
     if (anclado) {
       map.setView([centro.lat, centro.lng], zoom, { animate: true });
     } else {
       map.setZoom(zoom);
     }
-  }, [centro.lat, centro.lng, zoom, anclado, map]);
+  }, [centro.lat, centro.lng, zoom, anclado, volarId, map]);
   return null;
 }
 
@@ -209,6 +222,7 @@ export default function Mapa({
   centro,
   radioKm,
   anclado,
+  volarId,
   seleccionadoId,
   onSeleccionar,
   onMoverCentro,
@@ -269,7 +283,7 @@ export default function Mapa({
         />
       ))}
 
-      <Vista centro={centro} zoom={zoom} anclado={anclado} />
+      <Vista centro={centro} zoom={zoom} anclado={anclado} volarId={volarId} />
       <PulsacionLarga onMover={onMoverCentro} />
       <AjustarTamano />
     </MapContainer>

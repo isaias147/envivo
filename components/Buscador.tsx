@@ -84,8 +84,11 @@ export default function Buscador({
   const eventos = resultados
     .filter((r) => r.tipo === "evento")
     .slice(0, MAX_POR_GRUPO);
-  const lugares = resultados
-    .filter((r) => r.tipo === "perfil")
+  // "Ubicaciones" junta perfiles (lugares reales) y ubicaciones (el
+  // promedio de una ciudad que matcheó por el nombre): para quien busca,
+  // ambos son "adónde ir", solo cambia si al llegar hay una ficha o no.
+  const ubicaciones = resultados
+    .filter((r) => r.tipo === "perfil" || r.tipo === "ubicacion")
     .slice(0, MAX_POR_GRUPO);
   const sinResultados =
     !cargando && texto.trim().length >= MIN_CARACTERES && resultados.length === 0;
@@ -150,18 +153,18 @@ export default function Buscador({
           {sinResultados && (
             <p className={styles.mensaje}>Nada por aquí con ese nombre.</p>
           )}
-          {eventos.length > 0 && (
+          {ubicaciones.length > 0 && (
             <div className={styles.grupo}>
-              <p className={styles.etiquetaGrupo}>Eventos</p>
-              {eventos.map((r) => (
+              <p className={styles.etiquetaGrupo}>Ubicaciones</p>
+              {ubicaciones.map((r) => (
                 <FilaResultado key={r.id} resultado={r} onElegir={elegir} />
               ))}
             </div>
           )}
-          {lugares.length > 0 && (
+          {eventos.length > 0 && (
             <div className={styles.grupo}>
-              <p className={styles.etiquetaGrupo}>Lugares</p>
-              {lugares.map((r) => (
+              <p className={styles.etiquetaGrupo}>Eventos</p>
+              {eventos.map((r) => (
                 <FilaResultado key={r.id} resultado={r} onElegir={elegir} />
               ))}
             </div>

@@ -95,6 +95,7 @@ export default function Publicar() {
           centro={centro}
           radioKm={RADIO_KM}
           anclado={!movido}
+          volarId={0}
           seleccionadoId={null}
           onSeleccionar={() => {}}
           onMoverCentro={moverCentro}

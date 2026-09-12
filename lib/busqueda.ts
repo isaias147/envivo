@@ -1,13 +1,14 @@
-// ===== EnVivo · búsqueda combinada (eventos + perfiles) =====
+// ===== EnVivo · búsqueda combinada (eventos + perfiles + ubicaciones) =====
 // Envuelve el RPC `buscar_envivo` de Supabase (full-text + trigram sobre
-// `events` y `perfiles`; ya filtra aprobados y no ocultos por denuncias).
-// Puro dato: el estado del input y el debounce viven en
-// components/Buscador.tsx.
+// `events` y `perfiles`, más un tercer tipo 'ubicacion': una ciudad con el
+// punto promedio de los eventos que matchearon ahí, sin fila propia en
+// ninguna tabla). Ya filtra aprobados y no ocultos por denuncias. Puro
+// dato: el estado del input y el debounce viven en components/Buscador.tsx.
 
 import { supabase } from "@/lib/supabase";
 
 export type ResultadoBusqueda = {
-  tipo: "evento" | "perfil";
+  tipo: "evento" | "perfil" | "ubicacion";
   id: string;
   titulo: string;
   subtitulo: string | null;

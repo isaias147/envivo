@@ -94,6 +94,9 @@ function MapaPantalla() {
   // Perfil elegido por el buscador (mutuamente excluyente con `seleccionadoId`).
   const [perfilSeleccionado, setPerfilSeleccionado] =
     useState<ResultadoBusqueda | null>(null);
+  // Se incrementa cada vez que el buscador elige un resultado: le indica al
+  // mapa que vuele ahí aunque el punto no esté anclado a la ubicación real.
+  const [volarId, setVolarId] = useState(0);
   // Evita repetir el flujo de ?resaltar= si el usuario ya interactuó.
   const resaltadoRef = useRef(false);
 
@@ -196,16 +199,19 @@ function MapaPantalla() {
     setPerfilSeleccionado(null);
   }
 
-  // Lo que elige el buscador: centra el mapa y abre la ficha (de evento o
-  // de perfil, mutuamente excluyentes). Si el evento existe pero el filtro
-  // de fecha actual lo escondería de la ficha, pasa a "Próximos" (sin tope)
-  // para garantizar que se vea.
+  // Lo que elige el buscador: centra el mapa (y siempre vuela ahí, vía
+  // `volarId`) y abre la ficha (de evento o de perfil, mutuamente
+  // excluyentes; una "ubicacion" —el promedio de una ciudad— no tiene
+  // ficha propia). Si el evento existe pero el filtro de fecha actual lo
+  // escondería de la ficha, pasa a "Próximos" (sin tope) para garantizar
+  // que se vea.
   function onSeleccionarResultado(resultado: ResultadoBusqueda) {
     if (resultado.latitude != null && resultado.longitude != null) {
       moverCentro(resultado.latitude, resultado.longitude);
+      setVolarId((v) => v + 1);
     }
-    if (resultado.tipo === "perfil") {
-      setPerfilSeleccionado(resultado);
+    if (resultado.tipo === "perfil" || resultado.tipo === "ubicacion") {
+      setPerfilSeleccionado(resultado.tipo === "perfil" ? resultado : null);
       return;
     }
     setPerfilSeleccionado(null);
@@ -290,6 +296,7 @@ function MapaPantalla() {
           centro={centro}
           radioKm={radioKm}
           anclado={!movido}
+          volarId={volarId}
           seleccionadoId={seleccionadoId}
           onSeleccionar={seleccionarPin}
           onMoverCentro={moverCentro}
