@@ -16,9 +16,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useUsuario } from "@/lib/authUsuario";
+import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
 import {
   componerWhatsapp,
@@ -26,7 +25,7 @@ import {
   PAIS_WHATSAPP_POR_DEFECTO,
   PAISES_WHATSAPP,
 } from "@/lib/eventos";
-import { esTipoPerfil, type TipoPerfil } from "@/lib/tiposPerfil";
+import type { TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./page.module.css";
 
 const MapaSelector = dynamic(() => import("@/components/MapaSelector"), {
@@ -179,13 +178,12 @@ type ResultadoGeo = {
 };
 
 export default function PublicarNuevo() {
-  const router = useRouter();
-
-  // Publicar exige cuenta de Google primero (después, la sesión de
+  // Publicar exige cuenta de Google primero (después, el perfil de
   // publicador de abajo). Sin Google, ni se consulta /api/publicador/sesion.
   // El modal se abre solo (derivado, sin efecto) mientras falte Google y no
   // lo hayan cerrado a mano con "Ahora no"; el botón de la puerta lo reabre.
-  const { usuario, cargando: cargandoUsuario } = useUsuario();
+  const { usuario, cargandoUsuario, perfil, cargandoPerfil } =
+    useCuentaPublicador();
   const [modalCerrado, setModalCerrado] = useState(false);
 
   // bifurcación
@@ -230,20 +228,14 @@ export default function PublicarNuevo() {
   const [paisWa, setPaisWa] = useState<string>(PAIS_WHATSAPP_POR_DEFECTO); // Colombia
   const [whatsapp, setWhatsapp] = useState("");
 
-  // Perfil del publicador autenticado (cookie `envivo_publicador`, Sesión 12).
-  // Publicar exige cuenta: sin sesión, esta pantalla redirige a /registro
-  // (ver más abajo). El evento hereda `perfil_id` + nombre + tipo + redes del
-  // perfil, así que esos campos no se piden en el formulario.
-  const [perfilSesion, setPerfilSesion] = useState<{
-    perfilId: string;
-    nombre: string | null;
-    tipo: TipoPerfil;
-  } | null>(null);
-  const [sesionLista, setSesionLista] = useState(false);
+  // Perfil del publicador autenticado (useCuentaPublicador, Bearer de
+  // Google). Publicar exige cuenta: sin perfil, esta pantalla redirige a
+  // envivo-publisher (ver más abajo). El evento hereda `perfil_id` + nombre +
+  // tipo + redes del perfil, así que esos campos no se piden en el formulario.
 
   // El tipo del perfil (local / organizador / artista) decide "quién publica":
   // ya no se elige en el formulario.
-  const quien: TipoPerfil = perfilSesion?.tipo ?? "local";
+  const quien: TipoPerfil = perfil?.tipo ?? "local";
 
   // flyer
   const [flyer, setFlyer] = useState<File | null>(null);
@@ -262,39 +254,16 @@ export default function PublicarNuevo() {
 
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // ¿Hay publicador autenticado? Una sola consulta al montar, y solo una vez
-  // que sabemos que hay cuenta de Google (si no, ni tiene sentido preguntar).
+  // Publicar exige cuenta. En cuanto sabemos que no hay perfil de
+  // publicador, mandamos a envivo-publisher (el registro ya no vive en este
+  // repo). Es cross-origin, así que usamos window.location.href, no
+  // router.replace.
   useEffect(() => {
-    if (cargandoUsuario || !usuario) return;
-    let vivo = true;
-    (async () => {
-      try {
-        const r = await fetch("/api/publicador/sesion", { cache: "no-store" });
-        const j = await r.json();
-        if (vivo && j.activa && j.perfilId) {
-          setPerfilSesion({
-            perfilId: j.perfilId,
-            nombre: j.nombre ?? null,
-            tipo: esTipoPerfil(j.tipo) ? j.tipo : "local",
-          });
-        }
-      } catch {
-        // sin sesión o sin red: se resuelve abajo con la redirección
-      }
-      if (vivo) setSesionLista(true);
-    })();
-    return () => {
-      vivo = false;
-    };
-  }, [cargandoUsuario, usuario]);
-
-  // Publicar exige cuenta. En cuanto sabemos que no hay sesión de publicador,
-  // mandamos a /registro en vez de mostrar el formulario.
-  useEffect(() => {
-    if (usuario && sesionLista && !perfilSesion) {
-      router.replace("/registro");
+    if (usuario && !cargandoPerfil && !perfil) {
+      window.location.href =
+        "https://envivo-publisher.imsoluciones.com/registro";
     }
-  }, [usuario, sesionLista, perfilSesion, router]);
+  }, [usuario, cargandoPerfil, perfil]);
 
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -709,9 +678,9 @@ export default function PublicarNuevo() {
         // El nombre, el tipo y las redes los impone el servidor desde el
         // perfil (POST /api/publicador/evento/crear); acá van solo como
         // referencia. `perfil_id` enlaza el evento → /p/[slug].
-        publisher_name: perfilSesion?.nombre ?? null,
+        publisher_name: perfil?.nombre ?? null,
         whatsapp: componerWhatsapp(paisWa, whatsapp),
-        perfil_id: perfilSesion?.perfilId ?? null,
+        perfil_id: perfil?.perfilId ?? null,
         post_url: reelUrl,
         city: "Cali",
       };
@@ -798,10 +767,10 @@ export default function PublicarNuevo() {
     );
   }
 
-  // Sin sesión de publicador no se pinta el formulario: o todavía estamos
+  // Sin perfil de publicador no se pinta el formulario: o todavía estamos
   // consultando /api/publicador/sesion, o ya arrancó la redirección a
-  // /registro (publicar exige cuenta).
-  if (cargandoUsuario || !sesionLista || !perfilSesion) {
+  // envivo-publisher (publicar exige cuenta).
+  if (cargandoUsuario || cargandoPerfil || !perfil) {
     return (
       <div className={styles.pantalla}>
         <div className={styles.marco}>
@@ -877,9 +846,9 @@ export default function PublicarNuevo() {
           Es gratis y queda en el mapa al instante.
         </p>
 
-        {perfilSesion.nombre && (
+        {perfil.nombre && (
           <div className={styles.publicandoComo}>
-            Publicando como <b>{perfilSesion.nombre}</b>
+            Publicando como <b>{perfil.nombre}</b>
           </div>
         )}
 
