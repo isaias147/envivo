@@ -36,6 +36,11 @@
   font-style: normal;
 }
 
+.buscador {
+  position: relative;
+  margin-bottom: 10px;
+}
+
 .reel {
   display: flex;
   gap: 7px;
@@ -67,9 +72,10 @@
 
 /* ---------- lista ---------- */
 .lista {
-  /* aire abajo para la cápsula de precio flotante + la barra de tabs */
+  /* aire abajo para las cápsulas de distancia + precio flotantes y la
+     barra de tabs */
   padding: 6px 18px
-    calc(env(safe-area-inset-bottom) + var(--barra-inf) + 96px);
+    calc(env(safe-area-inset-bottom) + var(--barra-inf) + 144px);
 }
 
 .dia {
@@ -125,7 +131,9 @@
   bottom: 0;
   z-index: 30;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
   pointer-events: none;
 }

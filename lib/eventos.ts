@@ -62,10 +62,15 @@ export function leerPrecio(v: string | null | undefined): Precio {
   return v === "gratis" || v === "cover" ? v : "todo";
 }
 
-export function queryFiltros(filtro: Filtro, precio: Precio): string {
+export function queryFiltros(
+  filtro: Filtro,
+  precio: Precio,
+  radioKm?: RadioKm | "todo",
+): string {
   const p = new URLSearchParams();
   if (filtro !== "hoy") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
+  if (radioKm && radioKm !== "todo") p.set("km", String(radioKm));
   const s = p.toString();
   return s ? `?${s}` : "";
 }
@@ -75,6 +80,11 @@ export const GRANADA_CALI = { lat: 3.4566, lng: -76.5335 };
 
 export const RADIOS_KM = [1, 3, 5] as const;
 export type RadioKm = (typeof RADIOS_KM)[number];
+
+export function leerRadio(v: string | null | undefined): RadioKm | "todo" {
+  const n = Number(v);
+  return (RADIOS_KM as readonly number[]).includes(n) ? (n as RadioKm) : "todo";
+}
 
 // Colombia no tiene horario de verano: siempre UTC−5.
 const OFFSET_CALI = "-05:00";

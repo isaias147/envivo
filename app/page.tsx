@@ -28,9 +28,12 @@ import {
   type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
+import TarjetaLugar from "@/components/TarjetaLugar";
+import Buscador from "@/components/Buscador";
 import BarraInferior from "@/components/BarraInferior";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
+import type { ResultadoBusqueda } from "@/lib/busqueda";
 import styles from "./page.module.css";
 
 // El mapa se carga solo en el navegador (Leaflet necesita `window`).
@@ -73,6 +76,12 @@ function MapaPantalla() {
   // de /lista. El radio es propio del mapa y no se comparte.
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
+  // ?resaltar=&tipo=, leídos UNA sola vez al montar: el efecto que sincroniza
+  // ?t=&p= en la URL (más abajo) reemplaza el historial apenas se monta y
+  // los borraría si los leyéramos de `sp` de nuevo cuando `eventos` termine
+  // de cargar.
+  const [resaltarInicial] = useState(() => sp.get("resaltar"));
+  const [tipoInicial] = useState(() => sp.get("tipo"));
   const [radioKm, setRadioKm] = useState<RadioKm>(3);
   // `centro` = punto de referencia del mapa (movible).
   // `gps` = ubicación real del navegador, si la concedió.
@@ -82,6 +91,11 @@ function MapaPantalla() {
   const [movido, setMovido] = useState(false);
   const movidoRef = useRef(false);
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
+  // Perfil elegido por el buscador (mutuamente excluyente con `seleccionadoId`).
+  const [perfilSeleccionado, setPerfilSeleccionado] =
+    useState<ResultadoBusqueda | null>(null);
+  // Evita repetir el flujo de ?resaltar= si el usuario ya interactuó.
+  const resaltadoRef = useRef(false);
 
   const marcarMovido = useCallback((v: boolean) => {
     movidoRef.current = v;
@@ -109,6 +123,7 @@ function MapaPantalla() {
       setCentro({ lat, lng });
       marcarMovido(true);
       setSeleccionadoId(null);
+      setPerfilSeleccionado(null);
     },
     [marcarMovido],
   );
@@ -118,6 +133,7 @@ function MapaPantalla() {
     setCentro(gps);
     marcarMovido(false);
     setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
   }, [gps, marcarMovido]);
 
   // Refleja los filtros en la URL (sin recargar) para que "Ver lista" y el
@@ -167,14 +183,102 @@ function MapaPantalla() {
   function cambiarFiltro(f: Filtro) {
     setFiltro(f);
     setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
   }
   function cambiarPrecio(p: Precio) {
     setPrecio(p);
     setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
   }
   function cambiarRadio(km: RadioKm) {
     setRadioKm(km);
     setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
+  }
+
+  // Lo que elige el buscador: centra el mapa y abre la ficha (de evento o
+  // de perfil, mutuamente excluyentes). Si el evento existe pero el filtro
+  // de fecha actual lo escondería de la ficha, pasa a "Próximos" (sin tope)
+  // para garantizar que se vea.
+  function onSeleccionarResultado(resultado: ResultadoBusqueda) {
+    if (resultado.latitude != null && resultado.longitude != null) {
+      moverCentro(resultado.latitude, resultado.longitude);
+    }
+    if (resultado.tipo === "perfil") {
+      setPerfilSeleccionado(resultado);
+      return;
+    }
+    setPerfilSeleccionado(null);
+    const ev = eventos.find((e) => e.id === resultado.id);
+    if (ev) {
+      const { desde, hasta } = rangoFiltro(filtro);
+      const t = new Date(ev.starts_at);
+      if (t < desde || (hasta && t > hasta)) setFiltro("proximos");
+    } else {
+      setFiltro("proximos");
+    }
+    setSeleccionadoId(resultado.id);
+  }
+
+  // Si venimos de /lista con ?resaltar=&tipo= (el buscador de la lista solo
+  // redirige acá), reproducir el mismo flujo. Perfil no depende de que
+  // `eventos` haya cargado; evento sí, porque se busca en ese array.
+  useEffect(() => {
+    if (resaltadoRef.current) return;
+    const resaltar = resaltarInicial;
+    const tipo = tipoInicial;
+    if (!resaltar) return;
+
+    if (tipo === "perfil") {
+      resaltadoRef.current = true;
+      (async () => {
+        const { data } = await supabase
+          .from("perfiles")
+          .select("id, tipo, slug, nombre, imagen_url, latitude, longitude")
+          .eq("id", resaltar)
+          .maybeSingle();
+        if (data) {
+          onSeleccionarResultado({
+            tipo: "perfil",
+            id: data.id,
+            titulo: data.nombre,
+            subtitulo: data.tipo,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            slug: data.slug,
+            imagen_url: data.imagen_url,
+            rank: 0,
+          });
+        }
+      })();
+      return;
+    }
+
+    if (tipo === "evento" && eventos.length > 0) {
+      const ev = eventos.find((e) => e.id === resaltar);
+      if (ev) {
+        resaltadoRef.current = true;
+        const resultado: ResultadoBusqueda = {
+          tipo: "evento",
+          id: ev.id,
+          titulo: ev.title,
+          subtitulo: ev.venue_name,
+          latitude: ev.latitude,
+          longitude: ev.longitude,
+          slug: null,
+          imagen_url: ev.flyer_url,
+          rank: 0,
+        };
+        setTimeout(() => onSeleccionarResultado(resultado), 0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventos]);
+
+  // Tocar un pin cierra la tarjeta de lugar, si había una abierta.
+  function seleccionarPin(id: string | null) {
+    setSeleccionadoId(id);
+    setPerfilSeleccionado(null);
   }
 
   return (
@@ -187,7 +291,7 @@ function MapaPantalla() {
           radioKm={radioKm}
           anclado={!movido}
           seleccionadoId={seleccionadoId}
-          onSeleccionar={setSeleccionadoId}
+          onSeleccionar={seleccionarPin}
           onMoverCentro={moverCentro}
         />
       </div>
@@ -195,6 +299,12 @@ function MapaPantalla() {
       {/* Marca: directamente sobre el mapa, arriba a la izquierda. */}
       <div className={styles.marca}>
         En<i>Vivo</i>
+      </div>
+
+      {/* Buscador: junto a la marca. Colapsado es solo una lupa; al
+          abrirse ocupa el resto de la fila, sin invadir la cuenta. */}
+      <div className={styles.buscadorWrap}>
+        <Buscador onSeleccionar={onSeleccionarResultado} />
       </div>
 
       {/* Mi cuenta (→ /yo): arriba a la derecha. */}
@@ -283,9 +393,13 @@ function MapaPantalla() {
             </button>
           ))}
         </div>
-        {seleccionado && (
+        {(seleccionado || perfilSeleccionado) && (
           <div className={styles.ficha}>
-            <TarjetaEvento evento={seleccionado} />
+            {perfilSeleccionado ? (
+              <TarjetaLugar resultado={perfilSeleccionado} />
+            ) : (
+              <TarjetaEvento evento={seleccionado!} />
+            )}
           </div>
         )}
       </div>

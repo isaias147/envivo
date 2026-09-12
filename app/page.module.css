@@ -60,6 +60,17 @@
   font-style: normal;
 }
 
+/* ---------- buscador: junto a la marca, sin chocar con la cuenta ---------- */
+.buscadorWrap {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  left: 96px;
+  right: 58px;
+  z-index: 501;
+  display: flex;
+  justify-content: flex-start;
+}
+
 /* ---------- "Mi cuenta" (→ /yo): arriba a la derecha ---------- */
 .cuenta {
   position: absolute;
