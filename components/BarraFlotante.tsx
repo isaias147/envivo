@@ -12,6 +12,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import { RADIOS_KM, type RadioKm } from "@/lib/eventos";
 import { useSeguidos } from "@/lib/siguiendo";
 import styles from "./BarraFlotante.module.css";
@@ -47,10 +48,16 @@ const IconoUbicacion = () => (
     <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
   </svg>
 );
+const IconoPublicar = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
 
 function BarraFlotanteContenido({ ubicacionMapa, ubicacionLista }: Props) {
   const path = usePathname();
   const sp = useSearchParams();
+  const { perfil: perfilPublicador } = useCuentaPublicador();
   const { items } = useSeguidos();
   const nuevos = items.reduce((n, i) => n + (i.nuevo ? 1 : 0), 0);
   const qs = sp.toString() ? `?${sp.toString()}` : "";
@@ -90,6 +97,17 @@ function BarraFlotanteContenido({ ubicacionMapa, ubicacionLista }: Props) {
 
   return (
     <nav className={styles.columna} aria-label="Navegación flotante">
+      {/* Más arriba de todos: publicar (solo con perfil de publicador). */}
+      {perfilPublicador && (
+        <Link
+          href="/publicar/nuevo"
+          className={styles.circulo}
+          aria-label="Publicar evento"
+        >
+          <IconoPublicar />
+        </Link>
+      )}
+
       {/* Arriba: Siguiendo */}
       <Link
         href="/siguiendo"
