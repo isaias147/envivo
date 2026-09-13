@@ -235,6 +235,8 @@ export default function PublicarNuevo() {
   const [monto, setMonto] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [reel, setReel] = useState("");
+  const [sitioWeb, setSitioWeb] = useState("");
+  const [ticketUrl, setTicketUrl] = useState("");
 
   // contacto
   const [paisWa, setPaisWa] = useState<string>(PAIS_WHATSAPP_POR_DEFECTO); // Colombia
@@ -438,6 +440,12 @@ export default function PublicarNuevo() {
     return `${(bytes / 1048576).toFixed(1).replace(".", ",")} MB`;
   }
 
+  // Validación simple para los links opcionales (sitio web, boletos): si
+  // hay algo escrito, debe empezar con http:// o https://.
+  function esUrlValida(valor: string): boolean {
+    return /^https?:\/\//i.test(valor.trim());
+  }
+
   // Normaliza el link del reel; devuelve null si el campo está vacío,
   // o `false` si no es de Instagram/TikTok.
   function normalizarReel(valor: string): string | null | false {
@@ -533,6 +541,14 @@ export default function PublicarNuevo() {
     const reelUrl = normalizarReel(reel);
     if (reelUrl === false) {
       setError("El link debe ser de Instagram o TikTok (o déjalo vacío).");
+      return;
+    }
+    if (sitioWeb.trim() && !esUrlValida(sitioWeb)) {
+      setError("El link de la página web debe empezar con http:// o https://.");
+      return;
+    }
+    if (ticketUrl.trim() && !esUrlValida(ticketUrl)) {
+      setError("El link de boletos debe empezar con http:// o https://.");
       return;
     }
 
@@ -694,6 +710,8 @@ export default function PublicarNuevo() {
         whatsapp: componerWhatsapp(paisWa, whatsapp),
         perfil_id: perfil?.perfilId ?? null,
         post_url: reelUrl,
+        sitio_web: sitioWeb.trim() || null,
+        ticket_url: ticketUrl.trim() || null,
         city: "Cali",
       };
 
@@ -1258,6 +1276,32 @@ export default function PublicarNuevo() {
           <p className={styles.ayuda}>
             Opcional. Un video del ambiente convence más que el flyer.
           </p>
+        </div>
+
+        {/* página web opcional */}
+        <div className={styles.campo}>
+          <label htmlFor="pagina-web">Página web (opcional)</label>
+          <input
+            id="pagina-web"
+            type="url"
+            value={sitioWeb}
+            onChange={(e) => setSitioWeb(e.target.value)}
+            placeholder="https://…"
+          />
+        </div>
+
+        {/* link de boletos opcional */}
+        <div className={styles.campo}>
+          <label htmlFor="ticket-url">
+            Link de boletos, si vende entrada digital (opcional)
+          </label>
+          <input
+            id="ticket-url"
+            type="url"
+            value={ticketUrl}
+            onChange={(e) => setTicketUrl(e.target.value)}
+            placeholder="https://…"
+          />
         </div>
 
         <div className={styles.campo}>

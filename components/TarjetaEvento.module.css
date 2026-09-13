@@ -78,8 +78,6 @@
   background: rgba(255, 182, 39, 0.14);
   color: var(--laton);
 }
-.tira.edad18 {
-  background: rgba(255, 94, 91, 0.15);
-  color: var(--coral);
-  font-weight: 600;
+.edad18 {
+  composes: edad18 from global;
 }

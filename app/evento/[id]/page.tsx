@@ -162,6 +162,24 @@ function Detalle({ evento }: { evento: EventoPublico }) {
               <span>{evento.type}</span>
             </div>
           )}
+          {evento.restriccion_edad !== "todo_publico" && (
+            <div className={styles.dato}>
+              <b>Edad</b>
+              <span
+                className={
+                  evento.restriccion_edad === "mas_18" ? styles.edad18 : undefined
+                }
+              >
+                {evento.restriccion_edad === "infantil"
+                  ? "Para niños"
+                  : evento.restriccion_edad === "mas_12"
+                    ? "+12"
+                    : evento.restriccion_edad === "mas_16"
+                      ? "+16"
+                      : "+18"}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className={styles.acciones}>
@@ -226,6 +244,31 @@ function Detalle({ evento }: { evento: EventoPublico }) {
           {tienePerfil && evento.perfil_id && (
             <div className={styles.seguirEvento}>
               <BotonSeguir perfilId={evento.perfil_id} nombre={nombrePerfil} />
+            </div>
+          )}
+
+          {(evento.sitio_web || evento.ticket_url) && (
+            <div className={styles.enlaces}>
+              {evento.sitio_web && (
+                <a
+                  className={styles.enlace}
+                  href={evento.sitio_web}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Sitio web
+                </a>
+              )}
+              {evento.ticket_url && (
+                <a
+                  className={styles.enlace}
+                  href={evento.ticket_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Comprar boletos
+                </a>
+              )}
             </div>
           )}
 

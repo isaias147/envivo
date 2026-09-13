@@ -83,3 +83,11 @@ a {
   border: var(--cristal-borde);
   box-shadow: var(--cristal-sombra);
 }
+
+/* Restricción de edad +18: mismo tono coral en la tarjeta (TarjetaEvento)
+   y en la ficha de detalle. Se reutiliza con `composes: edad18 from global`. */
+.edad18 {
+  background: rgba(255, 94, 91, 0.15);
+  color: var(--coral);
+  font-weight: 600;
+}

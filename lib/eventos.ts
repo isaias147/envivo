@@ -21,6 +21,8 @@ export type EventoPublico = {
   instagram: string | null;
   tiktok: string | null;
   post_url: string | null;
+  sitio_web: string | null;
+  ticket_url: string | null;
   publisher_type: string | null;
   publisher_name: string | null;
   artist_name: string | null;

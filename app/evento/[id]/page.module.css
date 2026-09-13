@@ -126,6 +126,9 @@
 .gratis {
   color: var(--cana);
 }
+.edad18 {
+  composes: edad18 from global;
+}
 
 /* ---------- acciones ---------- */
 .acciones {
@@ -267,6 +270,30 @@
   font-weight: 500;
   font-size: 12.5px;
   color: var(--hueso-tenue);
+}
+
+/* ---------- sitio web / boletos: acciones, no perfiles — van aparte,
+   arriba de .redes ---------- */
+.enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.enlace {
+  padding: 10px 14px;
+  border: 1px solid var(--linea);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-align: center;
+}
+.enlace:hover {
+  border-color: var(--hueso-tenue);
 }
 
 .redes {
