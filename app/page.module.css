@@ -133,6 +133,14 @@
   pointer-events: none;
 }
 
+/* Fila del grupo de tres + el FAB de edad, separados entre sí. */
+.filaFiltros {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
+}
+
 .precioBarra {
   composes: cristal from global;
   display: inline-flex;

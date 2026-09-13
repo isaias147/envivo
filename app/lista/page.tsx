@@ -9,14 +9,17 @@ import {
   fechaLargaCali,
   GRANADA_CALI,
   leerCentro,
+  leerEdad,
   leerFiltro,
   leerPrecio,
   leerRadio,
+  pasaEdad,
   pasaPrecio,
   queryFiltros,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
+  type FiltroEdad as FiltroEdadValor,
   type Precio,
   type RadioKm,
 } from "@/lib/eventos";
@@ -25,6 +28,7 @@ import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
+import FiltroEdad from "@/components/FiltroEdad";
 import styles from "./page.module.css";
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
@@ -56,6 +60,7 @@ function ListaPantalla() {
   // Filtros iniciales desde la URL (?t=&p=&km=), para conservarlos al venir del mapa.
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
+  const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
   const [radioKm, setRadioKm] = useState<RadioKm | "todo">(() =>
     leerRadio(sp.get("km")),
   );
@@ -72,9 +77,9 @@ function ListaPantalla() {
   // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
   // mapa" y el botón atrás del navegador los conserven.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, radioKm, centro);
+    const qs = queryFiltros(filtro, precio, edad, radioKm, centro);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, radioKm, centro]);
+  }, [filtro, precio, edad, radioKm, centro]);
 
   // Al elegir un radio por primera vez, pedir ubicación (mismo patrón que
   // app/page.tsx); si la niegan o falla, se queda en Granada.
@@ -118,6 +123,7 @@ function ListaPantalla() {
     const { desde, hasta } = rangoFiltro(filtro);
     const visibles = eventos.filter((ev) => {
       if (!pasaPrecio(ev, precio)) return false;
+      if (!pasaEdad(ev, edad)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
@@ -136,7 +142,7 @@ function ListaPantalla() {
       else porDia.push({ fecha, eventos: [ev] });
     }
     return porDia;
-  }, [eventos, filtro, precio, radioKm, centro]);
+  }, [eventos, filtro, precio, edad, radioKm, centro]);
 
   // Apenas `grupos` se recalcula (por el recentrado de `irAResultado`),
   // si queda un evento pendiente de enfocar y ya está en el DOM, scrollea
@@ -169,11 +175,11 @@ function ListaPantalla() {
   return (
     <div className={styles.pantalla}>
       <header className={styles.top}>
-        <div className={styles.acciones}>
+        <div className={styles.filaSuperior}>
+          <div className={styles.buscador}>
+            <Buscador onSeleccionar={irAResultado} />
+          </div>
           <EnlaceCuenta />
-        </div>
-        <div className={styles.buscador}>
-          <Buscador onSeleccionar={irAResultado} />
         </div>
         <div className={styles.reel}>
           {FILTROS.map((f) => (
@@ -227,18 +233,21 @@ function ListaPantalla() {
           igual que en el mapa. Se combina con el filtro de tiempo. El
           radio ahora se elige desde el círculo flotante (BarraFlotante). */}
       <div className={styles.pie}>
-        <div className={styles.precioBarra}>
-          {PRECIOS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={styles.precio}
-              aria-pressed={precio === p.id}
-              onClick={() => setPrecio(p.id)}
-            >
-              {p.etiqueta}
-            </button>
-          ))}
+        <div className={styles.filaFiltros}>
+          <div className={styles.precioBarra}>
+            {PRECIOS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={styles.precio}
+                aria-pressed={precio === p.id}
+                onClick={() => setPrecio(p.id)}
+              >
+                {p.etiqueta}
+              </button>
+            ))}
+          </div>
+          <FiltroEdad valor={edad} onCambiar={setEdad} />
         </div>
       </div>
 

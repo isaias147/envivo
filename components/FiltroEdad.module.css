@@ -1,0 +1,64 @@
+/* ===== EnVivo · FAB de filtro por edad ===== */
+/* Círculo de cristal igual en altura al grupo Todo/Gratis/Cover, con un
+   desplegable que se abre hacia arriba. Compartido por / y /lista. */
+
+.contenedor {
+  position: relative;
+  pointer-events: auto;
+}
+
+.fab {
+  composes: cristal from global;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hueso);
+  cursor: pointer;
+}
+.fab svg {
+  width: 18px;
+  height: 18px;
+}
+.fab[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+}
+
+.menu {
+  composes: cristal from global;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 601;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 14px;
+}
+
+.opcion {
+  min-width: 168px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+}
+.opcion[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}

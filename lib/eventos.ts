@@ -54,6 +54,32 @@ export function pasaPrecio(ev: { is_free: boolean }, precio: Precio): boolean {
   return true;
 }
 
+/**
+ * Filtro de edad (FAB propio, separado del grupo Todo/Gratis/Cover). Usa
+ * `events.restriccion_edad`, que ya existe — no es un campo nuevo. "publico"
+ * agrupa "todo_publico" e "infantil" en una sola opción. "todo" no filtra
+ * nada (default).
+ */
+export type FiltroEdad = "todo" | "publico" | "mas_12" | "mas_16" | "mas_18";
+
+export function leerEdad(v: string | null | undefined): FiltroEdad {
+  return v === "publico" || v === "mas_12" || v === "mas_16" || v === "mas_18"
+    ? v
+    : "todo";
+}
+
+/** ¿el evento pasa el filtro de edad elegido? */
+export function pasaEdad(
+  ev: { restriccion_edad: EventoPublico["restriccion_edad"] },
+  edad: FiltroEdad,
+): boolean {
+  if (edad === "todo") return true;
+  if (edad === "publico") {
+    return ev.restriccion_edad === "todo_publico" || ev.restriccion_edad === "infantil";
+  }
+  return ev.restriccion_edad === edad;
+}
+
 // --- Conservar los filtros al pasar de /mapa a /lista y viceversa --------
 // Van en la query (`?t=finde&p=gratis`); se omite lo que esté en su valor
 // por defecto para que la URL quede limpia mientras no se toque nada.
@@ -69,12 +95,14 @@ export function leerPrecio(v: string | null | undefined): Precio {
 export function queryFiltros(
   filtro: Filtro,
   precio: Precio,
+  edad: FiltroEdad,
   radioKm?: RadioKm | "todo",
   centro?: { lat: number; lng: number },
 ): string {
   const p = new URLSearchParams();
   if (filtro !== "proximos") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
+  if (edad !== "todo") p.set("ed", edad);
   if (radioKm && radioKm !== "todo") p.set("km", String(radioKm));
   if (centro) {
     p.set("lat", centro.lat.toFixed(4));

@@ -19,9 +19,11 @@
   padding: 16px 18px 12px;
 }
 
-.acciones {
+/* Buscador + acceso a la cuenta, en la misma fila. */
+.filaSuperior {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
@@ -49,7 +51,8 @@
 
 .buscador {
   position: relative;
-  margin-bottom: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
 .reel {
@@ -146,6 +149,14 @@
   align-items: center;
   gap: 8px;
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  pointer-events: none;
+}
+
+/* Fila del grupo de tres + el FAB de edad, separados entre sí. */
+.filaFiltros {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   pointer-events: none;
 }
 

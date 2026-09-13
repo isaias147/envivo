@@ -16,13 +16,16 @@ import {
   distanciaMetros,
   GRANADA_CALI,
   leerCentro,
+  leerEdad,
   leerFiltro,
   leerPrecio,
+  pasaEdad,
   pasaPrecio,
   queryFiltros,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
+  type FiltroEdad as FiltroEdadValor,
   type Precio,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
@@ -30,6 +33,7 @@ import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
+import FiltroEdad from "@/components/FiltroEdad";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import type { ResultadoBusqueda } from "@/lib/busqueda";
 import styles from "./page.module.css";
@@ -73,6 +77,7 @@ function MapaPantalla() {
   // de /lista. El radio es propio del mapa y no se comparte.
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
+  const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
   // ?resaltar=&tipo=, leídos UNA sola vez al montar: el efecto que sincroniza
   // ?t=&p= en la URL (más abajo) reemplaza el historial apenas se monta y
   // los borraría si los leyéramos de `sp` de nuevo cuando `eventos` termine
@@ -149,9 +154,9 @@ function MapaPantalla() {
   // lista" y el botón atrás del navegador los conserven — así /lista
   // arranca del mismo punto en vez de saltar a Granada.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, undefined, centro);
+    const qs = queryFiltros(filtro, precio, edad, undefined, centro);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, centro]);
+  }, [filtro, precio, edad, centro]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -179,12 +184,13 @@ function MapaPantalla() {
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
       if (!pasaPrecio(ev, precio)) return false;
+      if (!pasaEdad(ev, edad)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
       return dentroDeCaja(ev, centro, RADIO_FIJO_KM);
     });
-  }, [eventos, filtro, precio, centro]);
+  }, [eventos, filtro, precio, edad, centro]);
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
@@ -214,6 +220,11 @@ function MapaPantalla() {
   }
   function cambiarPrecio(p: Precio) {
     setPrecio(p);
+    setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
+  }
+  function cambiarEdad(e: FiltroEdadValor) {
+    setEdad(e);
     setSeleccionadoId(null);
     setPerfilSeleccionado(null);
   }
@@ -362,18 +373,21 @@ function MapaPantalla() {
 
       {/* Pie: barra de precio centrada; sube cuando aparece la tarjeta. */}
       <div className={styles.pie}>
-        <div className={styles.precioBarra}>
-          {PRECIOS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={styles.precio}
-              aria-pressed={precio === p.id}
-              onClick={() => cambiarPrecio(p.id)}
-            >
-              {p.etiqueta}
-            </button>
-          ))}
+        <div className={styles.filaFiltros}>
+          <div className={styles.precioBarra}>
+            {PRECIOS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={styles.precio}
+                aria-pressed={precio === p.id}
+                onClick={() => cambiarPrecio(p.id)}
+              >
+                {p.etiqueta}
+              </button>
+            ))}
+          </div>
+          <FiltroEdad valor={edad} onCambiar={cambiarEdad} />
         </div>
         {(seleccionado || perfilSeleccionado) && (
           <div className={styles.ficha} ref={fichaRef}>
