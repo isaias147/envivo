@@ -32,6 +32,14 @@ type Fila = Record<string, unknown>;
 // "HH:MM" en 24 h.
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const RESTRICCIONES_EDAD = [
+  "todo_publico",
+  "infantil",
+  "mas_12",
+  "mas_16",
+  "mas_18",
+] as const;
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -93,6 +101,7 @@ export async function POST(request: Request) {
     tipo_espacio?: unknown;
     hora_inicio?: unknown;
     hora_fin?: unknown;
+    restriccion_edad?: unknown;
   };
   try {
     cuerpo = await request.json();
@@ -140,6 +149,13 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  // No es obligatoria (a diferencia de tipo_espacio): un valor inválido o
+  // ausente cae a "todo_publico" en vez de rechazar la publicación.
+  const restriccionEdad = RESTRICCIONES_EDAD.includes(
+    cuerpo.restriccion_edad as (typeof RESTRICCIONES_EDAD)[number],
+  )
+    ? (cuerpo.restriccion_edad as (typeof RESTRICCIONES_EDAD)[number])
+    : "todo_publico";
 
   // El perfil manda: nombre y redes salen de la base, no del navegador.
   const { data: perfil } = await supabaseServidor
@@ -168,6 +184,7 @@ export async function POST(request: Request) {
     tipo_espacio: tipoEspacio,
     hora_inicio: horaInicio,
     hora_fin: horaFin,
+    restriccion_edad: restriccionEdad,
     city: "Cali",
   };
 

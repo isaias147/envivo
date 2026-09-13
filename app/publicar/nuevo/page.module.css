@@ -130,6 +130,17 @@
   gap: 7px;
 }
 
+/* Como .trio pero para 5 chips (restricción de edad): envuelve en vez de
+   apretar todo en una sola fila. */
+.cinco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.cinco .op {
+  flex: 1 1 30%;
+}
+
 /* selector de país + número de WhatsApp en una fila */
 .filaPais {
   display: flex;

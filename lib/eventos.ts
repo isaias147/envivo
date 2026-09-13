@@ -36,6 +36,7 @@ export type EventoPublico = {
   perfil_imagen_url: string | null;
   perfil_verificado: boolean;
   perfil_seguidores_publicos: boolean;
+  restriccion_edad: "todo_publico" | "infantil" | "mas_12" | "mas_16" | "mas_18";
 };
 
 export type Filtro = "hoy" | "finde" | "proximos";

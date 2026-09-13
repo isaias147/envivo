@@ -147,6 +147,16 @@ const TIPOS: { valor: string; etiqueta: string }[] = [
   { valor: "deportivo", etiqueta: "Deportivo" },
 ];
 
+type RestriccionEdad = "todo_publico" | "infantil" | "mas_12" | "mas_16" | "mas_18";
+
+const RESTRICCIONES_EDAD: { valor: RestriccionEdad; etiqueta: string }[] = [
+  { valor: "todo_publico", etiqueta: "Todo público" },
+  { valor: "infantil", etiqueta: "Infantil" },
+  { valor: "mas_12", etiqueta: "+12" },
+  { valor: "mas_16", etiqueta: "+16" },
+  { valor: "mas_18", etiqueta: "+18" },
+];
+
 const MIMES_OK = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 3 * 1024 * 1024;
 const RE_REEL = /^https:\/\/(www\.)?(instagram\.com|tiktok\.com)\//i;
@@ -218,6 +228,8 @@ export default function PublicarNuevo() {
   const [tipoEspacio, setTipoEspacio] = useState<"abierto" | "cerrado">(
     "cerrado",
   );
+  const [restriccionEdad, setRestriccionEdad] =
+    useState<RestriccionEdad>("todo_publico");
   const [tipo, setTipo] = useState(TIPOS[0].valor);
   const [entrada, setEntrada] = useState<"gratis" | "cover" | "rango">("cover");
   const [monto, setMonto] = useState("");
@@ -705,6 +717,7 @@ export default function PublicarNuevo() {
           tipo_espacio: tipoEspacio,
           hora_inicio: hora,
           hora_fin: horaFin,
+          restriccion_edad: restriccionEdad,
         }),
       });
       if (!r.ok) {
@@ -1037,6 +1050,24 @@ export default function PublicarNuevo() {
           <p className={styles.ayuda}>
             Cerrado: bar, salón, teatro. Abierto: parque, plaza, calle.
           </p>
+        </div>
+
+        {/* restricción de edad */}
+        <div className={styles.campo}>
+          <label>¿Para quién es?</label>
+          <div className={styles.cinco}>
+            {RESTRICCIONES_EDAD.map((r) => (
+              <button
+                key={r.valor}
+                type="button"
+                className={styles.op}
+                aria-pressed={restriccionEdad === r.valor}
+                onClick={() => setRestriccionEdad(r.valor)}
+              >
+                {r.etiqueta}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* caja de serie */}

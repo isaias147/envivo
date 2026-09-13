@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
+  distanciaMetros,
   fechaLargaCali,
   GRANADA_CALI,
   leerFiltro,
@@ -141,10 +142,7 @@ function ListaPantalla() {
   return (
     <div className={styles.pantalla}>
       <header className={styles.top}>
-        <div className={styles.marca}>
-          <b>
-            En<i>Vivo</i>
-          </b>
+        <div className={styles.acciones}>
           <EnlaceCuenta />
         </div>
         <div className={styles.buscador}>
@@ -178,7 +176,18 @@ function ListaPantalla() {
               <h2 className={styles.dia}>{g.fecha}</h2>
               <div className={styles.renglones}>
                 {g.eventos.map((ev) => (
-                  <TarjetaEvento key={ev.id} evento={ev} />
+                  <TarjetaEvento
+                    key={ev.id}
+                    evento={ev}
+                    distanciaKm={
+                      ev.latitude != null && ev.longitude != null
+                        ? distanciaMetros(centro, {
+                            lat: ev.latitude,
+                            lng: ev.longitude,
+                          }) / 1000
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             </section>
@@ -203,6 +212,11 @@ function ListaPantalla() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Marca: fija abajo a la izquierda, igual que sobre el mapa. */}
+      <div className={styles.marca}>
+        En<i>Vivo</i>
       </div>
 
       <BarraFlotante ubicacionLista={{ radioKm, onCambiar: elegirRadio }} />
