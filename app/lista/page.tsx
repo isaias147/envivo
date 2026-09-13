@@ -26,9 +26,9 @@ import EnlaceCuenta from "@/components/EnlaceCuenta";
 import styles from "./page.module.css";
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
+  { id: "proximos", etiqueta: "Todo" },
   { id: "hoy", etiqueta: "Esta noche" },
   { id: "finde", etiqueta: "Este finde" },
-  { id: "proximos", etiqueta: "Todo" },
 ];
 
 // Etiquetas del filtro de precio (el tipo y la lógica viven en lib/eventos).
