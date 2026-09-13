@@ -45,7 +45,7 @@ const Mapa = dynamic(() => import("@/components/Mapa"), {
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
   { id: "hoy", etiqueta: "Esta noche" },
   { id: "finde", etiqueta: "Este finde" },
-  { id: "proximos", etiqueta: "Próximos" },
+  { id: "proximos", etiqueta: "Todo" },
 ];
 
 // Etiquetas del filtro de precio (el tipo y la lógica viven en lib/eventos).

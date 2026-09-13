@@ -55,7 +55,7 @@ export function pasaPrecio(ev: { is_free: boolean }, precio: Precio): boolean {
 // por defecto para que la URL quede limpia mientras no se toque nada.
 
 export function leerFiltro(v: string | null | undefined): Filtro {
-  return v === "finde" || v === "proximos" ? v : "hoy";
+  return v === "hoy" || v === "finde" ? v : "proximos";
 }
 
 export function leerPrecio(v: string | null | undefined): Precio {
@@ -68,7 +68,7 @@ export function queryFiltros(
   radioKm?: RadioKm | "todo",
 ): string {
   const p = new URLSearchParams();
-  if (filtro !== "hoy") p.set("t", filtro);
+  if (filtro !== "proximos") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
   if (radioKm && radioKm !== "todo") p.set("km", String(radioKm));
   const s = p.toString();
