@@ -270,9 +270,10 @@ function MapaPantalla() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventos]);
 
-  // Tocar un pin cierra la tarjeta de lugar, si había una abierta.
+  // Tocar un pin lo abre o, si ya estaba abierto, lo cierra (toggle); en
+  // cualquier caso cierra la tarjeta de lugar, si había una abierta.
   function seleccionarPin(id: string | null) {
-    setSeleccionadoId(id);
+    setSeleccionadoId((actual) => (actual === id ? null : id));
     setPerfilSeleccionado(null);
   }
 
