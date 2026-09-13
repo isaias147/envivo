@@ -1,26 +1,9 @@
 /* ===== EnVivo · buscador (eventos y lugares) ===== */
-/* Colapsado: lupa redonda de cristal, igual que EnlaceCuenta. Abierto:
-   cápsula de cristal con input, y el dropdown de resultados debajo. */
+/* Cápsula de cristal fija con input, y el dropdown de resultados debajo. */
 
 .raiz {
   position: relative;
   width: 100%;
-}
-
-.lupa {
-  composes: cristal from global;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--hueso);
-  cursor: pointer;
-}
-.lupa svg {
-  width: 16px;
-  height: 16px;
 }
 
 .campo {
@@ -28,6 +11,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  min-width: 220px;
   height: 34px;
   padding: 0 6px 0 12px;
   border-radius: 100px;

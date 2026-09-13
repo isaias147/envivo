@@ -1,10 +1,9 @@
 "use client";
 
-// El buscador de eventos y lugares. Es un ícono de lupa (cristal, como
-// EnlaceCuenta) que se expande a un input con resultados agrupados. No
-// decide qué hacer con lo elegido: eso lo resuelve el padre por
-// `onSeleccionar` (el mapa centra y abre la ficha; la lista redirige al
-// mapa).
+// El buscador de eventos y lugares. Cápsula de cristal fija con input y
+// resultados agrupados debajo. No decide qué hacer con lo elegido: eso lo
+// resuelve el padre por `onSeleccionar` (el mapa centra y abre la ficha; la
+// lista redirige al mapa).
 
 import { useEffect, useRef, useState } from "react";
 import { buscarEnvivo, type ResultadoBusqueda } from "@/lib/busqueda";
@@ -19,11 +18,9 @@ export default function Buscador({
 }: {
   onSeleccionar: (resultado: ResultadoBusqueda) => void;
 }) {
-  const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
   const [resultados, setResultados] = useState<ResultadoBusqueda[]>([]);
   const [cargando, setCargando] = useState(false);
-  const raizRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Buscar con debounce; menos de 2 caracteres no dispara nada (el
@@ -58,27 +55,16 @@ export default function Buscador({
     }
   }
 
-  // Clic afuera: colapsa (sin perder lo escrito, por si se reabre).
-  useEffect(() => {
-    if (!abierto) return;
-    function alClicar(e: MouseEvent) {
-      if (!raizRef.current?.contains(e.target as Node)) setAbierto(false);
-    }
-    document.addEventListener("mousedown", alClicar);
-    return () => document.removeEventListener("mousedown", alClicar);
-  }, [abierto]);
-
-  function abrir() {
-    setAbierto(true);
-    // Esperar el render del input antes de enfocarlo.
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }
-
   function elegir(resultado: ResultadoBusqueda) {
     onSeleccionar(resultado);
-    setAbierto(false);
     setTexto("");
     setResultados([]);
+  }
+
+  function limpiar() {
+    setTexto("");
+    setResultados([]);
+    inputRef.current?.focus();
   }
 
   const eventos = resultados
@@ -94,60 +80,48 @@ export default function Buscador({
     !cargando && texto.trim().length >= MIN_CARACTERES && resultados.length === 0;
 
   return (
-    <div ref={raizRef} className={styles.raiz}>
-      {abierto ? (
-        <div className={styles.campo}>
-          <svg
-            className={styles.lupaChica}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <input
-            ref={inputRef}
-            type="search"
-            inputMode="search"
-            placeholder="Eventos o lugares…"
-            value={texto}
-            onChange={(e) => alEscribir(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setAbierto(false);
-            }}
-            className={styles.input}
-          />
+    <div className={styles.raiz}>
+      <div className={styles.campo}>
+        <svg
+          className={styles.lupaChica}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="search"
+          inputMode="search"
+          placeholder="Busca aquí"
+          value={texto}
+          onChange={(e) => alEscribir(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") limpiar();
+          }}
+          className={styles.input}
+        />
+        {texto && (
           <button
             type="button"
             className={styles.cerrar}
-            aria-label="Cerrar búsqueda"
-            onClick={() => setAbierto(false)}
+            aria-label="Borrar búsqueda"
+            onClick={limpiar}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className={styles.lupa}
-          aria-label="Buscar eventos o lugares"
-          onClick={abrir}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-        </button>
-      )}
+        )}
+      </div>
 
-      {abierto && (texto.trim().length >= MIN_CARACTERES) && (
+      {(texto.trim().length >= MIN_CARACTERES) && (
         <div className={styles.dropdown}>
           {cargando && <p className={styles.mensaje}>Buscando…</p>}
           {sinResultados && (

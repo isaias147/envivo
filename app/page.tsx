@@ -28,7 +28,7 @@ import {
 import TarjetaEvento from "@/components/TarjetaEvento";
 import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
-import BarraInferior from "@/components/BarraInferior";
+import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import type { ResultadoBusqueda } from "@/lib/busqueda";
@@ -344,20 +344,6 @@ function MapaPantalla() {
         ))}
       </div>
 
-      {gps && movido && (
-        <button
-          type="button"
-          className={styles.volverUbicacion}
-          onClick={volverAMiUbicacion}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-          </svg>
-          Volver a mi ubicación
-        </button>
-      )}
-
       {error && (
         <p className={styles.aviso}>
           No se pudieron cargar los eventos: {error}
@@ -393,7 +379,12 @@ function MapaPantalla() {
       {/* Atribución de Leaflet: obligatoria, discreta, esquina inferior derecha. */}
       <p className={styles.atribucion}>{TILES_ATRIBUCION}</p>
 
-      <BarraInferior />
+      <BarraFlotante
+        ubicacionMapa={{
+          disponible: Boolean(gps && movido),
+          onClick: volverAMiUbicacion,
+        }}
+      />
     </div>
   );
 }

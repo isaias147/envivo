@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { salir } from "@/lib/authUsuario";
 import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
-import BarraInferior from "@/components/BarraInferior";
+import BarraFlotante from "@/components/BarraFlotante";
 import styles from "./page.module.css";
 
 export default function Yo() {
@@ -263,7 +263,7 @@ export default function Yo() {
         descripcion="Con tu cuenta sigues a locales, organizadores y artistas y recibes un aviso cuando publican algo nuevo."
       />
 
-      <BarraInferior />
+      <BarraFlotante />
     </div>
   );
 }

@@ -1,0 +1,97 @@
+/* ===== EnVivo · columna de círculos flotantes (FAB) ===== */
+/* Reemplaza la barra inferior de tabs: 3 círculos de cristal, abajo a la
+   derecha, uno debajo del otro. */
+
+.columna {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.circulo {
+  composes: cristal from global;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hueso);
+  cursor: pointer;
+}
+.circulo svg {
+  width: 18px;
+  height: 18px;
+}
+.circulo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.circulo.activo {
+  background: var(--laton);
+  color: #231a00;
+}
+
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 15px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--hueso);
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* ---------- desplegable de km (círculo del medio en /lista) ---------- */
+/* Se abre hacia la izquierda (adentro de la pantalla): el círculo vive
+   pegado al borde derecho, así que a la derecha no hay espacio. */
+.medioConMenu {
+  position: relative;
+}
+
+.menuKm {
+  composes: cristal from global;
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 601;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 14px;
+}
+
+.opcionKm {
+  min-width: 56px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.opcionKm[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}

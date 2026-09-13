@@ -12,7 +12,6 @@ import {
   leerRadio,
   pasaPrecio,
   queryFiltros,
-  RADIOS_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
@@ -22,7 +21,7 @@ import {
 import type { ResultadoBusqueda } from "@/lib/busqueda";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
-import BarraInferior from "@/components/BarraInferior";
+import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
 import styles from "./page.module.css";
 
@@ -187,32 +186,10 @@ function ListaPantalla() {
         )}
       </div>
 
-      {/* Filtros de distancia y de precio: cápsulas de cristal flotando
-          abajo, centradas, igual que en el mapa. Se combinan con el filtro
-          de tiempo. La de distancia pide ubicación la primera vez que se
-          elige un radio (ver `elegirRadio`). */}
+      {/* Filtro de precio: cápsula de cristal flotando abajo, centrada,
+          igual que en el mapa. Se combina con el filtro de tiempo. El
+          radio ahora se elige desde el círculo flotante (BarraFlotante). */}
       <div className={styles.pie}>
-        <div className={styles.precioBarra}>
-          <button
-            type="button"
-            className={styles.precio}
-            aria-pressed={radioKm === "todo"}
-            onClick={() => elegirRadio("todo")}
-          >
-            Ver todo
-          </button>
-          {RADIOS_KM.map((km) => (
-            <button
-              key={km}
-              type="button"
-              className={styles.precio}
-              aria-pressed={radioKm === km}
-              onClick={() => elegirRadio(km)}
-            >
-              {km} km
-            </button>
-          ))}
-        </div>
         <div className={styles.precioBarra}>
           {PRECIOS.map((p) => (
             <button
@@ -228,7 +205,7 @@ function ListaPantalla() {
         </div>
       </div>
 
-      <BarraInferior />
+      <BarraFlotante ubicacionLista={{ radioKm, onCambiar: elegirRadio }} />
     </div>
   );
 }
