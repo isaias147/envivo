@@ -14,7 +14,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { EventoPublico } from "@/lib/eventos";
+import { horaCali, type EventoPublico } from "@/lib/eventos";
 import {
   TILES_ATRIBUCION,
   TILES_MAX_NATIVE_ZOOM,
@@ -69,10 +69,11 @@ const ICONO_UBICACION = L.divIcon({
 });
 
 /**
- * El pin del mockup: una etiqueta con el nombre del evento y un pie.
+ * El pin del mockup: una etiqueta con hora + nombre y un pie.
  * Índigo normal, verde si es gratis, latón si está seleccionado.
  */
 function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
+  const { hhmm } = horaCali(ev.starts_at);
   const nombre =
     ev.title.length > 20 ? `${ev.title.slice(0, 20).trim()}…` : ev.title;
   // Chip claro por defecto (como el mockup), verde si es gratis, latón si
@@ -80,7 +81,8 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   // fondos y sobre el mapa oscuro (Alidade Smooth Dark).
   const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#F4F1E8";
   const texto = "#161A3D";
-  const tamNombre = activo ? 13 : 11.5;
+  const tamHora = activo ? 13 : 11.5;
+  const tamNombre = activo ? 12 : 11;
   const anchoMax = activo ? 168 : 132;
   const pad = activo ? "5px 10px" : "4px 8px";
   const altoPie = activo ? 15 : 11;
@@ -88,11 +90,14 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   const html = `
     <div style="position:absolute;left:0;top:0;transform:translate(-50%,-100%);
                 display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-      <div style="background:${fondo};padding:${pad};border-radius:5px;
-                  max-width:${anchoMax}px;box-shadow:0 2px 8px rgba(0,0,0,.35);">
+      <div style="font-family:var(--fuente-titulo),sans-serif;font-weight:700;
+                  font-size:${tamHora}px;letter-spacing:-.01em;background:${fondo};
+                  color:${texto};padding:${pad};border-radius:5px;display:flex;
+                  align-items:baseline;gap:6px;max-width:${anchoMax}px;
+                  box-shadow:0 2px 8px rgba(0,0,0,.35);">
+        <span>${escaparHtml(hhmm)}</span>
         <span style="font-family:var(--fuente-cuerpo),sans-serif;font-weight:500;
-                     font-size:${tamNombre}px;letter-spacing:-.01em;color:${texto};
-                     display:block;overflow:hidden;text-overflow:ellipsis;
+                     font-size:${tamNombre}px;overflow:hidden;text-overflow:ellipsis;
                      white-space:nowrap;opacity:${activo ? 1 : 0.78};">${escaparHtml(nombre)}</span>
       </div>
       <div style="width:1px;height:${altoPie}px;background:${fondo};"></div>

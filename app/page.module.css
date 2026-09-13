@@ -161,7 +161,13 @@
 }
 
 .ficha {
-  width: calc(100% - 16px);
+  /* .pie centra sus hijos (align-items: center): para reservar el espacio
+     de la columna de FABs solo del lado derecho, la ficha se ancla a la
+     izquierda en vez de dejarse centrar (un margin-right ahí se repartiría
+     mitad y mitad, cortando el borde izquierdo). */
+  align-self: flex-start;
+  width: calc(100% - 8px - 64px);
+  margin-left: 8px;
   max-height: 46dvh;
   overflow-y: auto;
   padding: 16px 18px;
