@@ -101,7 +101,6 @@ export default function MiPerfil() {
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/perfil</div>
           <p>Cargando…</p>
         </div>
       </div>
@@ -115,7 +114,6 @@ export default function MiPerfil() {
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/perfil</div>
           <p>No pudimos cargar tu perfil. Intenta de nuevo más tarde.</p>
         </div>
       </div>
@@ -138,7 +136,6 @@ export default function MiPerfil() {
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <div className={styles.ruta}>envivo.app/perfil</div>
 
         <h1 className={styles.tit}>Tu perfil</h1>
 

@@ -67,7 +67,6 @@ export default function MisEventos() {
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/mis-eventos</div>
           <p className={styles.bajada}>Cargando…</p>
         </div>
       </div>
@@ -82,7 +81,6 @@ export default function MisEventos() {
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/mis-eventos</div>
 
           <h1 className={styles.tit}>Tus eventos</h1>
           <p className={styles.bajada}>
@@ -123,7 +121,6 @@ export default function MisEventos() {
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <div className={styles.ruta}>envivo.app/mis-eventos</div>
 
         <h1 className={styles.tit}>Abre tu link personal</h1>
         <p className={styles.bajada}>

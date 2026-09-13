@@ -13,22 +13,35 @@
   padding: 22px 20px 40px;
 }
 
+.volver {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 7px 13px;
+  border: 1px solid var(--linea);
+  border-radius: 100px;
+  color: var(--hueso-tenue);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+.volver:hover {
+  border-color: var(--hueso-tenue);
+  color: var(--hueso);
+}
+
 .marca {
   font-family: var(--fuente-titulo);
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.03em;
-  margin-bottom: 4px;
+  margin-bottom: 20px;
 }
 .marca i {
   color: var(--laton);
   font-style: normal;
-}
-.ruta {
-  font-size: 12px;
-  color: var(--hueso-tenue);
-  margin-bottom: 22px;
-  word-break: break-all;
 }
 
 .tit {

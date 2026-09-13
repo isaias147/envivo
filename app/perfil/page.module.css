@@ -24,17 +24,11 @@
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.03em;
-  margin-bottom: 4px;
+  margin-bottom: 20px;
 }
 .marca i {
   color: var(--laton);
   font-style: normal;
-}
-
-.ruta {
-  font-size: 11px;
-  color: var(--hueso-tenue);
-  margin-bottom: 22px;
 }
 
 .tit {

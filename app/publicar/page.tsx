@@ -107,10 +107,15 @@ export default function Publicar() {
         En<i>Vivo</i>
       </div>
 
-      {/* "Mis eventos": cápsula de cristal, arriba a la derecha. */}
-      <Link href="/mis-eventos" className={styles.misEventos}>
-        Mis eventos
-      </Link>
+      {/* Volver + "Mis eventos": cápsulas de cristal, arriba a la derecha. */}
+      <div className={styles.accionesTop}>
+        <Link href="/" className={styles.volver}>
+          Volver
+        </Link>
+        <Link href="/mis-eventos" className={styles.misEventos}>
+          Mis eventos
+        </Link>
+      </div>
 
       {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
       <div className={styles.reel}>

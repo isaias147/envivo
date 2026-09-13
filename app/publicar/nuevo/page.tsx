@@ -15,6 +15,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { useCuentaPublicador } from "@/lib/cuentaPublicador";
@@ -188,6 +189,8 @@ type ResultadoGeo = {
 };
 
 export default function PublicarNuevo() {
+  const router = useRouter();
+
   // Publicar exige cuenta de Google primero (después, el perfil de
   // publicador de abajo). Sin Google, ni se consulta /api/publicador/sesion.
   // El modal se abre solo (derivado, sin efecto) mientras falte Google y no
@@ -195,6 +198,12 @@ export default function PublicarNuevo() {
   const { usuario, cargandoUsuario, perfil, cargandoPerfil } =
     useCuentaPublicador();
   const [modalCerrado, setModalCerrado] = useState(false);
+
+  // "Volver" a la pantalla anterior; si se entró directo al link, al mapa.
+  function volver() {
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push("/");
+  }
 
   // bifurcación
   const [serie, setSerie] = useState(false);
@@ -781,10 +790,12 @@ export default function PublicarNuevo() {
     return (
       <div className={styles.pantalla}>
         <div className={styles.marco}>
+          <button type="button" className={styles.volver} onClick={volver}>
+            Volver
+          </button>
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/publicar</div>
           <h1 className={styles.tit}>Publica tu evento</h1>
           <p className={styles.bajada}>
             Primero entra con tu cuenta de Google para publicar.
@@ -814,10 +825,12 @@ export default function PublicarNuevo() {
     return (
       <div className={styles.pantalla}>
         <div className={styles.marco}>
+          <button type="button" className={styles.volver} onClick={volver}>
+            Volver
+          </button>
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/publicar</div>
           <p className={styles.bajada}>Cargando…</p>
         </div>
       </div>
@@ -832,7 +845,6 @@ export default function PublicarNuevo() {
           <div className={styles.marca}>
             En<i>Vivo</i>
           </div>
-          <div className={styles.ruta}>envivo.app/publicar</div>
 
           <div className={styles.marcaOk} aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -877,10 +889,12 @@ export default function PublicarNuevo() {
   return (
     <div className={styles.pantalla}>
       <div className={styles.marco}>
+        <button type="button" className={styles.volver} onClick={volver}>
+          Volver
+        </button>
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <div className={styles.ruta}>envivo.app/publicar</div>
         <h1 className={styles.tit}>Publica tu evento</h1>
         <p className={styles.bajada}>
           Es gratis y queda en el mapa al instante.

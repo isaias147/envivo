@@ -184,11 +184,11 @@ export default async function MisEventos({
   return (
     <div className={styles.pantalla}>
       <div className={styles.marco}>
+        <Link href="/mis-eventos" className={styles.volver}>
+          Volver
+        </Link>
         <div className={styles.marca}>
           En<i>Vivo</i>
-        </div>
-        <div className={styles.ruta}>
-          envivo.app/mis-eventos/{token.slice(0, 4)}…
         </div>
 
         <h1 className={styles.tit}>Tus eventos</h1>

@@ -7,6 +7,7 @@
 // antes de mostrar nada. El formulario en sí es el cliente EditarEventoForm.
 
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
@@ -44,10 +45,12 @@ export default async function EditarEvento({
   return (
     <div className={styles.pantalla}>
       <div className={styles.marco}>
+        <Link href="/mis-eventos" className={styles.volver}>
+          Volver
+        </Link>
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <div className={styles.ruta}>envivo.app/mis-eventos/editar</div>
 
         <h1 className={styles.tit}>Editar evento</h1>
         <p className={styles.bajada}>

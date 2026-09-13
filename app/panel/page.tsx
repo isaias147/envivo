@@ -72,10 +72,12 @@ export default async function Panel() {
   return (
     <div className={styles.pantalla}>
       <div className={styles.marco}>
+        <Link href="/" className={styles.volver}>
+          Volver
+        </Link>
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <div className={styles.ruta}>envivo.app/panel</div>
 
         <h1 className={styles.tit}>Hola, {sesion.nombre ?? "publicador"}</h1>
         <p className={styles.bajada}>

@@ -67,13 +67,30 @@
   font-style: normal;
 }
 
-/* ---------- "Mis eventos": cápsula de cristal arriba a la derecha ---------- */
-.misEventos {
-  composes: cristal from global;
+/* ---------- Volver + "Mis eventos": cápsulas de cristal arriba a la
+   derecha, en fila (así no chocan con la marca de la izquierda) ---------- */
+.accionesTop {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 12px);
   right: 16px;
   z-index: 500;
+  display: flex;
+  gap: 8px;
+}
+
+.volver {
+  composes: cristal from global;
+  padding: 9px 16px;
+  border-radius: 100px;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+
+.misEventos {
+  composes: cristal from global;
   padding: 9px 16px;
   border-radius: 100px;
   color: var(--hueso);
