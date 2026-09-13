@@ -20,12 +20,10 @@ import {
   leerPrecio,
   pasaPrecio,
   queryFiltros,
-  RADIOS_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
   type Precio,
-  type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import TarjetaLugar from "@/components/TarjetaLugar";
@@ -55,6 +53,9 @@ const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "cover", etiqueta: "Con cover" },
 ];
 
+// Radio del mapa: fijo, ya no hay selector de km.
+const RADIO_FIJO_KM = 7;
+
 // `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Home() {
   return (
@@ -82,7 +83,6 @@ function MapaPantalla() {
   // de cargar.
   const [resaltarInicial] = useState(() => sp.get("resaltar"));
   const [tipoInicial] = useState(() => sp.get("tipo"));
-  const [radioKm, setRadioKm] = useState<RadioKm>(3);
   // `centro` = punto de referencia del mapa (movible).
   // `gps` = ubicación real del navegador, si la concedió.
   // `movido` = el usuario arrastró o recolocó el punto a mano.
@@ -175,9 +175,9 @@ function MapaPantalla() {
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
-      return dentroDeCaja(ev, centro, radioKm);
+      return dentroDeCaja(ev, centro, RADIO_FIJO_KM);
     });
-  }, [eventos, filtro, precio, centro, radioKm]);
+  }, [eventos, filtro, precio, centro]);
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
@@ -190,11 +190,6 @@ function MapaPantalla() {
   }
   function cambiarPrecio(p: Precio) {
     setPrecio(p);
-    setSeleccionadoId(null);
-    setPerfilSeleccionado(null);
-  }
-  function cambiarRadio(km: RadioKm) {
-    setRadioKm(km);
     setSeleccionadoId(null);
     setPerfilSeleccionado(null);
   }
@@ -294,7 +289,7 @@ function MapaPantalla() {
         <Mapa
           eventos={visibles}
           centro={centro}
-          radioKm={radioKm}
+          radioKm={RADIO_FIJO_KM}
           anclado={!movido}
           volarId={volarId}
           seleccionadoId={seleccionadoId}
@@ -345,22 +340,6 @@ function MapaPantalla() {
             onClick={() => cambiarFiltro(f.id)}
           >
             {f.etiqueta}
-          </button>
-        ))}
-      </div>
-
-      {/* Radio: vertical, centrado en el lado derecho. */}
-      <div className={styles.radioCol}>
-        <span className={styles.radioTitulo}>km</span>
-        {RADIOS_KM.map((km) => (
-          <button
-            key={km}
-            type="button"
-            className={styles.km}
-            aria-pressed={radioKm === km}
-            onClick={() => cambiarRadio(km)}
-          >
-            {km}
           </button>
         ))}
       </div>

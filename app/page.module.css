@@ -141,48 +141,6 @@
   font-weight: 600;
 }
 
-/* ---------- radio: vertical, centrado en el lado derecho ---------- */
-.radioCol {
-  composes: cristal from global;
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 500;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
-  border-radius: 100px;
-}
-.radioTitulo {
-  margin-bottom: 2px;
-  font-family: var(--fuente-cuerpo);
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--hueso-tenue);
-}
-.km {
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 100px;
-  background: transparent;
-  color: var(--hueso);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0;
-  cursor: pointer;
-}
-.km[aria-pressed="true"] {
-  background: var(--laton);
-  color: #231a00;
-}
-
 /* ---------- volver a mi ubicación (aparece si se movió el punto) ---------- */
 .volverUbicacion {
   composes: cristal from global;
