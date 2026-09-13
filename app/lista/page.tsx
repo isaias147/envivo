@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
   distanciaMetros,
   fechaLargaCali,
   GRANADA_CALI,
+  leerCentro,
   leerFiltro,
   leerPrecio,
   leerRadio,
@@ -50,7 +51,6 @@ export default function Lista() {
 
 function ListaPantalla() {
   const sp = useSearchParams();
-  const router = useRouter();
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
   const [error, setError] = useState<string | null>(null);
   // Filtros iniciales desde la URL (?t=&p=&km=), para conservarlos al venir del mapa.
@@ -59,17 +59,22 @@ function ListaPantalla() {
   const [radioKm, setRadioKm] = useState<RadioKm | "todo">(() =>
     leerRadio(sp.get("km")),
   );
-  // Punto de referencia para el filtro de distancia. Por defecto Granada;
-  // solo se pide geolocalización si se elige un radio (ver `elegirRadio`).
-  const [centro, setCentro] = useState(GRANADA_CALI);
+  // Punto de referencia para el filtro de distancia. Si venimos del mapa
+  // con ?lat=&lng=, arrancamos ahí en vez de en Granada — así el radio no
+  // salta al cambiar de vista. Solo se pide geolocalización si se elige un
+  // radio (ver `elegirRadio`).
+  const [centro, setCentro] = useState(() => leerCentro(sp) ?? GRANADA_CALI);
   const geoPedidaRef = useRef(false);
+  // Id del evento que hay que enfocar apenas `grupos` se recalcule tras
+  // elegir un resultado del buscador (ver `irAResultado`).
+  const idAEnfocarRef = useRef<string | null>(null);
 
-  // Refleja los filtros en la URL (sin recargar) para que "Ver mapa" y el
-  // botón atrás del navegador los conserven.
+  // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
+  // mapa" y el botón atrás del navegador los conserven.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, radioKm);
+    const qs = queryFiltros(filtro, precio, radioKm, centro);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, radioKm]);
+  }, [filtro, precio, radioKm, centro]);
 
   // Al elegir un radio por primera vez, pedir ubicación (mismo patrón que
   // app/page.tsx); si la niegan o falla, se queda en Granada.
@@ -133,10 +138,32 @@ function ListaPantalla() {
     return porDia;
   }, [eventos, filtro, precio, radioKm, centro]);
 
-  // El buscador acá es solo para ubicarse en el mapa: no abre nada en la
-  // lista, redirige a `/` con el resultado marcado.
+  // Apenas `grupos` se recalcula (por el recentrado de `irAResultado`),
+  // si queda un evento pendiente de enfocar y ya está en el DOM, scrollea
+  // hasta su tarjeta. Se limpia la referencia para no repetirlo con
+  // recálculos posteriores (cambiar de filtro, etc.).
+  useEffect(() => {
+    const id = idAEnfocarRef.current;
+    if (!id) return;
+    const el = document.getElementById(`evento-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      idAEnfocarRef.current = null;
+    }
+  }, [grupos]);
+
+  // El buscador recentra la lista en el resultado en vez de mandar al
+  // mapa: mueve `centro` ahí (con un radio por defecto si estaba en
+  // "Todo", para que el recentrado tenga efecto visible) y, si es un
+  // evento, scrollea hasta su tarjeta apenas `grupos` lo refleje.
   function irAResultado(resultado: ResultadoBusqueda) {
-    router.push(`/?resaltar=${resultado.id}&tipo=${resultado.tipo}`);
+    if (resultado.latitude != null && resultado.longitude != null) {
+      setCentro({ lat: resultado.latitude, lng: resultado.longitude });
+    }
+    setRadioKm((r) => (r === "todo" ? 5 : r));
+    if (resultado.tipo === "evento") {
+      idAEnfocarRef.current = resultado.id;
+    }
   }
 
   return (
@@ -178,6 +205,7 @@ function ListaPantalla() {
                 {g.eventos.map((ev) => (
                   <TarjetaEvento
                     key={ev.id}
+                    id={`evento-${ev.id}`}
                     evento={ev}
                     distanciaKm={
                       ev.latitude != null && ev.longitude != null

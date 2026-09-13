@@ -84,10 +84,22 @@ a {
   box-shadow: var(--cristal-sombra);
 }
 
-/* Restricción de edad +18: mismo tono coral en la tarjeta (TarjetaEvento)
-   y en la ficha de detalle. Se reutiliza con `composes: edad18 from global`. */
+/* Restricción de edad: mismo tono en la tarjeta (TarjetaEvento) y en la
+   ficha de detalle, reutilizadas con `composes: <clase> from global`.
+   edad18 = roja (+18); edadVerde = sin restricción / infantil;
+   edadAmarilla = +12 / +16. */
 .edad18 {
   background: rgba(255, 94, 91, 0.15);
   color: var(--coral);
+  font-weight: 600;
+}
+.edadVerde {
+  background: rgba(95, 214, 160, 0.15);
+  color: var(--cana);
+  font-weight: 600;
+}
+.edadAmarilla {
+  background: rgba(255, 182, 39, 0.15);
+  color: var(--laton);
   font-weight: 600;
 }

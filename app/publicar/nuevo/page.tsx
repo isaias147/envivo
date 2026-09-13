@@ -228,8 +228,12 @@ export default function PublicarNuevo() {
   const [tipoEspacio, setTipoEspacio] = useState<"abierto" | "cerrado">(
     "cerrado",
   );
-  const [restriccionEdad, setRestriccionEdad] =
-    useState<RestriccionEdad>("todo_publico");
+  // Sin preseleccionar: obligatorio elegir uno antes de publicar (ver `enviar`).
+  const [restriccionEdad, setRestriccionEdad] = useState<RestriccionEdad | null>(
+    null,
+  );
+  // Opcional: null = sin especificar. Tocar el chip ya activo lo destoggle.
+  const [petFriendly, setPetFriendly] = useState<boolean | null>(null);
   const [tipo, setTipo] = useState(TIPOS[0].valor);
   const [entrada, setEntrada] = useState<"gratis" | "cover" | "rango">("cover");
   const [monto, setMonto] = useState("");
@@ -514,6 +518,10 @@ export default function PublicarNuevo() {
       setError("Escribe cuántas personas caben (el aforo).");
       return;
     }
+    if (!restriccionEdad) {
+      setError("Elige una restricción de edad.");
+      return;
+    }
     if (serie && (!hasta || hasta < fecha)) {
       setError("Elige hasta cuándo se repite (una fecha posterior a la primera).");
       return;
@@ -712,6 +720,7 @@ export default function PublicarNuevo() {
         post_url: reelUrl,
         sitio_web: sitioWeb.trim() || null,
         ticket_url: ticketUrl.trim() || null,
+        pet_friendly: petFriendly,
         city: "Cali",
       };
 
@@ -1085,6 +1094,29 @@ export default function PublicarNuevo() {
                 {r.etiqueta}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* pet friendly (opcional) */}
+        <div className={styles.campo}>
+          <label>¿Se puede ir con mascota? (opcional)</label>
+          <div className={styles.trio}>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={petFriendly === true}
+              onClick={() => setPetFriendly((v) => (v === true ? null : true))}
+            >
+              Sí
+            </button>
+            <button
+              type="button"
+              className={styles.op}
+              aria-pressed={petFriendly === false}
+              onClick={() => setPetFriendly((v) => (v === false ? null : false))}
+            >
+              No
+            </button>
           </div>
         </div>
 

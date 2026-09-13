@@ -13,7 +13,9 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
+  distanciaMetros,
   GRANADA_CALI,
+  leerCentro,
   leerFiltro,
   leerPrecio,
   pasaPrecio,
@@ -80,10 +82,15 @@ function MapaPantalla() {
   // `centro` = punto de referencia del mapa (movible).
   // `gps` = ubicación real del navegador, si la concedió.
   // `movido` = el usuario arrastró o recolocó el punto a mano.
-  const [centro, setCentro] = useState(GRANADA_CALI);
+  // Si venimos de /lista con ?lat=&lng=, arrancamos ahí (leído una sola vez,
+  // igual que resaltarInicial/tipoInicial) en vez de en Granada, y esa
+  // posición ya cuenta como "movida" — no es GPS, así que el efecto de
+  // geolocalización de abajo no debe pisarla.
+  const [centroInicial] = useState(() => leerCentro(sp));
+  const [centro, setCentro] = useState(() => centroInicial ?? GRANADA_CALI);
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
-  const [movido, setMovido] = useState(false);
-  const movidoRef = useRef(false);
+  const [movido, setMovido] = useState(() => centroInicial != null);
+  const movidoRef = useRef(centroInicial != null);
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null);
   // Perfil elegido por el buscador (mutuamente excluyente con `seleccionadoId`).
   const [perfilSeleccionado, setPerfilSeleccionado] =
@@ -93,6 +100,11 @@ function MapaPantalla() {
   const [volarId, setVolarId] = useState(0);
   // Evita repetir el flujo de ?resaltar= si el usuario ya interactuó.
   const resaltadoRef = useRef(false);
+  // Alto real de la ficha abierta (evento o perfil): sube la columna de
+  // FABs exactamente esa medida, en vez de que la tarjeta se achique para
+  // no chocar con ellos. 0 cuando no hay ficha.
+  const fichaRef = useRef<HTMLDivElement>(null);
+  const [alturaFicha, setAlturaFicha] = useState(0);
 
   const marcarMovido = useCallback((v: boolean) => {
     movidoRef.current = v;
@@ -133,12 +145,13 @@ function MapaPantalla() {
     setPerfilSeleccionado(null);
   }, [gps, marcarMovido]);
 
-  // Refleja los filtros en la URL (sin recargar) para que "Ver lista" y el
-  // botón atrás del navegador los conserven.
+  // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
+  // lista" y el botón atrás del navegador los conserven — así /lista
+  // arranca del mismo punto en vez de saltar a Granada.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio);
+    const qs = queryFiltros(filtro, precio, undefined, centro);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio]);
+  }, [filtro, precio, centro]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -175,6 +188,23 @@ function MapaPantalla() {
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
+
+  // Mide el alto real de la ficha mientras está abierta (evento o perfil);
+  // se lo pasamos a BarraFlotante para que suba los FABs esa medida exacta.
+  const fichaAbierta = Boolean(seleccionado || perfilSeleccionado);
+  useEffect(() => {
+    if (!fichaAbierta) {
+      setAlturaFicha(0);
+      return;
+    }
+    const el = fichaRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setAlturaFicha(entries[0]?.contentRect.height ?? 0);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fichaAbierta]);
 
   // Cambiar de filtro, precio o radio cierra la ficha abierta.
   function cambiarFiltro(f: Filtro) {
@@ -346,11 +376,21 @@ function MapaPantalla() {
           ))}
         </div>
         {(seleccionado || perfilSeleccionado) && (
-          <div className={styles.ficha}>
+          <div className={styles.ficha} ref={fichaRef}>
             {perfilSeleccionado ? (
               <TarjetaLugar resultado={perfilSeleccionado} />
             ) : (
-              <TarjetaEvento evento={seleccionado!} />
+              <TarjetaEvento
+                evento={seleccionado!}
+                distanciaKm={
+                  seleccionado!.latitude != null && seleccionado!.longitude != null
+                    ? distanciaMetros(centro, {
+                        lat: seleccionado!.latitude,
+                        lng: seleccionado!.longitude,
+                      }) / 1000
+                    : undefined
+                }
+              />
             )}
           </div>
         )}
@@ -364,6 +404,7 @@ function MapaPantalla() {
           disponible: Boolean(gps && movido),
           onClick: volverAMiUbicacion,
         }}
+        alturaExtra={alturaFicha}
       />
     </div>
   );

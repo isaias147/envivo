@@ -129,6 +129,12 @@
 .edad18 {
   composes: edad18 from global;
 }
+.edadVerde {
+  composes: edadVerde from global;
+}
+.edadAmarilla {
+  composes: edadAmarilla from global;
+}
 
 /* ---------- acciones ---------- */
 .acciones {

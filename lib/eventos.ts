@@ -39,6 +39,7 @@ export type EventoPublico = {
   perfil_verificado: boolean;
   perfil_seguidores_publicos: boolean;
   restriccion_edad: "todo_publico" | "infantil" | "mas_12" | "mas_16" | "mas_18";
+  pet_friendly: boolean | null;
 };
 
 export type Filtro = "hoy" | "finde" | "proximos";
@@ -69,13 +70,36 @@ export function queryFiltros(
   filtro: Filtro,
   precio: Precio,
   radioKm?: RadioKm | "todo",
+  centro?: { lat: number; lng: number },
 ): string {
   const p = new URLSearchParams();
   if (filtro !== "proximos") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
   if (radioKm && radioKm !== "todo") p.set("km", String(radioKm));
+  if (centro) {
+    p.set("lat", centro.lat.toFixed(4));
+    p.set("lng", centro.lng.toFixed(4));
+  }
   const s = p.toString();
   return s ? `?${s}` : "";
+}
+
+/**
+ * Lee el punto de referencia (`?lat=&lng=`) de la URL, para que el mapa y
+ * la lista arranquen del mismo lugar al pasar de uno a otro. `null` si no
+ * viene o no es un par de números válido — cada pantalla decide su propio
+ * fallback (GRANADA_CALI en la lista, gps/Granada en el mapa).
+ */
+export function leerCentro(sp: {
+  get(key: string): string | null;
+}): { lat: number; lng: number } | null {
+  const latStr = sp.get("lat");
+  const lngStr = sp.get("lng");
+  if (latStr == null || lngStr == null) return null;
+  const lat = Number(latStr);
+  const lng = Number(lngStr);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
 }
 
 /** Barrio Granada, Cali. Fallback cuando el navegador niega la ubicación. */

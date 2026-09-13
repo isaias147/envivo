@@ -18,8 +18,9 @@
 //   nombre de otro perfil aunque lo mande.
 // - Sesión 18: el evento sale PUBLICADO. La base pone `status = 'aprobado'`
 //   por defecto, así que acá ya no se toca `status` ni `reviewed_at`.
-// - Sesión 18: `aforo`, `tipo_espacio`, `hora_inicio` y `hora_fin` se leen
-//   del cuerpo y se validan acá (el aforo es obligatorio).
+// - Sesión 18: `aforo`, `tipo_espacio`, `hora_inicio`, `hora_fin` y
+//   `restriccion_edad` se leen del cuerpo y se validan acá — los cinco
+//   son obligatorios (sin fallback silencioso).
 // - El resto de campos se copian tal cual los arma la pantalla.
 
 import { NextResponse } from "next/server";
@@ -149,13 +150,18 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  // No es obligatoria (a diferencia de tipo_espacio): un valor inválido o
-  // ausente cae a "todo_publico" en vez de rechazar la publicación.
+  // Obligatoria, igual que tipo_espacio: sin un valor válido, se rechaza.
   const restriccionEdad = RESTRICCIONES_EDAD.includes(
     cuerpo.restriccion_edad as (typeof RESTRICCIONES_EDAD)[number],
   )
     ? (cuerpo.restriccion_edad as (typeof RESTRICCIONES_EDAD)[number])
-    : "todo_publico";
+    : null;
+  if (!restriccionEdad) {
+    return NextResponse.json(
+      { error: "Elige una restricción de edad." },
+      { status: 400 },
+    );
+  }
 
   // El perfil manda: nombre y redes salen de la base, no del navegador.
   const { data: perfil } = await supabaseServidor

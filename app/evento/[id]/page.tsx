@@ -102,6 +102,28 @@ const IconoTk = () => (
   </svg>
 );
 
+/**
+ * Texto y color del badge de edad. Siempre hay uno (incluido
+ * "todo_publico", verde): verde = sin restricción o infantil, amarillo =
+ * +12/+16, rojo (edad18) = +18. Mismo mapeo que TarjetaEvento.
+ */
+function datosRestriccionEdad(
+  r: EventoPublico["restriccion_edad"],
+): { texto: string; clase: string } {
+  switch (r) {
+    case "infantil":
+      return { texto: "Infantil", clase: styles.edadVerde };
+    case "mas_12":
+      return { texto: "+12", clase: styles.edadAmarilla };
+    case "mas_16":
+      return { texto: "+16", clase: styles.edadAmarilla };
+    case "mas_18":
+      return { texto: "+18", clase: styles.edad18 };
+    default:
+      return { texto: "Todo público", clase: styles.edadVerde };
+  }
+}
+
 function Detalle({ evento }: { evento: EventoPublico }) {
   const { hhmm, periodo } = horaCali(evento.starts_at);
   const precio = evento.is_free
@@ -112,6 +134,7 @@ function Detalle({ evento }: { evento: EventoPublico }) {
   // Los viejos no: en ese caso la tarjeta cae al nombre plano de siempre.
   const tienePerfil = Boolean(evento.perfil_id && evento.perfil_slug);
   const nombrePerfil = evento.perfil_nombre ?? publicadoPor;
+  const edad = datosRestriccionEdad(evento.restriccion_edad);
 
   return (
     <>
@@ -162,22 +185,14 @@ function Detalle({ evento }: { evento: EventoPublico }) {
               <span>{evento.type}</span>
             </div>
           )}
-          {evento.restriccion_edad !== "todo_publico" && (
+          <div className={styles.dato}>
+            <b>Edad</b>
+            <span className={edad.clase}>{edad.texto}</span>
+          </div>
+          {evento.pet_friendly === true && (
             <div className={styles.dato}>
-              <b>Edad</b>
-              <span
-                className={
-                  evento.restriccion_edad === "mas_18" ? styles.edad18 : undefined
-                }
-              >
-                {evento.restriccion_edad === "infantil"
-                  ? "Para niños"
-                  : evento.restriccion_edad === "mas_12"
-                    ? "+12"
-                    : evento.restriccion_edad === "mas_16"
-                      ? "+16"
-                      : "+18"}
-              </span>
+              <b>Mascotas</b>
+              <span>Pet friendly</span>
             </div>
           )}
         </div>

@@ -23,6 +23,9 @@ type Props = {
     radioKm: RadioKm | "todo";
     onCambiar: (km: RadioKm | "todo") => void;
   };
+  /** Alto (px) de la ficha abierta sobre la columna: la sube esa medida
+   * exacta en vez de dejar que la tape. Solo la pasa el mapa. */
+  alturaExtra?: number;
 };
 
 const IconoMapa = () => (
@@ -54,7 +57,11 @@ const IconoPublicar = () => (
   </svg>
 );
 
-function BarraFlotanteContenido({ ubicacionMapa, ubicacionLista }: Props) {
+function BarraFlotanteContenido({
+  ubicacionMapa,
+  ubicacionLista,
+  alturaExtra = 0,
+}: Props) {
   const path = usePathname();
   const sp = useSearchParams();
   const { perfil: perfilPublicador } = useCuentaPublicador();
@@ -96,7 +103,15 @@ function BarraFlotanteContenido({ ubicacionMapa, ubicacionLista }: Props) {
   }
 
   return (
-    <nav className={styles.columna} aria-label="Navegación flotante">
+    <nav
+      className={styles.columna}
+      aria-label="Navegación flotante"
+      style={{
+        bottom: alturaExtra
+          ? `calc(env(safe-area-inset-bottom) + 64px + ${alturaExtra}px)`
+          : undefined,
+      }}
+    >
       {/* Más arriba de todos: publicar (solo con perfil de publicador). */}
       {perfilPublicador && (
         <Link

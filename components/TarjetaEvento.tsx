@@ -7,21 +7,25 @@ function formatoDistancia(km: number): string {
   return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
 }
 
-/** Texto del badge de edad; null (no se muestra nada) para "todo_publico". */
-function textoRestriccionEdad(
+/**
+ * Texto y color del badge de edad. Siempre hay uno (incluido
+ * "todo_publico", verde): verde = sin restricción o infantil, amarillo =
+ * +12/+16, rojo (edad18) = +18.
+ */
+function datosRestriccionEdad(
   r: EventoPublico["restriccion_edad"],
-): string | null {
+): { texto: string; clase: "edadVerde" | "edadAmarilla" | "edad18" } {
   switch (r) {
     case "infantil":
-      return "Para niños";
+      return { texto: "Infantil", clase: "edadVerde" };
     case "mas_12":
-      return "+12";
+      return { texto: "+12", clase: "edadAmarilla" };
     case "mas_16":
-      return "+16";
+      return { texto: "+16", clase: "edadAmarilla" };
     case "mas_18":
-      return "+18";
+      return { texto: "+18", clase: "edad18" };
     default:
-      return null;
+      return { texto: "Todo público", clase: "edadVerde" };
   }
 }
 
@@ -34,19 +38,22 @@ function textoRestriccionEdad(
 export default function TarjetaEvento({
   evento,
   distanciaKm,
+  id,
 }: {
   evento: EventoPublico;
   /** Distancia al centro actual, en km. Solo la calcula /lista. */
   distanciaKm?: number;
+  /** Id del elemento raíz — lo usa /lista para enfocar la tarjeta desde el buscador. */
+  id?: string;
 }) {
   const { hhmm, periodo } = horaCali(evento.starts_at);
   const precio = evento.is_free
     ? "Gratis"
     : evento.price_label ?? "Entrada paga";
-  const edad = textoRestriccionEdad(evento.restriccion_edad);
+  const edad = datosRestriccionEdad(evento.restriccion_edad);
 
   return (
-    <Link href={`/evento/${evento.id}`} className={styles.tarjeta}>
+    <Link id={id} href={`/evento/${evento.id}`} className={styles.tarjeta}>
       <div className={styles.mini}>
         {evento.flyer_url && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -72,12 +79,11 @@ export default function TarjetaEvento({
             <span className={`${styles.tira} ${styles.serie}`}>Serie</span>
           )}
           {evento.type && <span className={styles.tira}>{evento.type}</span>}
-          {edad && (
-            <span
-              className={`${styles.tira} ${evento.restriccion_edad === "mas_18" ? styles.edad18 : ""}`}
-            >
-              {edad}
-            </span>
+          <span className={`${styles.tira} ${styles[edad.clase]}`}>
+            {edad.texto}
+          </span>
+          {evento.pet_friendly === true && (
+            <span className={styles.tira}>Pet friendly</span>
           )}
         </div>
       </div>
