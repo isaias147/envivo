@@ -152,7 +152,7 @@
    toda la fila lo necesario para que el menú no quede tapado por la
    columna de FABs ni por el borde de la pantalla. */
 .filaFiltrosSubida {
-  transform: translateY(-240px);
+  transform: translateY(-260px);
 }
 
 .precioBarra {

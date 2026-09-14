@@ -34,23 +34,24 @@
   color: #231a00;
 }
 
-/* Abre hacia abajo, anclado por su borde izquierdo al borde izquierdo del
-   FAB (nunca centrado ni hacia la derecha). */
+/* Abre hacia abajo, anclado por su borde DERECHO al borde derecho del FAB
+   (crece hacia la izquierda, nunca hacia la derecha), las opciones en una
+   sola fila horizontal (no en columna). */
 .menu {
   composes: cristal from global;
   position: absolute;
   top: calc(100% + 10px);
-  left: 0;
+  right: 0;
   z-index: 601;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
   padding: 6px;
-  border-radius: 14px;
+  border-radius: 100px;
 }
 
 .opcion {
-  padding: 7px 10px;
+  padding: 7px 7px;
   border: none;
   border-radius: 100px;
   background: transparent;
