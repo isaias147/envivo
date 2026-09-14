@@ -27,6 +27,13 @@
   margin-bottom: 12px;
 }
 
+/* Cancela el padding lateral de .top para que los chips de categoría
+   lleguen hasta el borde del header — el gutter real de 16px lo pone el
+   padding propio de FiltroTipos (mismo valor que en el mapa). */
+.tiposWrap {
+  margin: 0 -18px;
+}
+
 /* Marca: fija abajo a la izquierda, por encima de la barra de tiempo (que
    vive pegada arriba de Todo/Gratis/Cover, en .pie — la distancia es algo
    menor que en app/page.module.css porque el padding-bottom de este .pie

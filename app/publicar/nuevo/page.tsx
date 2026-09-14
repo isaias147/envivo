@@ -25,6 +25,7 @@ import {
   GRANADA_CALI,
   PAIS_WHATSAPP_POR_DEFECTO,
   PAISES_WHATSAPP,
+  TIPOS_EVENTO,
 } from "@/lib/eventos";
 import type { TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./page.module.css";
@@ -140,13 +141,10 @@ function fechasDeSerie(
 
 // ---------- opciones del formulario ----------
 
-const TIPOS: { valor: string; etiqueta: string }[] = [
-  { valor: "musica_en_vivo", etiqueta: "Música en vivo" },
-  { valor: "clase_taller", etiqueta: "Clase o taller" },
-  { valor: "recreativo", etiqueta: "Recreativo" },
-  { valor: "cultural", etiqueta: "Cultural" },
-  { valor: "deportivo", etiqueta: "Deportivo" },
-];
+// Las categorías viven en lib/eventos.ts (TIPOS_EVENTO), compartidas con
+// los chips de filtro de / y /lista — así las dos listas no se
+// desincronizan.
+const TIPOS = TIPOS_EVENTO;
 
 type RestriccionEdad = "todo_publico" | "infantil" | "mas_12" | "mas_16" | "mas_18";
 

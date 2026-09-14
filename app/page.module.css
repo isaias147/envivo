@@ -80,6 +80,16 @@
   justify-content: flex-start;
 }
 
+/* ---------- chips de categoría: debajo de la barra de búsqueda ---------- */
+.tipos {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 54px);
+  left: 0;
+  right: 0;
+  z-index: 499;
+  pointer-events: none;
+}
+
 /* ---------- "Mi cuenta" (→ /yo): arriba a la derecha ---------- */
 .cuenta {
   position: absolute;

@@ -13,8 +13,10 @@ import {
   leerFiltro,
   leerPrecio,
   leerRadio,
+  leerTipos,
   pasaFiltroEdad,
   pasaPrecio,
+  pasaTipos,
   queryFiltros,
   rangoFiltro,
   type EventoPublico,
@@ -29,6 +31,7 @@ import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
 import FiltroEdad from "@/components/FiltroEdad";
+import FiltroTipos from "@/components/FiltroTipos";
 import styles from "./page.module.css";
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
@@ -61,6 +64,9 @@ function ListaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // Chips de categoría (Música en vivo, Cultural, ...), selección múltiple;
+  // [] = todas. Filtro independiente de Todo/Gratis/Cover y de Edad.
+  const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
   // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
   // toda la fila de filtros para que el menú no quede tapado por lo que
   // hay debajo (BarraFlotante, etc.).
@@ -81,9 +87,9 @@ function ListaPantalla() {
   // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
   // mapa" y el botón atrás del navegador los conserven.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, edad, radioKm, centro);
+    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, edad, radioKm, centro]);
+  }, [filtro, precio, edad, radioKm, centro, tipos]);
 
   // Al elegir un radio por primera vez, pedir ubicación (mismo patrón que
   // app/page.tsx); si la niegan o falla, se queda en Granada.
@@ -128,6 +134,7 @@ function ListaPantalla() {
     const visibles = eventos.filter((ev) => {
       if (!pasaPrecio(ev, precio)) return false;
       if (!pasaFiltroEdad(ev, edad)) return false;
+      if (!pasaTipos(ev, tipos)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
@@ -146,7 +153,7 @@ function ListaPantalla() {
       else porDia.push({ fecha, eventos: [ev] });
     }
     return porDia;
-  }, [eventos, filtro, precio, edad, radioKm, centro]);
+  }, [eventos, filtro, precio, edad, tipos, radioKm, centro]);
 
   // Apenas `grupos` se recalcula (por el recentrado de `irAResultado`),
   // si queda un evento pendiente de enfocar y ya está en el DOM, scrollea
@@ -184,6 +191,14 @@ function ListaPantalla() {
             <Buscador onSeleccionar={irAResultado} />
           </div>
           <EnlaceCuenta />
+        </div>
+        {/* Chips de categoría, debajo del buscador. Filtro aparte de
+            Todo/Gratis/Cover, Edad y tiempo: selección múltiple, ninguno
+            activo = todas. Envueltos en .tiposWrap para cancelar el
+            padding lateral de .top — el gutter real lo da el padding
+            propio de FiltroTipos, igual que en el mapa. */}
+        <div className={styles.tiposWrap}>
+          <FiltroTipos valor={tipos} onCambiar={setTipos} />
         </div>
       </header>
 

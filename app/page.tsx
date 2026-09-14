@@ -19,8 +19,10 @@ import {
   leerEdad,
   leerFiltro,
   leerPrecio,
+  leerTipos,
   pasaFiltroEdad,
   pasaPrecio,
+  pasaTipos,
   queryFiltros,
   rangoFiltro,
   type EventoPublico,
@@ -34,6 +36,7 @@ import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import EnlaceCuenta from "@/components/EnlaceCuenta";
 import FiltroEdad from "@/components/FiltroEdad";
+import FiltroTipos from "@/components/FiltroTipos";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import type { ResultadoBusqueda } from "@/lib/busqueda";
 import styles from "./page.module.css";
@@ -78,6 +81,9 @@ function MapaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // Chips de categoría (Música en vivo, Cultural, ...), selección múltiple;
+  // [] = todas. Filtro independiente de Todo/Gratis/Cover y de Edad.
+  const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
   // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
   // toda la fila de filtros para que el menú no quede tapado por lo que
   // hay debajo (BarraFlotante, barra de atribución, etc.).
@@ -158,9 +164,9 @@ function MapaPantalla() {
   // lista" y el botón atrás del navegador los conserven — así /lista
   // arranca del mismo punto en vez de saltar a Granada.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, edad, undefined, centro);
+    const qs = queryFiltros(filtro, precio, edad, undefined, centro, tipos);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, edad, centro]);
+  }, [filtro, precio, edad, centro, tipos]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -189,12 +195,13 @@ function MapaPantalla() {
       if (ev.latitude == null || ev.longitude == null) return false;
       if (!pasaPrecio(ev, precio)) return false;
       if (!pasaFiltroEdad(ev, edad)) return false;
+      if (!pasaTipos(ev, tipos)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
       return dentroDeCaja(ev, centro, RADIO_FIJO_KM);
     });
-  }, [eventos, filtro, precio, edad, centro]);
+  }, [eventos, filtro, precio, edad, tipos, centro]);
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
@@ -229,6 +236,11 @@ function MapaPantalla() {
   }
   function cambiarEdad(e: FiltroEdadValor) {
     setEdad(e);
+    setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
+  }
+  function cambiarTipos(t: string[]) {
+    setTipos(t);
     setSeleccionadoId(null);
     setPerfilSeleccionado(null);
   }
@@ -356,6 +368,13 @@ function MapaPantalla() {
       {/* Mi cuenta (→ /yo): arriba a la derecha. */}
       <div className={styles.cuenta}>
         <EnlaceCuenta />
+      </div>
+
+      {/* Chips de categoría, debajo de la barra de búsqueda. Filtro aparte
+          de Todo/Gratis/Cover, Edad y tiempo: selección múltiple, ninguno
+          activo = todas. */}
+      <div className={styles.tipos}>
+        <FiltroTipos valor={tipos} onCambiar={cambiarTipos} />
       </div>
 
       {error && (

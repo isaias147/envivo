@@ -1,0 +1,45 @@
+/* ===== EnVivo · chips de categoría (estilo Google Maps) ===== */
+/* Fila horizontal con scroll, cada categoría es su propia píldora de
+   cristal (no un control segmentado como .reel/.precioBarra) — así se ven
+   los chips de categoría de Google Maps. Compartida por / y /lista. */
+
+.fila {
+  display: flex;
+  gap: 8px;
+  padding: 2px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.fila::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  composes: cristal from global;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 100px;
+  padding: 7px 14px 7px 10px;
+  color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.chip svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.chip[aria-pressed="true"] {
+  background: var(--laton);
+  color: #231a00;
+  font-weight: 600;
+}

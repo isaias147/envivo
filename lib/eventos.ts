@@ -101,12 +101,45 @@ export function leerPrecio(v: string | null | undefined): Precio {
   return v === "gratis" || v === "cover" ? v : "todo";
 }
 
+/**
+ * Categorías de evento (`events.type`). Mismos valores que ofrece el
+ * formulario de publicar (`TIPOS` en app/publicar/nuevo/page.tsx) — si se
+ * agrega una categoría nueva ahí, hay que sumarla acá también para que el
+ * filtro la reconozca.
+ */
+export const TIPOS_EVENTO: { valor: string; etiqueta: string }[] = [
+  { valor: "musica_en_vivo", etiqueta: "Música en vivo" },
+  { valor: "clase_taller", etiqueta: "Clase o taller" },
+  { valor: "recreativo", etiqueta: "Recreativo" },
+  { valor: "cultural", etiqueta: "Cultural" },
+  { valor: "deportivo", etiqueta: "Deportivo" },
+  { valor: "espiritual", etiqueta: "Espiritual" },
+];
+
+const VALORES_TIPO = new Set(TIPOS_EVENTO.map((t) => t.valor));
+
+/**
+ * Filtro de categorías (chips bajo el buscador). Selección múltiple;
+ * lista vacía = "todas" (default, no filtra nada).
+ */
+export function leerTipos(v: string | null | undefined): string[] {
+  if (!v) return [];
+  return [...new Set(v.split(","))].filter((t) => VALORES_TIPO.has(t));
+}
+
+/** ¿el evento pasa el filtro de categorías elegido? */
+export function pasaTipos(ev: { type: string | null }, tipos: string[]): boolean {
+  if (tipos.length === 0) return true;
+  return ev.type != null && tipos.includes(ev.type);
+}
+
 export function queryFiltros(
   filtro: Filtro,
   precio: Precio,
   edad: FiltroEdad,
   radioKm?: RadioKm | "todo",
   centro?: { lat: number; lng: number },
+  tipos?: string[],
 ): string {
   const p = new URLSearchParams();
   if (filtro !== "proximos") p.set("t", filtro);
@@ -117,6 +150,7 @@ export function queryFiltros(
     p.set("lat", centro.lat.toFixed(4));
     p.set("lng", centro.lng.toFixed(4));
   }
+  if (tipos && tipos.length > 0) p.set("tipos", tipos.join(","));
   const s = p.toString();
   return s ? `?${s}` : "";
 }
