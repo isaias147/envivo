@@ -24,6 +24,13 @@ import {
 
 type Props = {
   eventos: EventoPublico[];
+  /** Total de eventos ya cargados de Supabase (sin filtrar). Solo sirve
+   * para que EncuadreFiltro note cuando los datos terminan de llegar la
+   * primera vez, aunque el filtro ya viniera activo desde la URL —
+   * `eventos` (arriba) ya viene filtrado, así que no sirve para eso.
+   * Opcional: por defecto usa `eventos.length` (bien para /publicar, que
+   * no tiene filtros y no pasa esta prop). */
+  totalCargado?: number;
   centro: { lat: number; lng: number };
   radioKm: number;
   /** true si el punto sigue en la ubicación real (el mapa lo recentra). */
@@ -34,7 +41,23 @@ type Props = {
   seleccionadoId: string | null;
   onSeleccionar: (id: string | null) => void;
   onMoverCentro: (lat: number, lng: number) => void;
+  /** ¿Hay algún filtro de tiempo/precio/edad/categorías puesto? Dispara el
+   * encuadre automático (ver EncuadreFiltro) — sin filtro, la cámara
+   * vuelve a la vista original (centro + radio fijo). Opcional: /publicar
+   * no tiene filtros, así que nunca pasa de su default (false). */
+  hayFiltroActivo?: boolean;
+  /** Cambia solo cuando cambia el contenido del filtro (nunca por un
+   * paneo o un arrastre del pin): es la señal que dispara el encuadre. */
+  filtroFirma?: string;
 };
+
+// Zoom mínimo y máximo del mapa: no se aleja tanto como para ver medio
+// país (mínimo, vista de ciudad) ni se acerca tanto como para pixelar los
+// tiles (máximo, tope real de Stadia — ver TILES_MAX_ZOOM).
+const ZOOM_MINIMO = 11;
+// Un solo pin resultante de un filtro: no hace falta fitBounds, alcanza
+// con centrar y acercar a un zoom cómodo para verlo bien.
+const ZOOM_UN_PIN = 16;
 
 function escaparHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>
@@ -141,6 +164,83 @@ function Vista({
   return null;
 }
 
+/**
+ * Encuadre automático al activar un filtro (tiempo/precio/edad/categorías):
+ * mueve la cámara para mostrar los pines resultantes, estilo Google Maps.
+ * No toca `centro` (el punto de referencia/círculo de búsqueda no se
+ * mueve) — es puramente una acción de cámara, así que convive sin pelear
+ * con `Vista` (que sí depende de `centro`).
+ *
+ * Dispara solo con `filtroFirma` (cambia únicamente cuando cambia el
+ * contenido del filtro) — nunca con un paneo o un arrastre del pin, así
+ * que un zoom/paneo manual del usuario nunca se revierte solo. Si el
+ * usuario ya movió la cámara a mano y *después* activa/cambia un filtro,
+ * `filtroFirma` cambia y el encuadre sí gana, como se pidió.
+ *
+ * `eventos` se lee por ref (siempre el valor más fresco) sin ser
+ * dependencia del efecto — si lo fuera, cualquier paneo que cambiara qué
+ * cae dentro del radio dispararía un encuadre no pedido. `eventos.length`
+ * del total cargado sí es dependencia aparte, solo para cubrir el caso en
+ * que la URL ya trae un filtro puesto pero los eventos todavía no
+ * terminaron de cargar la primera vez.
+ */
+function EncuadreFiltro({
+  eventos,
+  totalCargado,
+  activo,
+  firma,
+  centro,
+  zoom,
+}: {
+  eventos: EventoPublico[];
+  totalCargado: number;
+  activo: boolean;
+  firma: string;
+  centro: { lat: number; lng: number };
+  zoom: number;
+}) {
+  const map = useMap();
+  const eventosRef = useRef(eventos);
+  const centroRef = useRef(centro);
+  const zoomRef = useRef(zoom);
+  // Mantiene los refs al día en cada render (sin lista de dependencias),
+  // ANTES del efecto de abajo — los efectos de un componente corren en el
+  // orden en que se declaran, así que cuando ese efecto se dispare ya va
+  // a leer los valores de este mismo render, nunca uno viejo.
+  useEffect(() => {
+    eventosRef.current = eventos;
+    centroRef.current = centro;
+    zoomRef.current = zoom;
+  });
+
+  useEffect(() => {
+    if (!activo) {
+      // Sin filtros: vuelve a la vista original (radio fijo centrado en
+      // el punto de referencia), no respeta dónde haya quedado la cámara.
+      map.setView(
+        [centroRef.current.lat, centroRef.current.lng],
+        zoomRef.current,
+        { animate: true },
+      );
+      return;
+    }
+    const evs = eventosRef.current;
+    if (evs.length === 0) return; // 0 pines: no mover el mapa
+    if (evs.length === 1) {
+      map.setView([evs[0].latitude, evs[0].longitude], ZOOM_UN_PIN, {
+        animate: true,
+      });
+      return;
+    }
+    const bounds = L.latLngBounds(
+      evs.map((e) => [e.latitude, e.longitude] as [number, number]),
+    );
+    map.fitBounds(bounds, { padding: [48, 48], animate: true });
+  }, [activo, firma, totalCargado, map]);
+
+  return null;
+}
+
 /** Leaflet mide mal el contenedor si se monta dentro de un flex; lo recalculamos. */
 function AjustarTamano() {
   const map = useMap();
@@ -232,6 +332,7 @@ function CerrarAlTocarMapa({ onCerrar }: { onCerrar: () => void }) {
 
 export default function Mapa({
   eventos,
+  totalCargado,
   centro,
   radioKm,
   anclado,
@@ -239,6 +340,8 @@ export default function Mapa({
   seleccionadoId,
   onSeleccionar,
   onMoverCentro,
+  hayFiltroActivo = false,
+  filtroFirma = "",
 }: Props) {
   const zoom = zoomPorRadio(radioKm);
 
@@ -246,8 +349,22 @@ export default function Mapa({
     <MapContainer
       center={[centro.lat, centro.lng]}
       zoom={zoom}
+      minZoom={ZOOM_MINIMO}
+      maxZoom={TILES_MAX_ZOOM}
       zoomControl={false}
       attributionControl={false}
+      // Zoom estilo Google Maps: animado (zoomAnimation es el default de
+      // Leaflet, se deja explícito) y más gradual con la rueda del mouse
+      // — zoomSnap/zoomDelta fraccionarios permiten niveles intermedios
+      // en vez de saltar de entero en entero, y un wheelPxPerZoomLevel
+      // más alto que el default (60) hace que cada "click" de la rueda
+      // mueva menos por vez. El pellizco en móvil (touchZoom) ya viene
+      // continuo por defecto en Leaflet; se deja explícito por claridad.
+      zoomAnimation
+      touchZoom
+      zoomSnap={0.5}
+      zoomDelta={0.5}
+      wheelPxPerZoomLevel={100}
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer
@@ -302,6 +419,14 @@ export default function Mapa({
       ))}
 
       <Vista centro={centro} zoom={zoom} anclado={anclado} volarId={volarId} />
+      <EncuadreFiltro
+        eventos={eventos}
+        totalCargado={totalCargado ?? eventos.length}
+        activo={hayFiltroActivo}
+        firma={filtroFirma}
+        centro={centro}
+        zoom={zoom}
+      />
       <PulsacionLarga onMover={onMoverCentro} />
       <CerrarAlTocarMapa onCerrar={() => onSeleccionar(null)} />
       <AjustarTamano />

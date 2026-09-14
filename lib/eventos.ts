@@ -145,7 +145,12 @@ export function queryFiltros(
   if (filtro !== "proximos") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
   if (edad !== "todo") p.set("ed", edad);
-  if (radioKm && radioKm !== "todo") p.set("km", String(radioKm));
+  // "todo" (sin límite de distancia) ya no es el default de /lista —
+  // ahora sí hay que guardarlo en la URL para que sobreviva a una
+  // navegación; RADIO_INICIAL_KM (el nuevo default) es lo único que se
+  // sigue omitiendo.
+  if (radioKm === "todo") p.set("km", "todo");
+  else if (radioKm && radioKm !== RADIO_INICIAL_KM) p.set("km", String(radioKm));
   if (centro) {
     p.set("lat", centro.lat.toFixed(4));
     p.set("lng", centro.lng.toFixed(4));
@@ -176,12 +181,26 @@ export function leerCentro(sp: {
 /** Barrio Granada, Cali. Fallback cuando el navegador niega la ubicación. */
 export const GRANADA_CALI = { lat: 3.4566, lng: -76.5335 };
 
+/** Opciones del selector de radio en /lista — sin cambios. */
 export const RADIOS_KM = [1, 3, 5] as const;
-export type RadioKm = (typeof RADIOS_KM)[number];
+// Antes era `(typeof RADIOS_KM)[number]` (1 | 3 | 5): un tipo literal no
+// deja representar el nuevo default de 1.5 km (no es ninguna de las 3
+// opciones del selector, es solo el punto de partida). `number` cubre
+// tanto las opciones del selector como ese default.
+export type RadioKm = number;
+
+/**
+ * Radio inicial al cargar, antes de que la persona elija nada: 1.5 km,
+ * igual en el mapa (`RADIO_INICIAL_KM` en app/page.tsx, sin selector) y
+ * en /lista (aquí, como valor de arranque del selector de km — las
+ * opciones del selector en sí, RADIOS_KM, no cambian).
+ */
+export const RADIO_INICIAL_KM = 1.5;
 
 export function leerRadio(v: string | null | undefined): RadioKm | "todo" {
+  if (v === "todo") return "todo";
   const n = Number(v);
-  return (RADIOS_KM as readonly number[]).includes(n) ? (n as RadioKm) : "todo";
+  return (RADIOS_KM as readonly number[]).includes(n) ? n : RADIO_INICIAL_KM;
 }
 
 // Colombia no tiene horario de verano: siempre UTC−5.

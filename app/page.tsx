@@ -24,6 +24,7 @@ import {
   pasaPrecio,
   pasaTipos,
   queryFiltros,
+  RADIO_INICIAL_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
@@ -60,8 +61,9 @@ const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "cover", etiqueta: "Cover" },
 ];
 
-// Radio del mapa: fijo, ya no hay selector de km.
-const RADIO_FIJO_KM = 7;
+// Radio del mapa: fijo, ya no hay selector de km. RADIO_INICIAL_KM (1.5)
+// vive en lib/eventos.ts para compartirlo con el default de /lista.
+const RADIO_FIJO_KM = RADIO_INICIAL_KM;
 
 // `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Home() {
@@ -203,6 +205,16 @@ function MapaPantalla() {
     });
   }, [eventos, filtro, precio, edad, tipos, centro]);
 
+  // ¿Hay algún filtro de contenido puesto (tiempo/precio/edad/categorías),
+  // aparte del radio fijo de búsqueda? Con eso el mapa decide si debe
+  // encuadrar los pines resultantes o volver a la vista original (ver
+  // EncuadreFiltro en components/Mapa.tsx). `filtroFirma` es la señal que
+  // dispara ese encuadre — cambia solo cuando cambia el contenido del
+  // filtro, nunca por un simple paneo o arrastre del pin.
+  const hayFiltroActivo =
+    filtro !== "proximos" || precio !== "todo" || edad !== "todo" || tipos.length > 0;
+  const filtroFirma = `${filtro}|${precio}|${edad}|${[...tipos].sort().join(",")}`;
+
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
 
@@ -340,6 +352,7 @@ function MapaPantalla() {
       <div className={styles.lienzo}>
         <Mapa
           eventos={visibles}
+          totalCargado={eventos.length}
           centro={centro}
           radioKm={RADIO_FIJO_KM}
           anclado={!movido}
@@ -347,6 +360,8 @@ function MapaPantalla() {
           seleccionadoId={seleccionadoId}
           onSeleccionar={seleccionarPin}
           onMoverCentro={moverCentro}
+          hayFiltroActivo={hayFiltroActivo}
+          filtroFirma={filtroFirma}
         />
       </div>
 
