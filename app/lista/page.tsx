@@ -185,19 +185,6 @@ function ListaPantalla() {
           </div>
           <EnlaceCuenta />
         </div>
-        <div className={styles.reel}>
-          {FILTROS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={styles.filtro}
-              aria-pressed={filtro === f.id}
-              onClick={() => setFiltro(f.id)}
-            >
-              {f.etiqueta}
-            </button>
-          ))}
-        </div>
       </header>
 
       {error && (
@@ -238,31 +225,50 @@ function ListaPantalla() {
           radio ahora se elige desde el círculo flotante (BarraFlotante). */}
       <div className={styles.pie}>
         <div
-          className={`${styles.filaFiltros} ${edadMenuAbierto ? styles.filaFiltrosSubida : ""}`}
+          className={`${styles.grupoFiltros} ${edadMenuAbierto ? styles.grupoFiltrosSubido : ""}`}
         >
-          <div className={styles.precioBarra}>
-            {PRECIOS.map((p) => (
+          <div className={styles.reel}>
+            {FILTROS.map((f) => (
               <button
-                key={p.id}
+                key={f.id}
                 type="button"
-                className={styles.precio}
-                aria-pressed={precio === p.id}
-                onClick={() => setPrecio(p.id)}
+                className={styles.filtro}
+                aria-pressed={filtro === f.id}
+                onClick={() => setFiltro(f.id)}
               >
-                {p.etiqueta}
+                {f.etiqueta}
               </button>
             ))}
           </div>
-          <FiltroEdad
-            valor={edad}
-            onCambiar={setEdad}
-            onAbiertoCambio={setEdadMenuAbierto}
-          />
+          <div className={styles.filaFiltros}>
+            <div className={styles.precioBarra}>
+              {PRECIOS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={styles.precio}
+                  aria-pressed={precio === p.id}
+                  onClick={() => setPrecio(p.id)}
+                >
+                  {p.etiqueta}
+                </button>
+              ))}
+            </div>
+            <FiltroEdad
+              valor={edad}
+              onCambiar={setEdad}
+              onAbiertoCambio={setEdadMenuAbierto}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Marca: fija abajo a la izquierda, igual que sobre el mapa. */}
-      <div className={styles.marca}>
+      {/* Marca: fija abajo a la izquierda, igual que sobre el mapa. Se
+          desvanece mientras el desplegable de Edad está abierto (sube
+          hasta su altura, ver grupoFiltrosSubido). */}
+      <div
+        className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
+      >
         En<i>Vivo</i>
       </div>
 

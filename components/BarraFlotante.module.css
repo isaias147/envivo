@@ -5,7 +5,11 @@
 .columna {
   position: fixed;
   right: 16px;
-  bottom: calc(env(safe-area-inset-bottom) + 64px);
+  /* Subida para que el círculo de abajo (el que alterna Mapa/Lista) inicie
+     donde antes estaba la campana: 2 círculos + 2 espacios más arriba que
+     la posición original (64px), con las medidas de ANTES de agrandar los
+     círculos (40px + 12px de gap): 64 + 2*(40+12) = 168px. */
+  bottom: calc(env(safe-area-inset-bottom) + 168px);
   z-index: 600;
   display: flex;
   flex-direction: column;
@@ -16,8 +20,8 @@
 .circulo {
   composes: cristal from global;
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 50%;
   display: flex;
@@ -27,8 +31,8 @@
   cursor: pointer;
 }
 .circulo svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 .circulo:disabled {
   opacity: 0.4;

@@ -338,8 +338,12 @@ function MapaPantalla() {
         />
       </div>
 
-      {/* Marca: directamente sobre el mapa, arriba a la izquierda. */}
-      <div className={styles.marca}>
+      {/* Marca: directamente sobre el mapa, arriba a la izquierda. Se
+          desvanece mientras el desplegable de Edad está abierto (sube
+          hasta su altura, ver grupoFiltrosSubido). */}
+      <div
+        className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
+      >
         En<i>Vivo</i>
       </div>
 
@@ -354,50 +358,51 @@ function MapaPantalla() {
         <EnlaceCuenta />
       </div>
 
-      {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
-      <div className={styles.reel}>
-        {FILTROS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className={styles.filtro}
-            aria-pressed={filtro === f.id}
-            onClick={() => cambiarFiltro(f.id)}
-          >
-            {f.etiqueta}
-          </button>
-        ))}
-      </div>
-
       {error && (
         <p className={styles.aviso}>
           No se pudieron cargar los eventos: {error}
         </p>
       )}
 
-      {/* Pie: barra de precio centrada; sube cuando aparece la tarjeta. */}
+      {/* Pie: barra de tiempo + barra de precio, apiladas y centradas;
+          sube cuando aparece la tarjeta. */}
       <div className={styles.pie}>
         <div
-          className={`${styles.filaFiltros} ${edadMenuAbierto ? styles.filaFiltrosSubida : ""}`}
+          className={`${styles.grupoFiltros} ${edadMenuAbierto ? styles.grupoFiltrosSubido : ""}`}
         >
-          <div className={styles.precioBarra}>
-            {PRECIOS.map((p) => (
+          <div className={styles.reel}>
+            {FILTROS.map((f) => (
               <button
-                key={p.id}
+                key={f.id}
                 type="button"
-                className={styles.precio}
-                aria-pressed={precio === p.id}
-                onClick={() => cambiarPrecio(p.id)}
+                className={styles.filtro}
+                aria-pressed={filtro === f.id}
+                onClick={() => cambiarFiltro(f.id)}
               >
-                {p.etiqueta}
+                {f.etiqueta}
               </button>
             ))}
           </div>
-          <FiltroEdad
-            valor={edad}
-            onCambiar={cambiarEdad}
-            onAbiertoCambio={setEdadMenuAbierto}
-          />
+          <div className={styles.filaFiltros}>
+            <div className={styles.precioBarra}>
+              {PRECIOS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={styles.precio}
+                  aria-pressed={precio === p.id}
+                  onClick={() => cambiarPrecio(p.id)}
+                >
+                  {p.etiqueta}
+                </button>
+              ))}
+            </div>
+            <FiltroEdad
+              valor={edad}
+              onCambiar={cambiarEdad}
+              onAbiertoCambio={setEdadMenuAbierto}
+            />
+          </div>
         </div>
         {(seleccionado || perfilSeleccionado) && (
           <div className={styles.ficha} ref={fichaRef}>

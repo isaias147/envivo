@@ -40,9 +40,11 @@
    Aquí se reutiliza con `composes: cristal from global`. */
 
 /* ---------- marca: sobre el mapa, sin fondo ---------- */
+/* Encima de la barra de tiempo (que ahora vive pegada arriba de
+   Todo/Gratis/Cover, en .pie) para que no se encimen. */
 .marca {
   position: absolute;
-  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
+  bottom: calc(env(safe-area-inset-bottom) + 113px);
   left: 16px;
   z-index: 450;
   font-family: var(--fuente-titulo);
@@ -54,6 +56,13 @@
     0 1px 10px rgba(0, 0, 0, 0.55),
     0 0 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+/* Con el desplegable de Edad abierto, el grupo de filtros sube hasta la
+   altura de la marca (no hay espacio para las dos a la vez): se
+   desvanece mientras tanto y vuelve al cerrar. */
+.marcaOculta {
+  opacity: 0;
 }
 .marca i {
   color: var(--laton);
@@ -79,14 +88,11 @@
   z-index: 500;
 }
 
-/* ---------- filtros de tiempo: cápsula de cristal ---------- */
+/* ---------- filtros de tiempo: cápsula de cristal, pegada arriba de
+   Todo/Gratis/Cover, dentro del pie ---------- */
 .reel {
   composes: cristal from global;
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 58px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 500;
+  pointer-events: auto;
   display: inline-flex;
   gap: 4px;
   max-width: calc(100vw - 32px);
@@ -118,7 +124,7 @@
   font-weight: 600;
 }
 
-/* ---------- pie: barra de precio + tarjeta del evento ---------- */
+/* ---------- pie: barra de tiempo + barra de precio + tarjeta del evento ---------- */
 .pie {
   position: absolute;
   left: 0;
@@ -133,9 +139,32 @@
   pointer-events: none;
 }
 
+/* Barra de tiempo pegada justo encima de Todo/Gratis/Cover (gap chico,
+   distinto del que separa el grupo de la tarjeta del evento). Sube ENTERA
+   (reel + precio, juntas, sin perder el gap entre ellas) cuando el
+   desplegable de Edad abre — si solo subiera la barra de precio, chocaría
+   contra la barra de tiempo que ahora vive pegada justo arriba. */
+.grupoFiltros {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  transition: transform 0.2s ease;
+}
+
+/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube el
+   grupo lo necesario para que el menú (una sola fila de opciones) no
+   quede tapado por el borde de la pantalla ni por la atribución de
+   Leaflet. La barra de tiempo sube con él (ver .grupoFiltros); la marca
+   "EnVivo" se desvanece mientras tanto (ver .marcaOculta) porque no hay
+   aire para las tres cosas a la vez en una pantalla de 380px. */
+.grupoFiltrosSubido {
+  transform: translateY(-56px);
+}
+
 /* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
    reserva a la derecha el ancho que ocupa la columna de FABs de
-   BarraFlotante (círculo de 40px + 16px de margen + un respiro) para que
+   BarraFlotante (círculo de 44px + 16px de margen + un respiro) para que
    no choquen. */
 .filaFiltros {
   display: flex;
@@ -143,16 +172,8 @@
   justify-content: center;
   gap: 14px;
   width: 100%;
-  padding-right: 96px;
+  padding-right: 100px;
   pointer-events: none;
-  transition: transform 0.2s ease;
-}
-
-/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube
-   toda la fila lo necesario para que el menú no quede tapado por la
-   columna de FABs ni por el borde de la pantalla. */
-.filaFiltrosSubida {
-  transform: translateY(-260px);
 }
 
 .precioBarra {
@@ -198,10 +219,12 @@
    es la misma en el mapa y en la lista. */
 
 /* ---------- atribución de Leaflet ---------- */
+/* Pegada abajo del todo (en el colchón que deja el padding-bottom de
+   .pie), para no chocar con la barra de tiempo que ahora vive ahí arriba. */
 .atribucion {
   position: absolute;
   right: 8px;
-  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 6px);
+  bottom: calc(env(safe-area-inset-bottom) + 6px);
   z-index: 400;
   padding: 2px 7px;
   border-radius: 8px;

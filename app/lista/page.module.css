@@ -27,11 +27,13 @@
   margin-bottom: 12px;
 }
 
-/* Marca: fija abajo a la izquierda, igual que sobre el mapa (mismo valor
-   de `bottom` que .marca en app/page.module.css). */
+/* Marca: fija abajo a la izquierda, por encima de la barra de tiempo (que
+   vive pegada arriba de Todo/Gratis/Cover, en .pie — la distancia es algo
+   menor que en app/page.module.css porque el padding-bottom de este .pie
+   es más chico, 16px en vez de 22px). */
 .marca {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
+  bottom: calc(env(safe-area-inset-bottom) + 107px);
   left: 16px;
   z-index: 40;
   font-family: var(--fuente-titulo);
@@ -43,6 +45,13 @@
     0 1px 10px rgba(0, 0, 0, 0.55),
     0 0 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+/* Con el desplegable de Edad abierto, el grupo de filtros sube hasta la
+   altura de la marca (no hay espacio para las dos a la vez): se
+   desvanece mientras tanto y vuelve al cerrar. */
+.marcaOculta {
+  opacity: 0;
 }
 .marca i {
   color: var(--laton);
@@ -55,9 +64,17 @@
   min-width: 0;
 }
 
+/* Movido al pie (junto a Todo/Gratis/Cover): ya no vive en el header, así
+   que necesita su propio fondo de cristal y volver a ser clicable (el pie
+   tiene pointer-events: none). */
 .reel {
-  display: flex;
-  gap: 7px;
+  composes: cristal from global;
+  pointer-events: auto;
+  display: inline-flex;
+  gap: 4px;
+  max-width: calc(100vw - 32px);
+  padding: 3px;
+  border-radius: 100px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -71,9 +88,9 @@
   color: var(--hueso);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0;
-  padding: 7px 14px;
+  padding: 5px 12px;
   border-radius: 100px;
   white-space: nowrap;
   cursor: pointer;
@@ -137,7 +154,7 @@
   text-align: center;
 }
 
-/* ---------- filtros de precio: cápsula flotante abajo (igual que /) ---------- */
+/* ---------- filtros de tiempo + precio: cápsula flotante abajo (igual que /) ---------- */
 .pie {
   position: fixed;
   left: 0;
@@ -152,9 +169,29 @@
   pointer-events: none;
 }
 
+/* Barra de tiempo pegada justo encima de Todo/Gratis/Cover. Sube ENTERA
+   (reel + precio, juntas) cuando el desplegable de Edad abre — si solo
+   subiera la barra de precio, chocaría contra la barra de tiempo pegada
+   justo arriba. */
+.grupoFiltros {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  transition: transform 0.2s ease;
+}
+
+/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube el
+   grupo lo necesario para que el menú no quede tapado por el borde de la
+   pantalla. La marca "EnVivo" se desvanece mientras tanto (ver
+   .marcaOculta) porque no hay aire para las dos cosas a la vez. */
+.grupoFiltrosSubido {
+  transform: translateY(-56px);
+}
+
 /* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
    reserva a la derecha el ancho que ocupa la columna de FABs de
-   BarraFlotante (círculo de 40px + 16px de margen + un respiro) para que
+   BarraFlotante (círculo de 44px + 16px de margen + un respiro) para que
    no choquen. */
 .filaFiltros {
   display: flex;
@@ -162,16 +199,8 @@
   justify-content: center;
   gap: 14px;
   width: 100%;
-  padding-right: 96px;
+  padding-right: 100px;
   pointer-events: none;
-  transition: transform 0.2s ease;
-}
-
-/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube
-   toda la fila lo necesario para que el menú no quede tapado por la
-   columna de FABs ni por el borde de la pantalla. */
-.filaFiltrosSubida {
-  transform: translateY(-260px);
 }
 
 .precioBarra {

@@ -108,7 +108,7 @@ function BarraFlotanteContenido({
       aria-label="Navegación flotante"
       style={{
         bottom: alturaExtra
-          ? `calc(env(safe-area-inset-bottom) + 64px + ${alturaExtra}px)`
+          ? `calc(env(safe-area-inset-bottom) + 168px + ${alturaExtra}px)`
           : undefined,
       }}
     >
