@@ -26,6 +26,15 @@
   min-width: 0;
 }
 
+/* Solo en la ficha del mapa (mostrarFecha), justo arriba de la hora. */
+.fecha {
+  margin: 0 0 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--hueso-tenue);
+}
+
 .hora {
   margin-bottom: 6px;
   font-family: var(--fuente-titulo);

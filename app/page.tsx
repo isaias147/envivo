@@ -411,6 +411,7 @@ function MapaPantalla() {
             ) : (
               <TarjetaEvento
                 evento={seleccionado!}
+                mostrarFecha
                 distanciaKm={
                   seleccionado!.latitude != null && seleccionado!.longitude != null
                     ? distanciaMetros(centro, {

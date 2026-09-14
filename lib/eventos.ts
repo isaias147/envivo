@@ -296,6 +296,20 @@ export function fechaLargaCali(iso: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+/**
+ * Fecha corta en hora de Cali para tarjetas y renglones compactos:
+ * "Jue 17 sep".
+ */
+export function fechaCorta(iso: string): string {
+  const texto = new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(iso));
+  return texto.replace(".", "").replace(/(^\w)/, (c) => c.toUpperCase());
+}
+
 /** Quita un "@" inicial de un usuario de Instagram o TikTok. */
 export function sinArroba(usuario: string): string {
   return usuario.replace(/^@+/, "").trim();

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { horaCali, type EventoPublico } from "@/lib/eventos";
+import { fechaCorta, horaCali, type EventoPublico } from "@/lib/eventos";
 import styles from "./TarjetaEvento.module.css";
 
 /** "3.2 km" bajo los 10 km, entero de ahí en adelante ("14 km"). */
@@ -39,12 +39,17 @@ export default function TarjetaEvento({
   evento,
   distanciaKm,
   id,
+  mostrarFecha,
 }: {
   evento: EventoPublico;
   /** Distancia al centro actual, en km. Solo la calcula /lista. */
   distanciaKm?: number;
   /** Id del elemento raíz — lo usa /lista para enfocar la tarjeta desde el buscador. */
   id?: string;
+  /** Fecha corta ("Jue 17 sep") junto a la hora. Solo la ficha del mapa
+   * (/) la pide: en /lista cada tarjeta ya vive bajo un encabezado de
+   * día, así que repetirla ahí sería redundante. */
+  mostrarFecha?: boolean;
 }) {
   const { hhmm, periodo } = horaCali(evento.starts_at);
   const precio = evento.is_free
@@ -61,6 +66,9 @@ export default function TarjetaEvento({
         )}
       </div>
       <div className={styles.cuerpo}>
+        {mostrarFecha && (
+          <p className={styles.fecha}>{fechaCorta(evento.starts_at)}</p>
+        )}
         <div className={styles.hora}>
           {hhmm} <span>{periodo.toUpperCase()}</span>
         </div>

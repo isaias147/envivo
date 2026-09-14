@@ -7,7 +7,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { horaCali } from "@/lib/eventos";
+import { fechaCorta, horaCali } from "@/lib/eventos";
 import styles from "./MisEventosLista.module.css";
 
 export type FilaMisEventos = {
@@ -69,17 +69,6 @@ function agrupar(filas: FilaMisEventos[], modo: "proximo" | "reciente"): Grupo[]
       : b.starts_at.localeCompare(a.starts_at),
   );
   return grupos;
-}
-
-/** "Jue 17 sep" */
-function fechaCorta(iso: string): string {
-  const t = new Intl.DateTimeFormat("es-CO", {
-    timeZone: "America/Bogota",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(new Date(iso));
-  return t.replace(".", "").replace(/(^\w)/, (c) => c.toUpperCase());
 }
 
 function horaTexto(iso: string): string {
