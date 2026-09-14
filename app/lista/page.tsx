@@ -13,7 +13,7 @@ import {
   leerFiltro,
   leerPrecio,
   leerRadio,
-  pasaEdad,
+  pasaFiltroEdad,
   pasaPrecio,
   queryFiltros,
   rangoFiltro,
@@ -32,7 +32,7 @@ import FiltroEdad from "@/components/FiltroEdad";
 import styles from "./page.module.css";
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
-  { id: "proximos", etiqueta: "Todo" },
+  { id: "proximos", etiqueta: "Próximamente" },
   { id: "hoy", etiqueta: "Esta noche" },
   { id: "finde", etiqueta: "Este finde" },
 ];
@@ -41,7 +41,7 @@ const FILTROS: { id: Filtro; etiqueta: string }[] = [
 const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "todo", etiqueta: "Todo" },
   { id: "gratis", etiqueta: "Gratis" },
-  { id: "cover", etiqueta: "Con cover" },
+  { id: "cover", etiqueta: "Cover" },
 ];
 
 // `useSearchParams` obliga a un límite de Suspense en la página.
@@ -61,6 +61,10 @@ function ListaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
+  // toda la fila de filtros para que el menú no quede tapado por lo que
+  // hay debajo (BarraFlotante, etc.).
+  const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
   const [radioKm, setRadioKm] = useState<RadioKm | "todo">(() =>
     leerRadio(sp.get("km")),
   );
@@ -123,7 +127,7 @@ function ListaPantalla() {
     const { desde, hasta } = rangoFiltro(filtro);
     const visibles = eventos.filter((ev) => {
       if (!pasaPrecio(ev, precio)) return false;
-      if (!pasaEdad(ev, edad)) return false;
+      if (!pasaFiltroEdad(ev, edad)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
@@ -233,7 +237,9 @@ function ListaPantalla() {
           igual que en el mapa. Se combina con el filtro de tiempo. El
           radio ahora se elige desde el círculo flotante (BarraFlotante). */}
       <div className={styles.pie}>
-        <div className={styles.filaFiltros}>
+        <div
+          className={`${styles.filaFiltros} ${edadMenuAbierto ? styles.filaFiltrosSubida : ""}`}
+        >
           <div className={styles.precioBarra}>
             {PRECIOS.map((p) => (
               <button
@@ -247,7 +253,11 @@ function ListaPantalla() {
               </button>
             ))}
           </div>
-          <FiltroEdad valor={edad} onCambiar={setEdad} />
+          <FiltroEdad
+            valor={edad}
+            onCambiar={setEdad}
+            onAbiertoCambio={setEdadMenuAbierto}
+          />
         </div>
       </div>
 

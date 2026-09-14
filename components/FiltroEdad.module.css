@@ -1,12 +1,18 @@
 /* ===== EnVivo · FAB de filtro por edad ===== */
 /* Círculo de cristal igual en altura al grupo Todo/Gratis/Cover, con un
-   desplegable que se abre hacia arriba. Compartido por / y /lista. */
+   desplegable que se abre hacia ABAJO. Compartido por / y /lista — el
+   desplazamiento hacia arriba de toda la fila mientras el menú está
+   abierto (para que no quede tapado) vive en cada página, no acá. */
 
 .contenedor {
   position: relative;
   pointer-events: auto;
 }
 
+/* Círculo igual de alto que el grupo de tres. El texto "Edad" entra sin
+   problema: a la altura del centro un círculo de 40px tiene los 40px
+   completos disponibles, la curva solo achica el ancho cerca del borde
+   superior/inferior. */
 .fab {
   composes: cristal from global;
   width: 40px;
@@ -17,23 +23,24 @@
   align-items: center;
   justify-content: center;
   color: var(--hueso);
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: -0.01em;
   cursor: pointer;
-}
-.fab svg {
-  width: 18px;
-  height: 18px;
 }
 .fab[aria-pressed="true"] {
   background: var(--laton);
   color: #231a00;
 }
 
+/* Abre hacia abajo, anclado por su borde izquierdo al borde izquierdo del
+   FAB (nunca centrado ni hacia la derecha). */
 .menu {
   composes: cristal from global;
   position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(100% + 10px);
+  left: 0;
   z-index: 601;
   display: flex;
   flex-direction: column;
@@ -43,18 +50,17 @@
 }
 
 .opcion {
-  min-width: 168px;
-  padding: 8px 14px;
+  padding: 7px 10px;
   border: none;
   border-radius: 100px;
   background: transparent;
   color: var(--hueso);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
-  font-size: 13px;
+  font-size: 12.5px;
   letter-spacing: 0;
   white-space: nowrap;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
 }
 .opcion[aria-pressed="true"] {

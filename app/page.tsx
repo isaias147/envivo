@@ -19,7 +19,7 @@ import {
   leerEdad,
   leerFiltro,
   leerPrecio,
-  pasaEdad,
+  pasaFiltroEdad,
   pasaPrecio,
   queryFiltros,
   rangoFiltro,
@@ -45,7 +45,7 @@ const Mapa = dynamic(() => import("@/components/Mapa"), {
 });
 
 const FILTROS: { id: Filtro; etiqueta: string }[] = [
-  { id: "proximos", etiqueta: "Todo" },
+  { id: "proximos", etiqueta: "Próximamente" },
   { id: "hoy", etiqueta: "Esta noche" },
   { id: "finde", etiqueta: "Este finde" },
 ];
@@ -54,7 +54,7 @@ const FILTROS: { id: Filtro; etiqueta: string }[] = [
 const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "todo", etiqueta: "Todo" },
   { id: "gratis", etiqueta: "Gratis" },
-  { id: "cover", etiqueta: "Con cover" },
+  { id: "cover", etiqueta: "Cover" },
 ];
 
 // Radio del mapa: fijo, ya no hay selector de km.
@@ -78,6 +78,10 @@ function MapaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
+  // toda la fila de filtros para que el menú no quede tapado por lo que
+  // hay debajo (BarraFlotante, barra de atribución, etc.).
+  const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
   // ?resaltar=&tipo=, leídos UNA sola vez al montar: el efecto que sincroniza
   // ?t=&p= en la URL (más abajo) reemplaza el historial apenas se monta y
   // los borraría si los leyéramos de `sp` de nuevo cuando `eventos` termine
@@ -184,7 +188,7 @@ function MapaPantalla() {
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
       if (!pasaPrecio(ev, precio)) return false;
-      if (!pasaEdad(ev, edad)) return false;
+      if (!pasaFiltroEdad(ev, edad)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
@@ -373,7 +377,9 @@ function MapaPantalla() {
 
       {/* Pie: barra de precio centrada; sube cuando aparece la tarjeta. */}
       <div className={styles.pie}>
-        <div className={styles.filaFiltros}>
+        <div
+          className={`${styles.filaFiltros} ${edadMenuAbierto ? styles.filaFiltrosSubida : ""}`}
+        >
           <div className={styles.precioBarra}>
             {PRECIOS.map((p) => (
               <button
@@ -387,7 +393,11 @@ function MapaPantalla() {
               </button>
             ))}
           </div>
-          <FiltroEdad valor={edad} onCambiar={cambiarEdad} />
+          <FiltroEdad
+            valor={edad}
+            onCambiar={cambiarEdad}
+            onAbiertoCambio={setEdadMenuAbierto}
+          />
         </div>
         {(seleccionado || perfilSeleccionado) && (
           <div className={styles.ficha} ref={fichaRef}>

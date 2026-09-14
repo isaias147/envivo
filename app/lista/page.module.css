@@ -152,12 +152,26 @@
   pointer-events: none;
 }
 
-/* Fila del grupo de tres + el FAB de edad, separados entre sí. */
+/* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
+   reserva a la derecha el ancho que ocupa la columna de FABs de
+   BarraFlotante (círculo de 40px + 16px de margen + un respiro) para que
+   no choquen. */
 .filaFiltros {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
+  width: 100%;
+  padding-right: 96px;
   pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube
+   toda la fila lo necesario para que el menú no quede tapado por la
+   columna de FABs ni por el borde de la pantalla. */
+.filaFiltrosSubida {
+  transform: translateY(-240px);
 }
 
 .precioBarra {

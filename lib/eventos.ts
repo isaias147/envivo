@@ -56,27 +56,36 @@ export function pasaPrecio(ev: { is_free: boolean }, precio: Precio): boolean {
 
 /**
  * Filtro de edad (FAB propio, separado del grupo Todo/Gratis/Cover). Usa
- * `events.restriccion_edad`, que ya existe — no es un campo nuevo. "publico"
- * agrupa "todo_publico" e "infantil" en una sola opción. "todo" no filtra
- * nada (default).
+ * `events.restriccion_edad`, que ya existe — no es un campo nuevo. Cada
+ * opción filtra por su valor exacto, sin agrupar ("publico" = solo
+ * "todo_publico"; "infantil" es independiente). "todo" no filtra nada
+ * (default).
  */
-export type FiltroEdad = "todo" | "publico" | "mas_12" | "mas_16" | "mas_18";
+export type FiltroEdad =
+  | "todo"
+  | "publico"
+  | "infantil"
+  | "mas_12"
+  | "mas_16"
+  | "mas_18";
 
 export function leerEdad(v: string | null | undefined): FiltroEdad {
-  return v === "publico" || v === "mas_12" || v === "mas_16" || v === "mas_18"
+  return v === "publico" ||
+    v === "infantil" ||
+    v === "mas_12" ||
+    v === "mas_16" ||
+    v === "mas_18"
     ? v
     : "todo";
 }
 
 /** ¿el evento pasa el filtro de edad elegido? */
-export function pasaEdad(
+export function pasaFiltroEdad(
   ev: { restriccion_edad: EventoPublico["restriccion_edad"] },
   edad: FiltroEdad,
 ): boolean {
   if (edad === "todo") return true;
-  if (edad === "publico") {
-    return ev.restriccion_edad === "todo_publico" || ev.restriccion_edad === "infantil";
-  }
+  if (edad === "publico") return ev.restriccion_edad === "todo_publico";
   return ev.restriccion_edad === edad;
 }
 

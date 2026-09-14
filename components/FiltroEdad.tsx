@@ -1,40 +1,52 @@
 "use client";
 
-// FAB de filtro por edad: círculo de cristal, separado del grupo
-// Todo/Gratis/Cover, con un desplegable hacia arriba. Se usa igual en el
-// mapa (/) y en la lista (/lista) — la lógica de filtro vive en
-// lib/eventos.ts (FiltroEdad, pasaEdad, leerEdad) para no duplicarla.
+// FAB de filtro por edad: círculo de cristal con el texto "Edad" (sin
+// ícono), separado del grupo Todo/Gratis/Cover, con un desplegable hacia
+// ABAJO (anclado a la izquierda del botón). Como el FAB vive pegado abajo
+// de la pantalla, el padre (mapa o lista) sube toda la fila de filtros
+// mientras el menú está abierto — por eso este componente avisa cada
+// cambio por `onAbiertoCambio`, en vez de manejar el desplazamiento acá
+// (no tiene cómo saber qué hay debajo en cada pantalla). Se usa igual en
+// el mapa (/) y en la lista (/lista) — la lógica de filtro vive en
+// lib/eventos.ts (FiltroEdad, pasaFiltroEdad, leerEdad) para no
+// duplicarla.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FiltroEdad as FiltroEdadValor } from "@/lib/eventos";
 import styles from "./FiltroEdad.module.css";
 
+// Orden de arriba hacia abajo dentro del desplegable.
 const OPCIONES: { id: FiltroEdadValor; etiqueta: string }[] = [
-  { id: "todo", etiqueta: "Todo" },
-  { id: "publico", etiqueta: "Todo público/Infantil" },
+  { id: "infantil", etiqueta: "Infantil" },
   { id: "mas_12", etiqueta: "+12" },
   { id: "mas_16", etiqueta: "+16" },
   { id: "mas_18", etiqueta: "+18" },
+  { id: "publico", etiqueta: "T/P" },
+  { id: "todo", etiqueta: "Todo" },
 ];
-
-const IconoEdad = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3" y="5" width="18" height="14" rx="2" />
-    <circle cx="8.5" cy="10.5" r="1.5" />
-    <path d="M4.5 16c0-1.4 1.8-2.5 4-2.5s4 1.1 4 2.5" />
-    <path d="M14.5 9h4M14.5 12h4" />
-  </svg>
-);
 
 export default function FiltroEdad({
   valor,
   onCambiar,
+  onAbiertoCambio,
 }: {
   valor: FiltroEdadValor;
   onCambiar: (v: FiltroEdadValor) => void;
+  /** Avisa cada vez que el desplegable abre o cierra, para que el padre
+   * suba la fila de filtros y el menú (que abre hacia abajo) no quede
+   * tapado por lo que haya debajo. */
+  onAbiertoCambio?: (abierto: boolean) => void;
 }) {
-  const [abierto, setAbierto] = useState(false);
+  const [abierto, setAbiertoState] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const setAbierto = useCallback(
+    (v: boolean) => {
+      setAbiertoState(v);
+      onAbiertoCambio?.(v);
+    },
+    [onAbiertoCambio],
+  );
 
   // Cierra el desplegable al tocar afuera (mismo patrón que BarraFlotante).
   useEffect(() => {
@@ -44,7 +56,7 @@ export default function FiltroEdad({
     }
     document.addEventListener("mousedown", alClicar);
     return () => document.removeEventListener("mousedown", alClicar);
-  }, [abierto]);
+  }, [abierto, setAbierto]);
 
   function elegir(v: FiltroEdadValor) {
     onCambiar(v);
@@ -56,12 +68,12 @@ export default function FiltroEdad({
       <button
         type="button"
         className={styles.fab}
-        aria-label="Filtrar por edad"
+        aria-label="Edad"
         aria-expanded={abierto}
         aria-pressed={valor !== "todo"}
-        onClick={() => setAbierto((v) => !v)}
+        onClick={() => setAbierto(!abierto)}
       >
-        <IconoEdad />
+        Edad
       </button>
       {abierto && (
         <div className={styles.menu}>
