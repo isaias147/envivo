@@ -12,15 +12,20 @@ Estas decisiones ya se tomaron y se evaluaron a fondo. Una sesión de Claude Cod
 **no las revierte ni las "mejora"** por su cuenta. Si algo parece que hace falta
 cambiar, se me pregunta primero.
 
-- **Una sola PWA, dos entradas por rol — ajustado 2026-09-11:** `/` para el
-  público, `/publicar` para el publicador ya registrado (mis-eventos, perfil,
-  publicar). Sigue siendo una sola PWA para el uso diario de los dos roles.
-  **Excepción:** el *alta* del publicador (registro + verificación por SMS y
-  correo) se muda a una web aparte, `envivo-publisher` (repo propio, todavía
-  sin desplegar). No es por cobro ni monetización — eso sigue sin decidir,
-  ver "Monetización". Mientras esa migración no esté lista, `/registro` de
-  este repo (ver "Alta del publicador" más abajo) sigue siendo lo que corre
-  en producción; cuando `envivo-publisher` reemplace ese flujo, se avisa acá.
+- **Una sola PWA, dos entradas por rol — ajustado 2026-09-11, migración
+  cerrada 2026-09-11:** `/` para el público, `/publicar` para el publicador
+  ya registrado (mis-eventos, perfil, publicar). Sigue siendo una sola PWA
+  para el uso diario de los dos roles. **Excepción:** el *alta* del
+  publicador (registro + verificación por SMS y correo) vive en una web
+  aparte, `envivo-publisher` (repo propio), **ya desplegada** en
+  **`envivo-publisher.imsoluciones.com`**. No es por cobro ni
+  monetización — eso sigue sin decidir, ver "Monetización". Este repo ya
+  **no tiene** `/registro`, `/registro/verificar` ni `/registro/perfil`
+  (borrados, commit `dda6cd1`): las pantallas que necesitan cuenta de
+  publicador y no la encuentran mandan a
+  `https://envivo-publisher.imsoluciones.com/registro` con
+  `window.location.href` (cross-origin, no `router.replace`). Ver "Alta del
+  publicador" más abajo.
 - **Mapa: OpenStreetMap servido por Stadia Maps, en modo oscuro.** No Google Maps
   (decisión final tras evaluar costos). El detalle de tiles y filtro está en la
   memoria `tiles-mapa-oscuro`; el estilo objetivo es *Alidade Smooth Dark* del
@@ -35,17 +40,17 @@ cambiar, se me pregunta primero.
 - **Registro del publicador:** primero cuenta de **Google** (obligatoria,
   `perfiles.user_id` NOT NULL), después verificación por **DOS canales
   obligatorios — SMS y correo** (el celular del SMS es `celular_cuenta`,
-  **no es WhatsApp**). Ambos deben confirmarse para continuar. Ya
-  implementado (ya no es "Planeado Fase 2"). El link de QR/WhatsApp sigue
-  siendo cómo el organizador llega a `/publicar` (el mapa con el botón
-  "Publicar evento"); pero `/registro` y `/publicar/nuevo` ya exigen esa
-  cuenta de Google antes de mostrar el formulario.
-  (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo → + Google. El
-  `wa.me` se descartó porque el número no se pudo registrar como empresa en
-  Meta. **El SMS usa Twilio Verify** (genera, expira y limita el código de
-  su lado); **el correo usa un endpoint propio** (`lib/codigoCorreo.ts`) que
-  manda el código directo por **Mailgun**, sin pasar por Twilio — Twilio
-  Verify nunca llegó a usar SendGrid para esto.)
+  **no es WhatsApp**). Ambos deben confirmarse para continuar. El flujo
+  completo (formulario, SMS por Twilio Verify, correo por Mailgun) corre en
+  **`envivo-publisher`**, no en este repo — ver "Alta del publicador". El
+  link de QR/WhatsApp sigue siendo cómo el organizador llega a `/publicar`
+  (el mapa con el botón "Publicar evento"); `/publicar/nuevo` (este repo)
+  sigue exigiendo esa cuenta de Google antes de mostrar el formulario, y
+  sin perfil de publicador manda a `envivo-publisher.imsoluciones.com` a
+  crearlo.
+  (Evolución: `wa.me` → solo SMS por Twilio → SMS + correo → + Google →
+  alta movida a `envivo-publisher`. El `wa.me` se descartó porque el número
+  no se pudo registrar como empresa en Meta.)
 - **Seguidores:** la lista de un publicador es **privada hasta 25**; **pública**
   a partir de ahí. (Fase 2.)
 
@@ -75,7 +80,7 @@ del MVP. El precio todavía no está definido.
 - URL del proyecto: `https://ktzrqeoemyzqdcljqeaq.supabase.co`
 - El frontend usa **solo la anon key**, en variables de entorno.
 - La **service_role key NUNCA va en el frontend**. Solo en rutas de servidor (API routes). Si la ves en código de cliente, detente y avísame.
-- **Barrera server/cliente:** `lib/supabaseServidor.ts`, `sesionPublicador.ts`, `adminSesion.ts`, `tokenOrganizador.ts` y `registroPublicador.ts` empiezan con `import "server-only";` — si un Client Component los importa (directa o transitivamente), el **build falla**. Lo que sí necesita el cliente de esos módulos (hoy: `TipoPerfil`, `TIPOS_PERFIL`, `esTipoPerfil`) vive en `lib/tiposPerfil.ts`, que no importa nada de servidor. No mover cosas de `tiposPerfil.ts` de vuelta a `registroPublicador.ts`.
+- **Barrera server/cliente:** `lib/supabaseServidor.ts`, `sesionPublicador.ts`, `adminSesion.ts` y `tokenOrganizador.ts` empiezan con `import "server-only";` — si un Client Component los importa (directa o transitivamente), el **build falla**. Lo que necesita el cliente y antes vivía en un módulo de servidor (hoy: `TipoPerfil`, `TIPOS_PERFIL`, `esTipoPerfil` en `lib/tiposPerfil.ts`; `candadoContacto()` y `VENTANA_CANDADO_DIAS` en `lib/candadoContacto.ts`) vive aparte, sin dependencias de servidor. `lib/registroPublicador.ts` y `lib/codigoCorreo.ts` se borraron al mover el alta a `envivo-publisher` (commit `dda6cd1`) — no recrearlos acá.
 - Tabla principal: `events`. Vista pública: `eventos_publicos` (filtra `status = 'aprobado'` y futuros). **Ojo:** todavía **no** filtra `oculto_por_denuncias` — un evento bajado por denuncias sigue saliendo en el mapa y la lista hasta que se agregue `AND e.oculto_por_denuncias = false` a la vista (pendiente, lo decide el dueño).
 - `events.reubicado_pendiente` (boolean, default false) — Sesión 13, paso 6: el publicador movió el pin >500 m al editar un evento publicado. Solo bandera; el conteo (`veces_movido`, aviso a las 2 reubicaciones) es de la Sesión 18, que la reemplaza o complementa.
 - **Publicación directa + moderación (Sesión 18).** `events.status` nace en `'aprobado'` (default de la base): el evento sale al mapa al instante, sin cola de aprobación. Columnas nuevas en `events`:
@@ -139,7 +144,14 @@ del MVP. El precio todavía no está definido.
 ## Las pantallas
 
 **Usuario (sin registro, nunca ve un login):**
-1. `/` — mapa con pines, geolocalización, radio 1/3/5 km, filtro Hoy / Este finde / Próximos
+1. `/` — mapa con pines, geolocalización. Radio de búsqueda **fijo en
+   1.5 km** (`RADIO_INICIAL_KM` en `lib/eventos.ts`), ya sin selector de
+   km. Filtros: tiempo (Próximamente / Esta noche / Este finde), precio
+   (Todo / Gratis / Cover), edad (`FiltroEdad`, por `restriccion_edad`) y
+   chips de categoría de selección múltiple (`FiltroTipos` — Música en
+   vivo, Clase o taller, Recreativo, Cultural, Deportivo, Espiritual).
+   Zoom y encuadre estilo Google Maps: al activar un filtro de contenido
+   (no el radio) el mapa encuadra los pines resultantes.
 2. `/lista` — los mismos eventos en lista
 
 **Barra inferior de tabs** (`components/BarraInferior`, Sesión 14 paso 5):
@@ -196,9 +208,13 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
 Google primero, luego SMS + correo, ver "Alta del publicador"):**
 4. `/publicar` — el mapa con botón "Publicar evento"
 5. `/publicar/nuevo` — el formulario. **Exige sesión de Google** (si no hay,
-   puerta + `ModalEntrarConGoogle`) y **sesión de publicador** (cookie
-   `envivo_publicador`, leída vía `GET /api/publicador/sesion`); sin
-   perfil redirige a `/registro`. El evento hereda `perfil_id` + nombre +
+   puerta + `ModalEntrarConGoogle`) y **perfil de publicador** — resuelto
+   por `GET /api/publicador/sesion`, que acepta **dos formas**: con
+   `Authorization: Bearer` (access_token de Google) busca `perfiles` por
+   `user_id`; sin esa cabecera cae a la cookie `envivo_publicador` de
+   siempre. Sin perfil, manda con `window.location.href` (cross-origin) a
+   `https://envivo-publisher.imsoluciones.com/registro` — el alta ya no
+   vive en este repo. El evento hereda `perfil_id` + nombre +
    tipo + redes del perfil (esos campos no se piden; encabezado "Publicando
    como [nombre]"). El INSERT pasa por `POST /api/publicador/evento/crear`
    (service_role, impone nombre/tipo/redes desde el perfil). Esa ruta exige
@@ -219,16 +235,21 @@ Google primero, luego SMS + correo, ver "Alta del publicador"):**
    vive en `access_tokens` y se genera (o se reutiliza)
    desde la API route del servidor al aprobar o fusionar el primer evento
    de ese WhatsApp.
-   `/mis-eventos` (sin token) tiene dos caras (Sesión 13, paso 4): con
-   sesión de publicador (`envivo_publicador`) muestra la misma lista de
-   cuatro secciones, trayendo los eventos por `perfil_id` (y por el WhatsApp
-   de la cuenta, para los publicados antes de registrarse); sin sesión es la
-   pantalla-puente que explica dónde está el link personal. La lista vive en
+   `/mis-eventos` (sin token) tiene dos caras (Sesión 13, paso 4; **Client
+   Component**, resuelve la sesión por Bearer de Google vía
+   `useCuentaPublicador()` → `GET /api/publicador/eventos`, ya no por la
+   cookie `envivo_publicador` — ver "Alta del publicador"): con perfil
+   muestra la misma lista de cuatro secciones, trayendo los eventos por
+   `perfil_id` (y por el `celular_cuenta`, para los publicados antes de
+   registrarse); sin cuenta de Google o sin perfil es la pantalla-puente
+   que explica dónde está el link personal. La lista vive en
    `components/MisEventosLista.tsx` (la usa `/mis-eventos`); `[token]`
    conserva su copia propia sin cambios.
 6b. `/mis-eventos/editar/[id]` — editar un evento publicado (Sesión 13,
-   paso 6). **Solo con sesión de publicador**, y solo eventos de su
-   `perfil_id`. Cambia **flyer, video y ubicación**, nada más; se guarda
+   paso 6). **Server Component, todavía por cookie `envivo_publicador`**
+   (`leerSesionPublicador()`, sin Bearer — ver el gap en "Alta del
+   publicador"), y solo eventos de su `perfil_id`. Cambia **flyer, video y
+   ubicación**, nada más; se guarda
    directo por `POST /api/publicador/evento/editar` (service_role, verifica
    dueño), **sin re-revisión** (la Sesión 18 quitó la cola de aprobación). Si
    el evento es una serie, el cambio aplica a todas sus fechas. Mover el pin
@@ -237,44 +258,61 @@ Google primero, luego SMS + correo, ver "Alta del publicador"):**
    "Editar…" en las tarjetas de "En el mapa" de `/mis-eventos`.
    (Añadida después del arranque; es la única pantalla extra del organizador.)
 
-**Alta del publicador (Sesión 12, revisada — Google primero, después SMS por
-Twilio Verify + correo por Mailgun):**
-- `/registro` y `/publicar/nuevo` **exigen sesión de Google** (Supabase Auth)
-  antes de mostrar nada: sin ella, una puerta abre `ModalEntrarConGoogle` y
-  vuelve a la misma ruta al terminar. La cuenta de Google se valida en el
-  servidor (`auth.getUser()` sobre el `Authorization: Bearer` que manda el
-  cliente), nunca se confía en un `userId` del body.
-- `/registro` — **una sola pantalla** (antes 5a+5b). Tipo de perfil por
-  `<select>` (ya no tarjetas). Pide: tipo, nombre del local/marca, **datos
-  del administrador** (nombre, apellido, edad), celular de cuenta (con nota
-  "solo para verificarte, no tiene que ser el que publiques") y **correo**.
-  Al enviar → `/api/registro/iniciar` valida el Bearer de Google, valida
-  todo lo demás y manda **los dos códigos** — el SMS vía Twilio Verify, el
-  correo vía Mailgun (`lib/codigoCorreo.ts`); deja la cookie
-  `envivo_registro` con todos los datos y el `userId` de Google (sin
-  `smsOk` / `correoOk` todavía).
-- `/registro/verificar` — **dos tarjetas de canal** (SMS, Correo), cada una
-  con 4 casillas. `/api/registro/verificar { canal, codigo }` valida el SMS
-  contra Twilio Verify y el correo contra `codigos_correo` (Mailgun, ver
-  abajo), y re-firma la cookie poniendo `smsOk` o `correoOk`. "Continuar" se
-  habilita solo con los dos verificados. "Reenviar" por canal
-  (`/api/registro/reenviar { canal }`).
-- `/registro/perfil` — foto (bucket `flyers`, prefijo `perfiles/`),
-  Instagram, TikTok, WhatsApp público (prellenado). Exige `smsOk && correoOk`
-  en la cookie, y vuelve a validar el Bearer de Google contra el `userId` de
-  esa cookie (si cambió a mitad de camino, 401 y borra la cookie). Al
-  enviar crea el `perfiles` (con `user_id`, `admin_nombre/apellido/edad`,
-  `correo_admin`, `correo_verificado = true`) — 409 si esa cuenta de Google
-  o ese celular ya tienen perfil, nunca reasigna el `user_id` de uno
-  existente —, el `access_token`, la sesión `envivo_publicador` y va al
-  mapa (`/`, donde ya aparece el botón "Publicar evento"; `/panel` sigue
-  vacío, ver abajo).
-- `/panel` — **placeholder** (Sesión 15). Sin métricas: las del mockup
-  (seguidores/vistas/clics) chocan con la línea roja — decidir antes de S15.
-- `/perfil` — vista **privada** del dueño (Sesión 13). Server Component sin
-  params: consulta siempre el perfil de `sesion.perfilId` (por eso nadie ve
-  el de otro). Sin sesión → `/registro`. Todavía no enlazado desde `/panel`
-  (eso lo decide S15).
+**Alta del publicador — movida a `envivo-publisher` (desplegada en
+`envivo-publisher.imsoluciones.com`):**
+- El alta completa (formulario de tipo/datos del admin/celular/correo,
+  verificación por **Twilio Verify** (SMS) y **Mailgun** (correo, endpoint
+  propio), creación del `perfiles`) corre entera en el repo aparte
+  `envivo-publisher`, **no en este repo**. Ese repo tiene su propio
+  CLAUDE.md; para el detalle pantalla por pantalla de ese flujo, hay que
+  mirar ahí — acá solo se documenta lo que **este** repo consume de
+  resultado.
+- Este repo borró (commit `dda6cd1`, 2026-09-11) `app/registro/*`, las
+  rutas `app/api/registro/{iniciar,perfil,verificar,reenviar}` y
+  `lib/registroPublicador.ts` / `lib/codigoCorreo.ts`. Conserva solo
+  `app/api/registro/{sesion,estado,logout}` (sesión ya creada) y el botón
+  "Quiero publicar" de `/yo`, que hoy sigue siendo un `mailto:` (no un link
+  directo a `envivo-publisher.imsoluciones.com` — pendiente si se quiere
+  cambiar).
+- **Cómo se resuelve la sesión de publicador en este repo, ahora que el
+  alta pasa por otro dominio (la cookie `envivo_publicador` no se activa
+  para cuentas dadas de alta en `envivo-publisher`):** dos rutas de API
+  quedaron **Bearer-only**, sin fallback a cookie — `GET
+  /api/publicador/perfil` y `GET /api/publicador/eventos`, ambas exigen
+  `Authorization: Bearer` (access_token de Google), resuelven `user.id` con
+  `auth.getUser()` y buscan `perfiles` por `user_id`; 401 sin Bearer. Una
+  tercera, `GET /api/publicador/sesion`, sí acepta **las dos vías**: con
+  Bearer resuelve por `user_id`, sin esa cabecera cae a la cookie de
+  siempre. El hook cliente `useCuentaPublicador()` (`lib/cuentaPublicador.ts`)
+  siempre manda el Bearer.
+  - **Bearer, vía `useCuentaPublicador()`** (Client Component): `/perfil`
+    (→ `GET /api/publicador/perfil`), `/mis-eventos` sin token (→ `GET
+    /api/publicador/eventos`), `/publicar/nuevo`, `/yo` y `/` — botón
+    "Publicar evento" (estas tres últimas, vía `GET /api/publicador/sesion`).
+  - **Cookie `envivo_publicador`, vía `leerSesionPublicador()`** (Server
+    Component, sin Bearer): `/panel` y `/mis-eventos/editar/[id]`.
+  - **Ojo — gap real, no solo de doc:** un publicador dado de alta
+    *solo* en `envivo-publisher` (nunca tuvo la cookie de este dominio)
+    puede publicar y ver `/mis-eventos`, pero `/panel` y editar un evento
+    lo tratan como sin sesión (`redirect`). Pendiente de decidir si se
+    migran esas dos rutas a Bearer también.
+- `/panel` — **implementado (Sesión 15), ya no es placeholder.** Server
+  Component: sesión por cookie (`leerSesionPublicador()`; sin sesión →
+  `/yo`, no `/registro`; ver el gap de Bearer arriba). Muestra el nº real
+  de seguidores del perfil y una tabla por evento propio con vistas
+  (`vistas_evento`) y denuncias (`reportes`) — conteos crudos y privados,
+  la excepción que "Línea roja" ya documenta. Accesos a "Publicar evento" y
+  "Mis eventos"; "Editar perfil" y "Ver mi perfil público" están marcados
+  **"pronto"**, sin enlazar todavía. Botón "Cerrar sesión" → `POST
+  /api/registro/logout`.
+- `/perfil` — vista **privada** del dueño (Sesión 13). **Ahora es Client
+  Component** (antes Server Component): pasó a `useCuentaPublicador()`
+  (Bearer de Google) + `GET /api/publicador/perfil` (mismo Bearer, sin
+  fallback a cookie) para traer sus datos. Sin perfil →
+  `envivo-publisher.imsoluciones.com/registro`. Toda escritura sigue por
+  `POST /api/publicador/perfil/editar` (service_role). Pendiente menor: al
+  pasar a Client Component se perdió el `metadata` de la página (título +
+  `robots noindex`), igual que en `/yo`.
   - Paso 5: muestra el número **real** de seguidores, aunque sea < 25 (en
     `/p/[slug]` público sigue oculto por debajo de 25).
   - Paso 7: edita **nombre** (libre) e **Instagram + WhatsApp público** con
@@ -283,25 +321,14 @@ Twilio Verify + correo por Mailgun):**
     `POST /api/publicador/perfil/editar` (service_role) que **revalida el
     candado** con el valor de la base, no confía en el frontend; al cambiar
     IG/WA pone `ultimo_cambio_contacto = now()`. Helper `candadoContacto()` +
-    `VENTANA_CANDADO_DIAS` en `lib/registroPublicador.ts`. Sigue la pantalla
-    8 de `envivo-grupo2-publicador.html`.
-- **SMS:** el código lo generan, expiran y limitan del lado de Twilio;
-  EnVivo solo hace dos llamadas HTTP a su API (sin SDK). No hay confirmación
-  manual ni webhook: se borró `/admin/registro` y `/api/wa/webhook` al
-  cambiar de `wa.me` a Twilio Verify. Env: `TWILIO_ACCOUNT_SID`,
-  `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` (servicio de Verify
-  configurado con "Code Length = 4"). El Sender de Meta que se configuró en
-  Twilio queda sin usar.
-- **Correo:** no pasa por Twilio Verify — Twilio Verify nunca llegó a usar
-  SendGrid para esto. Es un endpoint propio (`lib/codigoCorreo.ts`): genera
-  el código, lo guarda hasheado (HMAC) en la tabla `codigos_correo` y lo
-  manda directo por **Mailgun**. Env: `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`,
-  `MAILGUN_FROM`, `CODIGO_CORREO_SECRET` (`MAILGUN_API_BASE` es opcional,
-  tiene default).
+    `VENTANA_CANDADO_DIAS` en `lib/candadoContacto.ts` (antes en
+    `registroPublicador.ts`, borrado). Sigue la pantalla 8 de
+    `envivo-grupo2-publicador.html`.
 - `perfiles`: columnas `admin_nombre`, `admin_apellido`, `admin_edad` (CHECK
   14–120), `correo_admin`, `correo_verificado` (migración
-  `envivo_perfiles_admin_y_correo`). Son PII: **sin grant a `anon`/
-  `authenticated`**, solo se escriben/leen por service_role.
+  `envivo_perfiles_admin_y_correo`) — las escribe `envivo-publisher` al dar
+  de alta, no este repo. Son PII: **sin grant a `anon`/`authenticated`**,
+  solo se escriben/leen por service_role.
 
 **Admin (solo yo):**
 7. `/admin` — login con teléfono + PIN
