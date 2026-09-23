@@ -28,6 +28,9 @@
 .input {
   flex: 1;
   min-width: 0;
+  /* 44 de alto táctil (HIG) dentro de la cápsula visible de 34. */
+  height: 44px;
+  margin: -5px 0;
   border: none;
   background: transparent;
   color: var(--texto);
@@ -36,7 +39,11 @@
   letter-spacing: 0;
 }
 .input:focus {
-  outline: none;
+  outline: none; /* el foco se marca en la cápsula entera (.campo) */
+}
+.campo:focus-within {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: 2px;
 }
 .input::placeholder {
   color: var(--texto-secundario);
@@ -47,6 +54,7 @@
 }
 
 .cerrar {
+  position: relative;
   flex-shrink: 0;
   width: 22px;
   height: 22px;
@@ -58,6 +66,12 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+/* Área táctil de 44×44 alrededor de la "×" de 22. */
+.cerrar::after {
+  content: "";
+  position: absolute;
+  inset: -11px;
 }
 .cerrar svg {
   width: 13px;

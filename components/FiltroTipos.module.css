@@ -6,7 +6,8 @@
 .fila {
   display: flex;
   gap: 8px;
-  padding: 2px 16px;
+  padding: 10px 16px;
+  margin: -8px 0;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -18,11 +19,19 @@
 .envuelta {
   flex-wrap: wrap;
   padding: 0;
+  margin: 0;
   overflow: visible;
+}
+.envuelta .chip {
+  min-height: 44px;
+}
+.envuelta .chip::after {
+  content: none;
 }
 
 .chip {
   composes: cristal from global;
+  position: relative;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -42,6 +51,13 @@
 /* Ícono en el color sólido de su categoría (--cat viene de [data-cat] en
    globals.css). Seleccionado: tinte suave de la categoría + borde del mismo
    color — nunca un círculo lleno (envivo-ui). */
+/* Área táctil de 44 de alto (HIG) alrededor del chip visible de 29
+   (27 dentro del borde + 2·9 = 45). */
+.chip::after {
+  content: "";
+  position: absolute;
+  inset: -9px 0;
+}
 .chip svg {
   width: 15px;
   height: 15px;

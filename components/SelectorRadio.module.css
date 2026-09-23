@@ -7,6 +7,7 @@
 
 .boton {
   composes: cristal from global;
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -20,6 +21,13 @@
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
+}
+/* Área táctil de 44 de alto (HIG) sin cambiar el tamaño visible de 34
+   (el ::after se mide desde dentro del borde de 1px: 32 + 2·6 = 44). */
+.boton::after {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
 }
 .boton svg {
   width: 16px;
@@ -49,7 +57,7 @@
 .deslizador {
   display: block;
   width: 100%;
-  height: 28px; /* área táctil cómoda alrededor del riel */
+  height: 44px; /* área táctil mínima (HIG) alrededor del riel */
   margin: 0;
   accent-color: var(--cian);
   cursor: pointer;

@@ -15,6 +15,13 @@
   cursor: pointer;
   pointer-events: auto;
 }
+/* Área táctil de 44×44 (HIG) sin cambiar el tamaño visible de 34
+   (el ::after se mide desde dentro del borde de 1px: 32 + 2·6 = 44). */
+.boton::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
 .boton svg {
   width: 17px;
   height: 17px;
@@ -28,14 +35,14 @@
   position: absolute;
   top: -4px;
   right: -4px;
-  min-width: 17px;
+  min-width: 18px;
   padding: 1px 5px;
   border-radius: 999px;
   background: var(--coral-boton);
   color: var(--sobre-coral);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  line-height: 15px;
+  line-height: 16px;
   text-align: center;
 }
 
@@ -119,7 +126,7 @@
   gap: 8px;
 }
 .opcion {
-  min-height: 36px;
+  min-height: 44px;
   padding: 8px 14px;
   border: 1px solid var(--separador);
   border-radius: 100px;

@@ -88,7 +88,8 @@
 /* ---------- chips de categoría: debajo de la barra de búsqueda ---------- */
 .tipos {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 54px);
+  /* 58: deja 44 táctiles al buscador (arriba) y a los chips sin pisarse */
+  top: calc(env(safe-area-inset-top) + 58px);
   left: 0;
   right: 0;
   z-index: 499;
@@ -98,7 +99,7 @@
 /* ---------- radio de búsqueda: debajo de los chips, a la derecha ---------- */
 .radio {
   position: absolute;
-  top: calc(env(safe-area-inset-top) + 96px);
+  top: calc(env(safe-area-inset-top) + 100px);
   right: 16px;
   z-index: 500; /* sobre chips (499) y mapa; bajo el buscador (501) */
   pointer-events: none;
