@@ -34,7 +34,6 @@ import Link from "next/link";
 import Buscador from "@/components/Buscador";
 import SelectorRadio from "@/components/SelectorRadio";
 import BotonUbicacion from "@/components/BotonUbicacion";
-import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
 import Filtros, { type EstadoFiltros } from "@/components/Filtros";
 import FiltroTipos from "@/components/FiltroTipos";
@@ -298,7 +297,6 @@ function ListaPantalla() {
       </div>
 
       <BotonUbicacion activo={enMiUbicacion} onUbicacion={irAMiUbicacion} />
-      <BarraPestanas />
     </div>
   );
 }

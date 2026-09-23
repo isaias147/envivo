@@ -19,6 +19,15 @@
   backdrop-filter: var(--cristal-blur);
   border: 0.5px solid var(--separador);
   box-shadow: var(--sombra);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+/* Teclado abierto: baja y se desvanece (inert en el TSX le quita foco y
+   toques). */
+.barra[data-oculta] {
+  transform: translateY(calc(100% + 8px));
+  opacity: 0;
 }
 
 .pestana {

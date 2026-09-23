@@ -182,8 +182,13 @@ estilo de la skill `envivo-ui`): Inicio `/` · Listas `/lista` · Seguidos
 Estilo Instagram (sesión 7): solo íconos, el nombre va en
 `aria-label`; activa = ícono relleno en `--texto`, inactivas en contorno.
 **Sin coral** (el badge va invertido: `--texto` de fondo, `--fondo` de
-número). En ≥768px, cápsula de 448px dentro de la columna de 480px. Está en esas cuatro
-pantallas. Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
+número). En ≥768px, cápsula de 448px dentro de la columna de 480px. Está en **todas** las pantallas,
+sin excepción (admin incluido): vive en `app/layout.tsx`, y cada pantalla
+reserva abajo `env(safe-area-inset-bottom) + var(--barra-inf)`. Fuera de
+las cuatro pestañas no se marca ninguna. Con el teclado abierto
+(`visualViewport` > 150px más bajo que la ventana) se oculta y queda
+`inert`; al cerrarlo vuelve. Las hojas modales van en `z-index` 1000,
+sobre la barra (700). Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
 Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
 marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
 `--barra-inf` = 64 (cápsula + aire; sin safe-area): todo lo que va

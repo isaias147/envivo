@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
+import BarraPestanas from "@/components/BarraPestanas";
 import RestaurarScrollLogin from "@/components/RestaurarScrollLogin";
 
 // La interfaz usa la fuente del sistema (globals.css). Plus Jakarta Sans se
@@ -40,6 +41,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" className={jakarta.variable}>
       <body>
         {children}
+        {/* En todas las pantallas; cada una reserva abajo
+            env(safe-area-inset-bottom) + var(--barra-inf). */}
+        <BarraPestanas />
         <RegisterSW />
         <RestaurarScrollLogin />
       </body>

@@ -13,7 +13,6 @@ import { supabase } from "@/lib/supabase";
 import { horaCali } from "@/lib/eventos";
 import { useSeguidos, type EventoSeguido } from "@/lib/siguiendo";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
-import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
 import styles from "./page.module.css";
 
@@ -126,7 +125,6 @@ export default function Siguiendo() {
         descripcion="Con tu cuenta ves acá a los locales, organizadores y artistas que sigues y recibes un aviso cuando publican algo nuevo."
       />
 
-      <BarraPestanas />
     </div>
   );
 }

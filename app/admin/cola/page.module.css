@@ -5,7 +5,8 @@
 .pantalla {
   min-height: 100dvh;
   background: var(--fondo);
-  padding: 28px 16px 70px;
+  /* aire para la barra de pestañas flotante (app/layout.tsx) */
+  padding: 28px 16px calc(env(safe-area-inset-bottom) + var(--barra-inf) + 70px);
 }
 
 .taller {

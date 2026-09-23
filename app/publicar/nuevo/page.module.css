@@ -5,6 +5,8 @@
 .pantalla {
   min-height: 100dvh;
   background: var(--fondo);
+  /* aire para la barra de pestañas flotante (app/layout.tsx) */
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf));
 }
 
 .marco {
@@ -554,7 +556,7 @@
 .velo {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000; /* como las demás hojas: sobre la barra de pestañas (700) */
   background: var(--velo);
   display: flex;
   align-items: flex-end;

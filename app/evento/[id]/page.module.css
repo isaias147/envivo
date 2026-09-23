@@ -4,6 +4,8 @@
 .pantalla {
   min-height: 100dvh;
   background: var(--fondo);
+  /* aire para la barra de pestañas flotante (app/layout.tsx) */
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf));
 }
 
 .marco {

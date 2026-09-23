@@ -120,7 +120,8 @@
   right: 0;
   bottom: 0;
   z-index: 500;
-  padding: 0 16px calc(env(safe-area-inset-bottom) + 24px);
+  /* encima de la barra de pestañas flotante */
+  padding: 0 16px calc(env(safe-area-inset-bottom) + var(--barra-inf) + 24px);
   pointer-events: none;
 }
 
@@ -143,7 +144,7 @@
 .atribucion {
   position: absolute;
   right: 8px;
-  bottom: calc(env(safe-area-inset-bottom) + 4px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 6px);
   z-index: 400;
   padding: 2px 7px;
   border-radius: 8px;

@@ -1,14 +1,15 @@
 "use client";
 
-// Barra de pestañas inferior fija: Inicio (/) · Listas (/lista) ·
-// Seguidos (/siguiendo) · Perfil (/yo). Reemplaza la navegación de
+// Barra de pestañas flotante, en TODAS las pantallas (va en app/layout.tsx):
+// Inicio (/) · Listas (/lista) · Seguidos (/siguiendo) · Perfil (/yo).
+// Se esconde mientras el teclado está abierto (useTecladoAbierto). Reemplaza la navegación de
 // BarraFlotante (ya borrada: la ubicación es BotonUbicacion y el radio,
 // SelectorRadio).
 // Estilo Instagram con la skill envivo-ui: solo íconos (el nombre va en
 // aria-label), cristal con línea fina arriba, activa = ícono relleno en
 // --texto. Sin coral: el globito de Seguidos va invertido.
 
-import { Suspense } from "react";
+import { Suspense, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSeguidos } from "@/lib/siguiendo";
@@ -51,7 +52,26 @@ const IconoPerfil = ({ relleno }: PropsIcono) => (
   </svg>
 );
 
+// Teclado abierto = el área visible (visualViewport) quedó más de 150px
+// por debajo de la ventana. Sirve en iOS y Android, y también cuando el
+// teclado se cierra con "atrás" sin salir del campo.
+function tecladoAbierto() {
+  const vv = window.visualViewport;
+  return vv != null && window.innerHeight - vv.height > 150;
+}
+function useTecladoAbierto() {
+  return useSyncExternalStore(
+    (avisar) => {
+      window.visualViewport?.addEventListener("resize", avisar);
+      return () => window.visualViewport?.removeEventListener("resize", avisar);
+    },
+    tecladoAbierto,
+    () => false,
+  );
+}
+
 function BarraPestanasContenido() {
+  const teclado = useTecladoAbierto();
   const path = usePathname();
   const sp = useSearchParams();
   const { items } = useSeguidos();
@@ -69,7 +89,12 @@ function BarraPestanasContenido() {
   ];
 
   return (
-    <nav className={styles.barra} aria-label="Navegación principal">
+    <nav
+      className={styles.barra}
+      aria-label="Navegación principal"
+      data-oculta={teclado || undefined}
+      inert={teclado}
+    >
       {pestanas.map(({ href, query, etiqueta, Icono, badge }) => {
         const activa = path === href;
         return (
