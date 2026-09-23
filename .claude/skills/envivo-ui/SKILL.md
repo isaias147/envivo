@@ -21,7 +21,8 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
 - **Coral = acción principal** (botón primario, pestaña activa, filtro seleccionado). Un solo elemento coral fuerte por pantalla.
 - **Cian = solo ubicación** (tu posición, radio de búsqueda, botón "mi ubicación"). Nunca decoración.
 - **Categorías** = chip con tinte suave de fondo + punto o ícono del color sólido. Nunca círculos llenos.
-- **Estados** (éxito/advertencia/error) siempre con ícono + texto, nunca solo color. Error y la categoría Otros son tonos cercanos: el ícono es obligatorio para distinguirlos.
+  Tokens `--cat-*` = las 6 categorías reales de la app (`TIPOS_EVENTO` en `lib/eventos.ts`): musica (Música en vivo), clase (Clase o taller), recreativo, cultural, deportivo, espiritual.
+- **Estados** (éxito/advertencia/error) siempre con ícono + texto, nunca solo color. Error y la categoría Espiritual son tonos cercanos: el ícono es obligatorio para distinguirlos.
 - Superficies agrupadas (listas dentro de tarjetas redondeadas). Barras translúcidas con desenfoque.
 
 ## Tokens (CSS)
@@ -42,11 +43,11 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --cian: #32C8E8;
 
   --cat-musica: #E45BD0;
-  --cat-deportes: #3FBF7F;
-  --cat-comida: #E0A33A;
-  --cat-cultura: #9B7BF0;
-  --cat-noche: #5B8CFF;
-  --cat-otros: #EE8043;
+  --cat-deportivo: #3FBF7F;
+  --cat-clase: #E0A33A;
+  --cat-cultural: #9B7BF0;
+  --cat-recreativo: #5B8CFF;
+  --cat-espiritual: #EE8043;
   --tinte-alfa: 0.18;              /* fondo de chip = color de categoría a 18% */
 
   --exito: #3DDC97;
@@ -65,11 +66,11 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --cian: #0A7EA0;
 
   --cat-musica: #B83AA6;
-  --cat-deportes: #1E9A5E;
-  --cat-comida: #B87A10;
-  --cat-cultura: #7A55E0;
-  --cat-noche: #2F66E0;
-  --cat-otros: #D0611F;
+  --cat-deportivo: #1E9A5E;
+  --cat-clase: #B87A10;
+  --cat-cultural: #7A55E0;
+  --cat-recreativo: #2F66E0;
+  --cat-espiritual: #D0611F;
   --tinte-alfa: 0.12;
 
   /* Estados en claro: propuestos, verificar contraste ≥ 4.5:1 sobre #FFFFFF */
