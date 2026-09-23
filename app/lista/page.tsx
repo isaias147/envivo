@@ -30,6 +30,7 @@ import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import BarraPestanas from "@/components/BarraPestanas";
+import Logo from "@/components/Logo";
 import FiltroEdad from "@/components/FiltroEdad";
 import FiltroTipos from "@/components/FiltroTipos";
 import styles from "./page.module.css";
@@ -283,7 +284,7 @@ function ListaPantalla() {
       <div
         className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
       >
-        En<i>Vivo</i>
+        <Logo />
       </div>
 
       <BarraFlotante ubicacionLista={{ radioKm, onCambiar: elegirRadio }} />

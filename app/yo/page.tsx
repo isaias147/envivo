@@ -16,6 +16,7 @@ import { salir } from "@/lib/authUsuario";
 import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
 import BarraPestanas from "@/components/BarraPestanas";
+import Logo from "@/components/Logo";
 import styles from "./page.module.css";
 
 export default function Yo() {
@@ -105,7 +106,7 @@ export default function Yo() {
     <div className={styles.pantalla}>
       <header className={styles.top}>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
       </header>
 

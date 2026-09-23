@@ -32,7 +32,7 @@ type Props = {
   objetivo?: { lat: number; lng: number; id: number } | null;
 };
 
-// El pin del mockup: etiqueta latón "Aquí" con su pie.
+// El pin del mockup: etiqueta coral "Aquí" con su pie (acción principal).
 const ICONO_AQUI = L.divIcon({
   className: "",
   iconSize: [0, 0],
@@ -41,9 +41,9 @@ const ICONO_AQUI = L.divIcon({
     <div style="position:absolute;left:0;top:0;transform:translate(-50%,-100%);
                 display:flex;flex-direction:column;align-items:center;cursor:grab;">
       <span style="font-family:var(--fuente-titulo),sans-serif;font-weight:700;
-                   font-size:11px;background:#FFB627;color:#231A00;padding:4px 9px;
+                   font-size:11px;background:var(--coral-boton);color:var(--sobre-coral);padding:4px 9px;
                    border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.35);">Aquí</span>
-      <span style="display:block;width:1px;height:13px;background:#FFB627;"></span>
+      <span style="display:block;width:1px;height:13px;background:var(--coral-boton);"></span>
     </div>`,
 });
 

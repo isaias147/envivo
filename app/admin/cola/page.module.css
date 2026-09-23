@@ -4,15 +4,15 @@
 
 .pantalla {
   min-height: 100dvh;
-  background: #0d0f26;
+  background: var(--fondo);
   padding: 28px 16px 70px;
 }
 
 .taller {
   max-width: 1120px;
   margin: 0 auto;
-  background: var(--noche);
-  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
   border-radius: 16px;
   overflow: hidden;
 }
@@ -24,22 +24,22 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
 }
 
 .marca {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 17px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }
 .marca i {
-  color: var(--laton);
+  color: var(--texto);
   font-style: normal;
 }
 .marca em {
   font-style: normal;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-weight: 400;
   font-size: 13px;
   font-family: var(--fuente-cuerpo);
@@ -60,9 +60,9 @@
 }
 
 .p {
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   background: transparent;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13px;
@@ -73,9 +73,9 @@
   white-space: nowrap;
 }
 .p[aria-pressed="true"] {
-  background: var(--hueso);
-  color: var(--noche);
-  border-color: var(--hueso);
+  background: var(--texto);
+  color: var(--fondo);
+  border-color: var(--texto);
   font-weight: 600;
 }
 .p b {
@@ -84,9 +84,9 @@
 }
 
 .salir {
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   background: transparent;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-size: 13px;
   padding: 7px 14px;
@@ -94,8 +94,8 @@
   cursor: pointer;
 }
 .salir:hover {
-  color: var(--hueso);
-  border-color: var(--hueso-tenue);
+  color: var(--texto);
+  border-color: var(--texto-secundario);
 }
 
 .cola {
@@ -103,14 +103,14 @@
 }
 
 .nota {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 14px;
   padding: 40px 4px;
 }
 .reintentar {
   background: transparent;
   border: 0;
-  color: var(--laton);
+  color: var(--coral-texto);
   font-family: var(--fuente-cuerpo);
   font-size: 14px;
   cursor: pointer;
@@ -120,16 +120,16 @@
 .vacio {
   text-align: center;
   padding: 56px 20px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 14px;
   line-height: 1.7;
 }
 .vacio b {
   display: block;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 19px;
-  color: var(--hueso);
+  color: var(--texto);
   margin-bottom: 8px;
   letter-spacing: -0.02em;
 }
@@ -146,8 +146,8 @@
   flex-wrap: wrap;
 }
 .tarjeta.fusion {
-  border-color: rgba(255, 182, 39, 0.45);
-  background: rgba(255, 182, 39, 0.05);
+  border-color: color-mix(in srgb, var(--advertencia) 45%, transparent);
+  background: color-mix(in srgb, var(--advertencia) 5%, transparent);
 }
 
 .flyer {
@@ -156,7 +156,7 @@
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--noche-2);
+  background: var(--superficie);
 }
 .flyer img {
   width: 100%;
@@ -170,7 +170,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 12px;
 }
 
@@ -188,14 +188,14 @@
 }
 .hora {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 21px;
-  color: var(--laton);
-  letter-spacing: -0.03em;
+  color: var(--texto);
+  letter-spacing: -0.025em;
 }
 .cuando {
   font-size: 12.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 .cuerpo h3 {
@@ -208,7 +208,7 @@
 
 .desc {
   font-size: 13px;
-  color: #cfccc2;
+  color: var(--texto);
   line-height: 1.6;
   margin-top: 8px;
   max-width: 62ch;
@@ -224,31 +224,31 @@
   font-size: 11.5px;
   padding: 3px 9px;
   border-radius: 4px;
-  background: var(--noche-3);
-  color: var(--hueso);
+  background: var(--separador);
+  color: var(--texto);
 }
 .tg.libre {
-  background: rgba(95, 214, 160, 0.15);
-  color: var(--cana);
+  background: var(--exito-tinte);
+  color: var(--exito);
 }
 .tg.serie {
-  background: rgba(255, 182, 39, 0.14);
-  color: var(--laton);
+  background: var(--separador);
+  color: var(--texto-secundario);
 }
 .tg.alerta {
-  background: rgba(255, 94, 91, 0.14);
-  color: var(--coral);
+  background: var(--error-tinte);
+  color: var(--error);
 }
 
 .fechas {
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 9px;
   line-height: 1.7;
 }
 .fechas span {
   display: inline-block;
-  background: var(--noche-2);
+  background: var(--superficie);
   border-radius: 4px;
   padding: 2px 7px;
   margin: 2px 4px 2px 0;
@@ -256,19 +256,19 @@
 
 .quien {
   font-size: 12.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 12px;
   line-height: 1.7;
-  border-top: 1px solid var(--linea);
+  border-top: 1px solid var(--separador);
   padding-top: 11px;
   word-break: break-word;
 }
 .quien b {
-  color: var(--hueso);
+  color: var(--texto);
   font-weight: 500;
 }
 .quien a {
-  color: var(--laton);
+  color: var(--coral-texto);
 }
 
 .mapita {
@@ -278,8 +278,8 @@
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  border: 1px solid var(--linea);
-  background: #1a1f47;
+  border: 1px solid var(--separador);
+  background: var(--fondo);
 }
 
 .mapaCargando {
@@ -288,7 +288,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 11px;
 }
 /* ---------- acciones ---------- */
@@ -301,8 +301,8 @@
   margin-top: 16px;
 }
 .si {
-  background: var(--cana);
-  color: #0a2b1c;
+  background: var(--exito);
+  color: var(--fondo);
   border: 0;
   font-family: var(--fuente-titulo);
   font-weight: 700;
@@ -313,8 +313,8 @@
 }
 .no {
   background: transparent;
-  border: 1px solid var(--linea);
-  color: var(--hueso-tenue);
+  border: 1px solid var(--separador);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-size: 13.5px;
   padding: 11px 18px;
@@ -322,12 +322,12 @@
   cursor: pointer;
 }
 .no:hover {
-  border-color: var(--coral);
-  color: var(--coral);
+  border-color: var(--error);
+  color: var(--error);
 }
 .mezcla {
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-tinte);
+  color: var(--coral-texto);
   border: 0;
   font-family: var(--fuente-titulo);
   font-weight: 700;
@@ -338,8 +338,8 @@
 }
 .ver {
   background: transparent;
-  border: 1px solid var(--linea);
-  color: var(--hueso);
+  border: 1px solid var(--separador);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-size: 13.5px;
   padding: 11px 18px;
@@ -347,7 +347,7 @@
   cursor: pointer;
 }
 .ver:hover {
-  border-color: var(--hueso-tenue);
+  border-color: var(--texto-secundario);
 }
 .si:disabled,
 .no:disabled,
@@ -362,9 +362,9 @@
 .motivo {
   width: 100%;
   max-width: 420px;
-  background: var(--noche-2);
-  border: 1px solid var(--linea);
-  color: var(--hueso);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-size: 13.5px;
   padding: 10px 12px;
@@ -372,7 +372,7 @@
   outline: none;
 }
 .motivo:focus {
-  border-color: var(--laton);
+  border-color: var(--coral-texto);
 }
 .rechazoCaja .acciones {
   margin-top: 10px;
@@ -382,12 +382,12 @@
 
 .otrosNota {
   font-size: 12.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 12px;
 }
 .otros {
   margin-top: 12px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 9px;
   overflow: hidden;
 }
@@ -397,18 +397,18 @@
   gap: 10px;
   padding: 9px 12px;
   font-size: 12.5px;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
 }
 .otroItem:last-child {
   border-bottom: 0;
 }
 .otroFecha {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   white-space: nowrap;
 }
 .otroTitulo {
   flex: 1;
-  color: var(--hueso);
+  color: var(--texto);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -417,28 +417,28 @@
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--noche-3);
-  color: var(--hueso-tenue);
+  background: var(--separador);
+  color: var(--texto-secundario);
   white-space: nowrap;
 }
 .e_aprobado {
-  background: rgba(95, 214, 160, 0.15);
-  color: var(--cana);
+  background: var(--exito-tinte);
+  color: var(--exito);
 }
 .e_rechazado {
-  background: rgba(255, 94, 91, 0.14);
-  color: var(--coral);
+  background: var(--error-tinte);
+  color: var(--error);
 }
 .e_pendiente {
-  background: rgba(255, 182, 39, 0.14);
-  color: var(--laton);
+  background: var(--advertencia-tinte);
+  color: var(--advertencia);
 }
 
 /* ---------- fusión ---------- */
 
 .avisoFusion {
   font-size: 12.5px;
-  color: var(--laton);
+  color: var(--advertencia);
   line-height: 1.6;
   margin-bottom: 14px;
   width: 100%;
@@ -452,13 +452,13 @@
 .mitad {
   flex: 1;
   min-width: 230px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 9px;
   padding: 13px;
 }
 .mitad small {
   font-size: 11.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   display: block;
   margin-bottom: 7px;
 }
@@ -471,7 +471,7 @@
 }
 .mitad p {
   font-size: 12.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 5px;
   line-height: 1.6;
   word-break: break-word;

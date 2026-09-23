@@ -3,7 +3,7 @@
 
 .pantalla {
   min-height: 100dvh;
-  background: var(--noche);
+  background: var(--fondo);
   max-width: 480px;
   margin: 0 auto;
   padding-bottom: calc(var(--barra-inf) + env(safe-area-inset-bottom) + 8px);
@@ -17,18 +17,14 @@
 }
 .marca {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 18px;
-  letter-spacing: -0.03em;
-}
-.marca i {
-  color: var(--laton);
-  font-style: normal;
+  letter-spacing: -0.025em;
 }
 
 .titulo {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 19px;
   letter-spacing: -0.02em;
   padding: 6px 18px 14px;
@@ -37,21 +33,21 @@
 .info {
   padding: 20px 18px;
   font-size: 13.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 /* ---------- estado sin sesión ---------- */
 .vacio {
   padding: 56px 34px 0;
   text-align: center;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 13.5px;
   line-height: 1.65;
 }
 .entrar {
   margin-top: 20px;
-  background: var(--hueso);
-  color: var(--noche);
+  background: var(--texto);
+  color: var(--fondo);
   border: 0;
   padding: 12px 18px;
   border-radius: 10px;
@@ -67,7 +63,7 @@
   gap: 13px;
   align-items: center;
   padding: 14px 18px 18px;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
 }
 .avatar {
   width: 50px;
@@ -75,14 +71,14 @@
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--noche-3);
+  background: var(--separador);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 20px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .avatar img {
   width: 100%;
@@ -100,7 +96,7 @@
 }
 .email {
   font-size: 11.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,9 +112,9 @@
   width: 100%;
   padding: 15px 18px;
   border: 0;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-size: 13.5px;
   text-align: left;
@@ -127,15 +123,15 @@
 .fila span small {
   display: block;
   font-size: 11px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 3px;
 }
 .flecha {
   flex-shrink: 0;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .rojo {
-  color: var(--coral);
+  color: var(--error);
 }
 
 /* ---------- switch ---------- */
@@ -144,7 +140,7 @@
   height: 24px;
   flex-shrink: 0;
   border-radius: 12px;
-  background: var(--noche-3);
+  background: var(--separador);
   position: relative;
   transition: background 0.15s ease;
 }
@@ -156,11 +152,11 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--hueso);
+  background: var(--texto);
   transition: left 0.15s ease;
 }
 .switchOn {
-  background: var(--cana);
+  background: var(--exito);
 }
 .switchOn::after {
   left: 19px;
@@ -173,13 +169,13 @@
 .borrarCaja p {
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-bottom: 14px;
 }
 .borrarConfirm {
   width: 100%;
-  background: var(--coral);
-  color: var(--hueso);
+  background: var(--error);
+  color: var(--fondo);
   border: 0;
   padding: 12px;
   border-radius: 10px;
@@ -197,14 +193,14 @@
   margin-top: 8px;
   background: transparent;
   border: 0;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-size: 13px;
   padding: 8px;
   cursor: pointer;
 }
 .error {
-  color: var(--coral);
+  color: var(--error);
   font-size: 12.5px;
   line-height: 1.5;
   margin-top: 10px;

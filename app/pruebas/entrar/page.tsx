@@ -18,13 +18,13 @@ export default function PruebaEntrar() {
         margin: "0 auto",
         padding: "40px 20px",
         fontFamily: "var(--fuente-cuerpo)",
-        color: "var(--hueso)",
+        color: "var(--texto)",
       }}
     >
       <h1 style={{ fontFamily: "var(--fuente-titulo)", fontSize: 22 }}>
         Prueba · Modal “Entrar con Google”
       </h1>
-      <p style={{ color: "var(--hueso-tenue)", fontSize: 13.5, lineHeight: 1.6 }}>
+      <p style={{ color: "var(--texto-secundario)", fontSize: 13.5, lineHeight: 1.6 }}>
         Página temporal (Sesión 14, paso 1). El modal no está conectado a nada
         todavía.
       </p>
@@ -44,8 +44,8 @@ export default function PruebaEntrar() {
         type="button"
         onClick={() => setAbierto(true)}
         style={{
-          background: "var(--laton)",
-          color: "var(--noche)",
+          background: "var(--coral-boton)",
+          color: "var(--sobre-coral)",
           border: 0,
           borderRadius: 10,
           padding: "12px 18px",
@@ -65,8 +65,8 @@ export default function PruebaEntrar() {
           style={{
             marginLeft: 12,
             background: "transparent",
-            color: "var(--hueso-tenue)",
-            border: "1px solid var(--linea)",
+            color: "var(--texto-secundario)",
+            border: "1px solid var(--separador)",
             borderRadius: 10,
             padding: "12px 18px",
             fontSize: 13,

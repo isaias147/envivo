@@ -3,7 +3,7 @@
 
 .pantalla {
   min-height: 100dvh;
-  background: var(--noche);
+  background: var(--fondo);
 }
 
 .marco {
@@ -21,7 +21,7 @@
   z-index: 5;
   padding: 8px 14px;
   border-radius: 100px;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13px;
@@ -31,7 +31,7 @@
 
 .mensaje {
   padding: 90px 24px 0;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 14px;
   line-height: 1.6;
   text-align: center;
@@ -42,7 +42,7 @@
   position: relative;
   height: 250px;
   overflow: hidden;
-  background: var(--noche-2);
+  background: var(--superficie);
 }
 .cartel img {
   position: absolute;
@@ -56,8 +56,8 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    var(--noche) 4%,
-    rgba(22, 26, 61, 0.1) 55%
+    var(--fondo) 4%,
+    var(--barra) 55%
   );
 }
 
@@ -71,33 +71,33 @@
 
 .hora {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 38px;
   line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--laton);
+  letter-spacing: -0.025em;
+  color: var(--texto);
 }
 
 .fecha {
   margin-top: 7px;
   font-size: 13px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 .titulo {
   margin-top: 16px;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 25px;
   line-height: 1.13;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }
 
 .desc {
   margin-top: 13px;
   font-size: 14px;
   line-height: 1.65;
-  color: #dcd9ce;
+  color: var(--texto);
   white-space: pre-line;
 }
 
@@ -110,21 +110,21 @@
   gap: 12px;
   align-items: flex-start;
   padding: 14px 0;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
   font-size: 13.5px;
   line-height: 1.5;
 }
 .dato:first-child {
-  border-top: 1px solid var(--linea);
+  border-top: 1px solid var(--separador);
 }
 .dato b {
   flex-shrink: 0;
   width: 76px;
   font-weight: 400;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .gratis {
-  color: var(--cana);
+  color: var(--exito);
 }
 .edad18 {
   composes: edad18 from global;
@@ -151,8 +151,8 @@
   padding: 15px;
   border: 0;
   border-radius: 9px;
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-boton);
+  color: var(--sobre-coral);
   font-family: var(--fuente-titulo);
   font-weight: 700;
   font-size: 15px;
@@ -166,10 +166,10 @@
   justify-content: center;
   gap: 9px;
   padding: 14px;
-  border: 1px solid var(--hueso-tenue);
+  border: 1px solid var(--texto-secundario);
   border-radius: 9px;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-titulo);
   font-weight: 700;
   font-size: 14px;
@@ -183,10 +183,10 @@
 
 .sec {
   padding: 13px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 9px;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13.5px;
@@ -194,20 +194,20 @@
   text-align: center;
 }
 .sec:hover {
-  border-color: var(--hueso-tenue);
+  border-color: var(--texto-secundario);
 }
 
 /* ---------- publicado por ---------- */
 .autor {
   margin-top: 22px;
   padding-top: 16px;
-  border-top: 1px solid var(--linea);
+  border-top: 1px solid var(--separador);
 }
 .autor small {
   display: block;
   margin-bottom: 8px;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .autor > b {
   display: block;
@@ -229,12 +229,12 @@
   gap: 12px;
   margin-bottom: 12px;
   padding: 10px 12px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 12px;
-  background: var(--noche-2);
+  background: var(--superficie);
 }
 .perfilEnlace:hover {
-  border-color: var(--hueso-tenue);
+  border-color: var(--texto-secundario);
 }
 
 .perfilFoto {
@@ -243,14 +243,14 @@
   flex-shrink: 0;
   border-radius: 10px;
   overflow: hidden;
-  background: var(--noche-3);
+  background: var(--separador);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 16px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .perfilFoto img {
   width: 100%;
@@ -275,7 +275,7 @@
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 /* ---------- sitio web / boletos: acciones, no perfiles — van aparte,
@@ -288,10 +288,10 @@
 }
 .enlace {
   padding: 10px 14px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 9px;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13px;
@@ -299,7 +299,7 @@
   text-align: center;
 }
 .enlace:hover {
-  border-color: var(--hueso-tenue);
+  border-color: var(--texto-secundario);
 }
 
 .redes {
@@ -314,15 +314,15 @@
   padding: 7px 11px;
   border: 0;
   border-radius: 6px;
-  background: var(--noche-3);
-  color: var(--hueso);
+  background: var(--separador);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12.5px;
   letter-spacing: 0;
 }
 .red:hover {
-  background: #343b7c;
+  background: color-mix(in srgb, var(--texto) 18%, transparent);
 }
 .red svg {
   width: 13px;

@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { entrarConGoogle } from "@/lib/authUsuario";
+import Logo from "./Logo";
 import styles from "./ModalEntrarConGoogle.module.css";
 
 const TITULO_DEFECTO = "Entra a EnVivo";
@@ -76,6 +77,9 @@ export default function ModalEntrarConGoogle({
     >
       <div className={styles.hoja}>
         <div className={styles.asa} aria-hidden="true" />
+        <div className={styles.logo}>
+          <Logo soloSimbolo />
+        </div>
         <h2 id="modal-google-titulo" className={styles.titulo}>
           {titulo}
         </h2>

@@ -14,6 +14,7 @@ import { horaCali } from "@/lib/eventos";
 import { useSeguidos, type EventoSeguido } from "@/lib/siguiendo";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
 import BarraPestanas from "@/components/BarraPestanas";
+import Logo from "@/components/Logo";
 import styles from "./page.module.css";
 
 const ICONO_TIPO: Record<string, string> = {
@@ -54,7 +55,7 @@ export default function Siguiendo() {
     <div className={styles.pantalla}>
       <header className={styles.top}>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
       </header>
 

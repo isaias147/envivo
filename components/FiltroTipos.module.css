@@ -24,7 +24,7 @@
   border: none;
   border-radius: 100px;
   padding: 7px 14px 7px 10px;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12.5px;
@@ -33,13 +33,17 @@
   cursor: pointer;
   pointer-events: auto;
 }
+/* Ícono en el color sólido de su categoría (--cat viene de [data-cat] en
+   globals.css). Seleccionado: tinte suave de la categoría + borde del mismo
+   color — nunca un círculo lleno (envivo-ui). */
 .chip svg {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
+  color: var(--cat);
 }
 .chip[aria-pressed="true"] {
-  background: var(--laton);
-  color: #231a00;
+  background: var(--cat-tinte);
+  box-shadow: inset 0 0 0 1px var(--cat);
   font-weight: 600;
 }

@@ -1,53 +1,84 @@
 /* ===== EnVivo · variables globales ===== */
-/* Paleta de "cartelera de concierto" del CLAUDE.md. Fondo índigo, no negro. */
+/* Paleta 3a de envivo-ui (.claude/skills/envivo-ui/SKILL.md): manda sobre
+   cualquier otra indicación de diseño. Modo oscuro por defecto. Nada de
+   colores escritos a mano en los módulos: todo sale de acá. */
 :root {
-  /* Noche (fondos) */
-  --noche: #161a3d;
-  --noche-2: #1f2453;
-  --noche-3: #2a3068;
+  /* Marca — igual en ambos modos */
+  --coral-boton: #dc2a4a; /* fondo del botón primario (un solo coral fuerte por pantalla) */
+  --sobre-coral: #ffffff; /* texto sobre --coral-boton */
 
-  /* Acentos */
-  --laton: #ffb627; /* horas, CTA principal, estado activo. Nada más. */
-  --cana: #5fd6a0; /* gratis, en toda la app */
-  --coral: #ff5e5b;
+  /* Modo oscuro */
+  --fondo: #000000;
+  --superficie: #161618;
+  --texto: #f5f5f7;
+  --texto-secundario: #9a9aa1;
+  --separador: rgba(255, 255, 255, 0.1);
+  --barra: rgba(22, 22, 24, 0.72); /* + backdrop-filter: blur(20px) */
+  --coral-texto: #ff4d6a;
+  --cian: #32c8e8; /* solo ubicación */
 
-  /* Texto */
-  --hueso: #f4f1e8;
-  --hueso-tenue: #a7a9c4;
+  --cat-musica: #e45bd0;
+  --cat-deportivo: #3fbf7f;
+  --cat-clase: #e0a33a;
+  --cat-cultural: #9b7bf0;
+  --cat-recreativo: #5b8cff;
+  --cat-espiritual: #ee8043;
+  --tinte-alfa: 0.18; /* fondo de chip = color a 18% */
 
-  /* Líneas */
-  --linea: rgba(244, 241, 232, 0.14);
+  --exito: #3ddc97; /* también = gratis */
+  --advertencia: #ffc53d;
+  --error: #ff6a3d;
+
+  /* Derivados (mezclas de los tokens de arriba, no colores nuevos) */
+  --tinte: calc(var(--tinte-alfa) * 100%);
+  --coral-tinte: color-mix(in srgb, var(--coral-texto) var(--tinte), transparent);
+  --exito-tinte: color-mix(in srgb, var(--exito) var(--tinte), transparent);
+  --advertencia-tinte: color-mix(in srgb, var(--advertencia) var(--tinte), transparent);
+  --error-tinte: color-mix(in srgb, var(--error) var(--tinte), transparent);
+  --velo: color-mix(in srgb, var(--fondo) 65%, transparent); /* detrás de hojas modales */
 
   /* Alto de la barra de pestañas (components/BarraPestanas). Sin el
      safe-area: cada pantalla lo suma aparte donde hace falta. */
   --barra-inf: 56px;
 
-  /* Paleta 3a de envivo-ui (skill .claude/skills/envivo-ui). Por ahora solo
-     los tokens que usa la barra de pestañas; el resto de la app sigue en la
-     paleta índigo hasta su rediseño. */
-  --barra: rgba(22, 22, 24, 0.72); /* + backdrop-filter: blur(20px) */
-  --texto-secundario: #9a9aa1;
-  --coral-texto: #ff4d6a;
-  --coral-boton: #dc2a4a;
-  --separador: rgba(255, 255, 255, 0.1);
-
-  /* Cristal: superficies flotantes translúcidas (barras, paneles, tarjetas).
-     Nunca para botones de acción ni estados activos: esos van en latón sólido. */
-  --cristal-fondo: rgba(22, 26, 61, 0.38);
-  --cristal-blur: blur(20px) saturate(180%);
-  --cristal-borde: 1px solid rgba(244, 241, 232, 0.14);
+  /* Cristal: superficies flotantes translúcidas (barras, paneles, chips
+     sobre el mapa). Nunca para botones de acción ni estados activos. */
+  --cristal-fondo: var(--barra);
+  --cristal-blur: blur(20px);
+  --cristal-borde: 1px solid var(--separador);
   --cristal-sombra: 0 8px 32px rgba(0, 0, 0, 0.28);
 
-  /* Tipografía (las carga next/font en layout.tsx) */
-  --fuente-titulo: var(--font-archivo), system-ui, sans-serif;
-  --fuente-cuerpo: var(--font-instrument), system-ui, sans-serif;
+  /* Tipografía: fuente del sistema. Plus Jakarta Sans solo en el
+     logotipo (components/Logo, la carga next/font en layout.tsx). */
+  --fuente-sistema: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto,
+    "Segoe UI", sans-serif;
+  --fuente-titulo: var(--fuente-sistema);
+  --fuente-cuerpo: var(--fuente-sistema);
+  --fuente-logo: var(--font-jakarta), var(--fuente-sistema);
 }
 
 [data-theme="light"] {
-  --barra: rgba(250, 250, 252, 0.78);
+  --fondo: #f5f5f7;
+  --superficie: #ffffff;
+  --texto: #1d1d1f;
   --texto-secundario: #6e6e73;
-  --coral-texto: #c8243f;
   --separador: rgba(0, 0, 0, 0.08);
+  --barra: rgba(250, 250, 252, 0.78);
+  --coral-texto: #c8243f;
+  --cian: #0a7ea0;
+
+  --cat-musica: #b83aa6;
+  --cat-deportivo: #1e9a5e;
+  --cat-clase: #b87a10;
+  --cat-cultural: #7a55e0;
+  --cat-recreativo: #2f66e0;
+  --cat-espiritual: #d0611f;
+  --tinte-alfa: 0.12;
+
+  /* Estados en claro: propuestos, verificar contraste ≥ 4.5:1 sobre #FFFFFF */
+  --exito: #177a4f;
+  --advertencia: #a15c00;
+  --error: #d23f12;
 }
 
 * {
@@ -68,8 +99,8 @@ body {
 
 body {
   min-height: 100%;
-  background: var(--noche);
-  color: var(--hueso);
+  background: var(--fondo);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -78,11 +109,15 @@ body {
 h1,
 h2,
 h3,
-h4,
-button {
+h4 {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+button {
+  font-family: var(--fuente-cuerpo);
+  font-weight: 600;
 }
 
 a {
@@ -102,20 +137,42 @@ a {
 
 /* Restricción de edad: mismo tono en la tarjeta (TarjetaEvento) y en la
    ficha de detalle, reutilizadas con `composes: <clase> from global`.
-   edad18 = roja (+18); edadVerde = sin restricción / infantil;
+   edad18 = error (+18); edadVerde = sin restricción / infantil;
    edadAmarilla = +12 / +16. */
 .edad18 {
-  background: rgba(255, 94, 91, 0.15);
-  color: var(--coral);
+  background: var(--error-tinte);
+  color: var(--error);
   font-weight: 600;
 }
 .edadVerde {
-  background: rgba(95, 214, 160, 0.15);
-  color: var(--cana);
+  background: var(--exito-tinte);
+  color: var(--exito);
   font-weight: 600;
 }
 .edadAmarilla {
-  background: rgba(255, 182, 39, 0.15);
-  color: var(--laton);
+  background: var(--advertencia-tinte);
+  color: var(--advertencia);
   font-weight: 600;
+}
+
+/* Color de categoría: cualquier elemento con data-cat="<valor de
+   events.type>" recibe --cat (sólido) y --cat-tinte (fondo suave). Lo usan
+   los chips de FiltroTipos y la etiqueta de TarjetaEvento. */
+[data-cat] {
+  --cat: var(--texto-secundario);
+  --cat-tinte: color-mix(in srgb, var(--cat) var(--tinte), transparent);
+}
+[data-cat="musica_en_vivo"] { --cat: var(--cat-musica); }
+[data-cat="clase_taller"] { --cat: var(--cat-clase); }
+[data-cat="recreativo"] { --cat: var(--cat-recreativo); }
+[data-cat="cultural"] { --cat: var(--cat-cultural); }
+[data-cat="deportivo"] { --cat: var(--cat-deportivo); }
+[data-cat="espiritual"] { --cat: var(--cat-espiritual); }
+
+/* Círculo del radio de búsqueda en el mapa (Leaflet, className "radio-busqueda"):
+   cian = ubicación. Leaflet pinta atributos SVG, que no leen var(); el CSS
+   los pisa. */
+.radio-busqueda {
+  stroke: var(--cian);
+  fill: var(--cian);
 }

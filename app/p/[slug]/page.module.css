@@ -3,7 +3,7 @@
 
 .pantalla {
   min-height: 100dvh;
-  background: var(--noche);
+  background: var(--fondo);
 }
 
 .marco {
@@ -16,7 +16,7 @@
 /* ---------- cover + foto ---------- */
 .cover {
   height: 140px;
-  background: linear-gradient(135deg, var(--noche-3), var(--noche-2));
+  background: linear-gradient(135deg, var(--separador), var(--superficie));
   position: relative;
   margin: 0 0 -44px;
 }
@@ -28,14 +28,14 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(22, 26, 61, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--barra);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 15px;
-  color: var(--hueso);
+  color: var(--texto);
 }
 
 .foto {
@@ -45,16 +45,16 @@
   height: 80px;
   margin-left: 18px;
   border-radius: 18px;
-  border: 3px solid var(--noche);
-  background: var(--noche-3);
+  border: 3px solid var(--fondo);
+  background: var(--separador);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 30px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .foto img {
   width: 100%;
@@ -69,7 +69,7 @@
 
 .nombre {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 21px;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -81,23 +81,23 @@
   padding: 3px 10px;
   border-radius: 6px;
   font-size: 11.5px;
-  background: var(--noche-3);
-  color: var(--hueso-tenue);
+  background: var(--separador);
+  color: var(--texto-secundario);
 }
 
 .redes {
   margin-top: 8px;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .redes a:hover {
-  color: var(--hueso);
+  color: var(--texto);
 }
 
 .seguidores {
   margin-top: 8px;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 /* ---------- secciones de eventos ---------- */
@@ -106,13 +106,13 @@
   font-size: 11px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 .vacio {
   font-size: 13px;
   line-height: 1.6;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 .mapaCaja {
@@ -121,7 +121,7 @@
   border-radius: 12px;
   overflow: hidden;
   margin: 2px 0 14px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
 }
 
 .eventos {
@@ -133,11 +133,11 @@
   gap: 12px;
   align-items: baseline;
   padding: 9px 0;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
   color: inherit;
 }
 .fila:hover .nombreEv {
-  color: var(--hueso);
+  color: var(--texto);
 }
 .pasado {
   opacity: 0.4;
@@ -147,16 +147,16 @@
   flex-shrink: 0;
   width: 56px;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 14px;
-  color: var(--laton);
+  color: var(--texto);
 }
 .hora.gratis {
-  color: var(--cana);
+  color: var(--exito);
 }
 
 .nombreEv {
   font-size: 13.5px;
   line-height: 1.4;
-  color: #dcd9ce;
+  color: var(--texto);
 }

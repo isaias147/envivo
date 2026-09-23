@@ -76,34 +76,35 @@ function zoomPorRadio(radioKm: number): number {
   return 13;
 }
 
-// Punto de referencia arrastrable: un aro latón sobre un núcleo latón.
+// Punto de referencia arrastrable: un aro cian sobre un núcleo cian
+// (cian = ubicación, envivo-ui).
 const ICONO_UBICACION = L.divIcon({
   className: "",
   iconSize: [24, 24],
   iconAnchor: [12, 12],
   html: `
     <div style="width:24px;height:24px;border-radius:50%;
-                background:rgba(255,182,39,.22);display:flex;
+                background:color-mix(in srgb,var(--cian) 22%,transparent);display:flex;
                 align-items:center;justify-content:center;cursor:grab;">
-      <div style="width:12px;height:12px;border-radius:50%;background:#FFB627;
-                  border:2px solid var(--noche);
-                  box-shadow:0 0 0 1px rgba(255,182,39,.6);"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:var(--cian);
+                  border:2px solid var(--fondo);
+                  box-shadow:0 0 0 1px color-mix(in srgb,var(--cian) 60%,transparent);"></div>
     </div>`,
 });
 
 /**
  * El pin del mockup: una etiqueta con hora + nombre y un pie.
- * Índigo normal, verde si es gratis, latón si está seleccionado.
+ * Neutro normal, verde (--exito) si es gratis, coral si está seleccionado.
  */
 function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
   const { hhmm } = horaCali(ev.starts_at);
   const nombre =
     ev.title.length > 20 ? `${ev.title.slice(0, 20).trim()}…` : ev.title;
-  // Chip claro por defecto (como el mockup), verde si es gratis, latón si
-  // está seleccionado. El texto siempre va índigo: se lee sobre los tres
-  // fondos y sobre el mapa oscuro (Alidade Smooth Dark).
-  const fondo = activo ? "#FFB627" : ev.is_free ? "#5FD6A0" : "#F4F1E8";
-  const texto = "#161A3D";
+  // Tokens de envivo-ui: superficie neutra con borde (para despegarse del
+  // mapa oscuro), verde si es gratis, coral fuerte si está seleccionado.
+  const fondo = activo ? "var(--coral-boton)" : ev.is_free ? "var(--exito)" : "var(--superficie)";
+  const texto = activo ? "var(--sobre-coral)" : ev.is_free ? "var(--fondo)" : "var(--texto)";
+  const borde = activo || ev.is_free ? "transparent" : "var(--separador)";
   const tamHora = activo ? 13 : 11.5;
   const tamNombre = activo ? 12 : 11;
   const anchoMax = activo ? 168 : 132;
@@ -116,6 +117,7 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
       <div style="font-family:var(--fuente-titulo),sans-serif;font-weight:700;
                   font-size:${tamHora}px;letter-spacing:-.01em;background:${fondo};
                   color:${texto};padding:${pad};border-radius:5px;display:flex;
+                  border:1px solid ${borde};
                   align-items:baseline;gap:6px;max-width:${anchoMax}px;
                   box-shadow:0 2px 8px rgba(0,0,0,.35);">
         <span>${escaparHtml(hhmm)}</span>
@@ -379,10 +381,10 @@ export default function Mapa({
         center={[centro.lat, centro.lng]}
         radius={radioKm * 1000}
         pathOptions={{
-          color: "#FFB627",
+          // El color lo pone .radio-busqueda (globals.css): cian = ubicación.
+          className: "radio-busqueda",
           weight: 1,
           opacity: 0.5,
-          fillColor: "#FFB627",
           fillOpacity: 0.05,
           dashArray: "3 6",
         }}

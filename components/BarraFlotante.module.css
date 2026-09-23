@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--hueso);
+  color: var(--texto);
   cursor: pointer;
 }
 .circulo svg {
@@ -75,7 +75,7 @@
   border: none;
   border-radius: 100px;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12.5px;
@@ -84,7 +84,7 @@
   cursor: pointer;
 }
 .opcionKm[aria-pressed="true"] {
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-tinte);
+  color: var(--coral-texto);
   font-weight: 600;
 }

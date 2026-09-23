@@ -1,22 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Instrument_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
 import RestaurarScrollLogin from "@/components/RestaurarScrollLogin";
 
-// Archivo: títulos, horas y botones principales (700/800)
-const archivo = Archivo({
-  variable: "--font-archivo",
+// La interfaz usa la fuente del sistema (globals.css). Plus Jakarta Sans se
+// carga solo para el logotipo (components/Logo), como pide envivo-ui.
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["700", "800"],
-  display: "swap",
-});
-
-// Instrument Sans: cuerpo y datos
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["500", "700"],
   display: "swap",
 });
 
@@ -32,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#161A3D",
+  themeColor: "#000000", // = --fondo (el viewport no lee variables CSS)
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,10 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="es"
-      className={`${archivo.variable} ${instrumentSans.variable}`}
-    >
+    <html lang="es" className={jakarta.variable}>
       <body>
         {children}
         <RegisterSW />

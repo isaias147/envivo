@@ -36,6 +36,7 @@ import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
 import BarraPestanas from "@/components/BarraPestanas";
+import Logo from "@/components/Logo";
 import FiltroEdad from "@/components/FiltroEdad";
 import FiltroTipos from "@/components/FiltroTipos";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
@@ -371,7 +372,7 @@ function MapaPantalla() {
       <div
         className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
       >
-        En<i>Vivo</i>
+        <Logo />
       </div>
 
       {/* Buscador: junto a la marca. Colapsado es solo una lupa; al

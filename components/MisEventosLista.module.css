@@ -4,9 +4,9 @@
 
 .vacio {
   font-size: 13.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   line-height: 1.6;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 10px;
   padding: 16px;
   margin-top: 18px;
@@ -17,7 +17,7 @@
   font-family: var(--fuente-titulo);
   font-weight: 700;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   letter-spacing: 0.02em;
   padding: 18px 0 6px;
 }
@@ -38,7 +38,7 @@
   border-radius: 5px;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--noche-3);
+  background: var(--separador);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,7 +51,7 @@
 }
 .sinFlyer {
   font-size: 9px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   text-align: center;
   line-height: 1.2;
   padding: 0 3px;
@@ -71,7 +71,7 @@
 .datos small {
   display: block;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin-top: 3px;
 }
 
@@ -85,20 +85,20 @@
   line-height: 1.4;
 }
 .ok {
-  background: rgba(95, 214, 160, 0.15);
-  color: var(--cana);
+  background: var(--exito-tinte);
+  color: var(--exito);
 }
 .esp {
-  background: rgba(255, 182, 39, 0.14);
-  color: var(--laton);
+  background: var(--advertencia-tinte);
+  color: var(--advertencia);
 }
 .no {
-  background: rgba(255, 94, 91, 0.14);
-  color: var(--coral);
+  background: var(--error-tinte);
+  color: var(--error);
 }
 .idle {
-  background: rgba(244, 241, 232, 0.08);
-  color: var(--hueso-tenue);
+  background: var(--separador);
+  color: var(--texto-secundario);
 }
 
 /* ---------- enlace de editar (solo "En el mapa") ---------- */
@@ -108,7 +108,7 @@
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12px;
-  color: var(--laton);
+  color: var(--coral-texto);
 }
 .editar:hover {
   text-decoration: underline;

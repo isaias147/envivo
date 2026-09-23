@@ -5,8 +5,8 @@
   padding: 12px;
   border: 0;
   border-radius: 10px;
-  background: var(--laton);
-  color: var(--noche);
+  background: var(--coral-tinte);
+  color: var(--coral-texto);
   font-family: var(--fuente-titulo);
   font-weight: 700;
   font-size: 14px;
@@ -18,12 +18,12 @@
    un estado con borde. */
 .boton[aria-pressed="true"] {
   background: transparent;
-  color: var(--hueso-tenue);
-  border: 1px solid var(--linea);
+  color: var(--texto-secundario);
+  border: 1px solid var(--separador);
 }
 .boton[aria-pressed="true"]:hover {
-  color: var(--hueso);
-  border-color: var(--hueso-tenue);
+  color: var(--texto);
+  border-color: var(--texto-secundario);
 }
 
 .boton:disabled {

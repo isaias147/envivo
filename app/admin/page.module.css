@@ -7,19 +7,19 @@
   justify-content: center;
   min-height: 100dvh;
   padding: 32px 20px;
-  background: #0d0f26;
+  background: var(--fondo);
 }
 
 .cargando {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-size: 14px;
 }
 
 .tarjeta {
   width: 100%;
   max-width: 360px;
-  background: var(--noche);
-  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
   border-radius: 16px;
   padding: 40px 26px 34px;
   text-align: center;
@@ -27,26 +27,26 @@
 
 .marca {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 18px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }
 .marca i {
-  color: var(--laton);
+  color: var(--texto);
   font-style: normal;
 }
 
 .titulo {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 22px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   margin: 18px 0 8px;
 }
 
 .bajada {
   font-size: 13.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   line-height: 1.6;
   margin-bottom: 24px;
 }
@@ -55,15 +55,15 @@
   display: block;
   text-align: left;
   font-size: 12px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   margin: 12px 2px 6px;
 }
 
 .tarjeta input {
   width: 100%;
-  background: var(--noche-2);
-  border: 1px solid var(--linea);
-  color: var(--hueso);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-size: 15px;
   padding: 12px;
@@ -72,7 +72,7 @@
   outline: none;
 }
 .tarjeta input:focus {
-  border-color: var(--laton);
+  border-color: var(--coral-texto);
 }
 
 .pin {
@@ -84,8 +84,8 @@
 .tarjeta button {
   width: 100%;
   margin-top: 18px;
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-boton);
+  color: var(--sobre-coral);
   border: 0;
   font-family: var(--fuente-titulo);
   font-weight: 700;
@@ -101,14 +101,14 @@
 
 .error {
   margin-top: 14px;
-  color: var(--coral);
+  color: var(--error);
   font-size: 13px;
   line-height: 1.5;
 }
 
 .exito {
   margin-top: 14px;
-  color: var(--cana);
+  color: var(--exito);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -118,12 +118,12 @@
   margin-top: 18px;
   background: transparent;
   border: 0;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-size: 12.5px;
   cursor: pointer;
   text-decoration: underline;
 }
 .enlaceSalir:hover {
-  color: var(--hueso);
+  color: var(--texto);
 }

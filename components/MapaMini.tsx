@@ -19,8 +19,8 @@ const PIN = L.divIcon({
   className: "",
   iconSize: [14, 14],
   iconAnchor: [7, 7],
-  html: `<div style="width:10px;height:10px;border-radius:50%;background:#FFB627;
-              border:2px solid #161A3D;box-shadow:0 0 0 1px rgba(255,182,39,.7)"></div>`,
+  html: `<div style="width:10px;height:10px;border-radius:50%;background:var(--coral-boton);
+              border:2px solid var(--fondo);box-shadow:0 0 0 1px color-mix(in srgb,var(--coral-boton) 70%,transparent)"></div>`,
 });
 
 function Recalcular() {

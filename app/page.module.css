@@ -4,7 +4,7 @@
 .pantalla {
   position: relative;
   height: 100dvh;
-  background: var(--noche);
+  background: var(--fondo);
   overflow: hidden;
 }
 
@@ -33,7 +33,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  background: #1a1f47;
+  background: var(--fondo);
   font-family: var(--fuente-cuerpo);
 }
 
@@ -43,8 +43,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1f47;
-  color: var(--hueso-tenue);
+  background: var(--fondo);
+  color: var(--texto-secundario);
   font-size: 13px;
 }
 
@@ -60,10 +60,10 @@
   left: 16px;
   z-index: 450;
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 19px;
-  letter-spacing: -0.03em;
-  color: var(--hueso);
+  letter-spacing: -0.025em;
+  color: var(--texto);
   text-shadow:
     0 1px 10px rgba(0, 0, 0, 0.55),
     0 0 3px rgba(0, 0, 0, 0.4);
@@ -75,10 +75,6 @@
    desvanece mientras tanto y vuelve al cerrar. */
 .marcaOculta {
   opacity: 0;
-}
-.marca i {
-  color: var(--laton);
-  font-style: normal;
 }
 
 /* ---------- buscador: arriba, a lo ancho ---------- */
@@ -122,7 +118,7 @@
 .filtro {
   border: none;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12px;
@@ -133,8 +129,8 @@
   cursor: pointer;
 }
 .filtro[aria-pressed="true"] {
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-tinte);
+  color: var(--coral-texto);
   font-weight: 600;
 }
 
@@ -201,7 +197,7 @@
 .precio {
   border: none;
   background: transparent;
-  color: var(--hueso);
+  color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 13px;
@@ -212,8 +208,8 @@
   cursor: pointer;
 }
 .precio[aria-pressed="true"] {
-  background: var(--laton);
-  color: #231a00;
+  background: var(--coral-tinte);
+  color: var(--coral-texto);
   font-weight: 600;
 }
 
@@ -222,9 +218,9 @@
   max-height: 46dvh;
   overflow-y: auto;
   padding: 16px 18px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 18px;
-  background: var(--noche-2);
+  background: var(--superficie);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
 }
@@ -242,14 +238,14 @@
   z-index: 400;
   padding: 2px 7px;
   border-radius: 8px;
-  background: rgba(22, 26, 61, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: var(--barra);
+  backdrop-filter: var(--cristal-blur);
+  -webkit-backdrop-filter: var(--cristal-blur);
   white-space: nowrap;
   text-align: right;
   font-size: 9px;
   line-height: 1.2;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   pointer-events: none;
 }
 
@@ -263,7 +259,7 @@
   z-index: 500;
   padding: 8px 12px;
   border-radius: 12px;
-  color: var(--coral);
+  color: var(--error);
   font-size: 12.5px;
   text-align: center;
 }

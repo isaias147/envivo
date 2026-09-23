@@ -8,14 +8,14 @@
   justify-content: center;
   min-height: 100dvh;
   padding: 40px 20px 64px;
-  background: #0d0f26;
+  background: var(--fondo);
 }
 
 .marco {
   width: 100%;
   max-width: 360px;
-  background: var(--noche);
-  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
   border-radius: 20px;
   padding: 26px 22px 30px;
 }
@@ -24,9 +24,9 @@
   display: inline-block;
   margin-bottom: 16px;
   padding: 7px 13px;
-  border: 1px solid var(--linea);
+  border: 1px solid var(--separador);
   border-radius: 100px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
   font-size: 12.5px;
@@ -35,25 +35,25 @@
   text-decoration: none;
 }
 .volver:hover {
-  border-color: var(--hueso-tenue);
-  color: var(--hueso);
+  border-color: var(--texto-secundario);
+  color: var(--texto);
 }
 
 .marca {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 18px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   margin-bottom: 20px;
 }
 .marca i {
-  color: var(--laton);
+  color: var(--texto);
   font-style: normal;
 }
 
 .tit {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 22px;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -62,7 +62,7 @@
 
 .bajada {
   font-size: 13.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   line-height: 1.6;
   margin-bottom: 8px;
 }
@@ -73,13 +73,13 @@
   gap: 6px;
   margin-bottom: 18px;
   font-size: 13.5px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .seguidoresNum {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 20px;
-  color: var(--laton);
+  color: var(--texto);
 }
 
 .tabla {
@@ -92,10 +92,10 @@
 .tabla td {
   text-align: left;
   padding: 8px 6px;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
 }
 .tabla th {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
@@ -106,7 +106,7 @@
   text-align: right;
 }
 .tabla td:first-child {
-  color: var(--hueso);
+  color: var(--texto);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,13 +122,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
   font-size: 14px;
-  color: var(--hueso);
+  color: var(--texto);
   text-decoration: none;
 }
 .acceso .flecha {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 .pronto {
   opacity: 0.5;
@@ -143,7 +143,7 @@
   margin-top: 22px;
   background: transparent;
   border: 0;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
   font-family: var(--fuente-cuerpo);
   font-size: 12.5px;
   text-decoration: underline;
@@ -151,5 +151,5 @@
   padding: 0;
 }
 .salir:hover {
-  color: var(--hueso);
+  color: var(--texto);
 }

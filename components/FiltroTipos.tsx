@@ -92,6 +92,7 @@ export default function FiltroTipos({
             key={t.valor}
             type="button"
             className={styles.chip}
+            data-cat={t.valor}
             aria-pressed={activo}
             onClick={() => alternar(t.valor)}
           >

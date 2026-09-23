@@ -1,5 +1,5 @@
 /* ===== EnVivo · /perfil (vista privada del dueño) ===== */
-/* Mismo marco que /panel: tarjeta índigo sobre fondo #0d0f26. */
+/* Mismo marco que /panel: tarjeta índigo sobre fondo var(--fondo). */
 
 .pantalla {
   display: flex;
@@ -7,33 +7,33 @@
   justify-content: center;
   min-height: 100dvh;
   padding: 40px 20px 64px;
-  background: #0d0f26;
+  background: var(--fondo);
 }
 
 .marco {
   width: 100%;
   max-width: 360px;
-  background: var(--noche);
-  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
   border-radius: 20px;
   padding: 26px 22px 30px;
 }
 
 .marca {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 18px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   margin-bottom: 20px;
 }
 .marca i {
-  color: var(--laton);
+  color: var(--texto);
   font-style: normal;
 }
 
 .tit {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 22px;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -47,25 +47,25 @@
   gap: 8px;
   margin: 4px 0 10px;
   padding-top: 20px;
-  border-top: 1px solid var(--linea);
+  border-top: 1px solid var(--separador);
 }
 .numero {
   font-family: var(--fuente-titulo);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 40px;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--hueso);
+  letter-spacing: -0.025em;
+  color: var(--texto);
 }
 .etiqueta {
   font-size: 13px;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 .nota {
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }
 
 /* ---------- accesos (como /panel) ---------- */
@@ -77,11 +77,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid var(--linea);
+  border-bottom: 1px solid var(--separador);
   font-size: 14px;
-  color: var(--hueso);
+  color: var(--texto);
   text-decoration: none;
 }
 .acceso .flecha {
-  color: var(--hueso-tenue);
+  color: var(--texto-secundario);
 }

@@ -86,7 +86,11 @@ export default function TarjetaEvento({
           {evento.es_serie && (
             <span className={`${styles.tira} ${styles.serie}`}>Serie</span>
           )}
-          {evento.type && <span className={styles.tira}>{evento.type}</span>}
+          {evento.type && (
+            <span className={`${styles.tira} ${styles.cat}`} data-cat={evento.type}>
+              {evento.type}
+            </span>
+          )}
           <span className={`${styles.tira} ${styles[edad.clase]}`}>
             {edad.texto}
           </span>

@@ -24,15 +24,15 @@
   height: 42px;
   flex-shrink: 0;
   border-radius: 10px;
-  background: var(--noche-2);
-  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--separador);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  color: var(--hueso);
+  color: var(--texto);
   cursor: pointer;
 }
 .icono:hover {
-  border-color: var(--hueso-tenue);
+  border-color: var(--texto-secundario);
 }
