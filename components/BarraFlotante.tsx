@@ -1,23 +1,16 @@
 "use client";
 
-// Círculo flotante (FAB), abajo a la derecha, encima de la barra de
-// pestañas. La navegación (Mapa/Lista, Siguiendo, Publicar) se mudó a
-// BarraPestanas y a /yo; acá quedó solo el círculo que cambia de función
-// según la página (ver Props): en el mapa vuelve a la ubicación real; en la
-// lista abre un desplegable para elegir el radio. Lo reemplazan las
-// sesiones de radio y ubicación.
+// Círculo flotante (FAB) del mapa, abajo a la derecha, encima de la barra
+// de pestañas: vuelve a la ubicación real. La navegación se mudó a
+// BarraPestanas y a /yo; el radio, a SelectorRadio. Lo reemplaza la sesión
+// de ubicación.
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { RADIOS_KM, type RadioKm } from "@/lib/eventos";
 import styles from "./BarraFlotante.module.css";
 
 type Props = {
   ubicacionMapa?: { disponible: boolean; onClick: () => void };
-  ubicacionLista?: {
-    radioKm: RadioKm | "todo";
-    onCambiar: (km: RadioKm | "todo") => void;
-  };
   /** Alto (px) de la ficha abierta sobre la columna: la sube esa medida
    * exacta en vez de dejar que la tape. Solo la pasa el mapa. */
   alturaExtra?: number;
@@ -32,28 +25,9 @@ const IconoUbicacion = () => (
 
 function BarraFlotanteContenido({
   ubicacionMapa,
-  ubicacionLista,
   alturaExtra = 0,
 }: Props) {
   const path = usePathname();
-
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Cierra el desplegable de km al tocar afuera.
-  useEffect(() => {
-    if (!menuAbierto) return;
-    function alClicar(e: MouseEvent) {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuAbierto(false);
-    }
-    document.addEventListener("mousedown", alClicar);
-    return () => document.removeEventListener("mousedown", alClicar);
-  }, [menuAbierto]);
-
-  function elegirKm(km: RadioKm | "todo") {
-    ubicacionLista?.onCambiar(km);
-    setMenuAbierto(false);
-  }
 
   return (
     <nav
@@ -65,7 +39,7 @@ function BarraFlotanteContenido({
           : undefined,
       }}
     >
-      {/* Ubicación en el mapa, o radio en la lista — condicional. */}
+      {/* Volver a la ubicación real (solo en el mapa). */}
       {path === "/" && ubicacionMapa && (
         <button
           type="button"
@@ -76,34 +50,6 @@ function BarraFlotanteContenido({
         >
           <IconoUbicacion />
         </button>
-      )}
-      {path === "/lista" && ubicacionLista && (
-        <div ref={menuRef} className={styles.medioConMenu}>
-          <button
-            type="button"
-            className={styles.circulo}
-            aria-label="Elegir radio"
-            aria-expanded={menuAbierto}
-            onClick={() => setMenuAbierto((v) => !v)}
-          >
-            <IconoUbicacion />
-          </button>
-          {menuAbierto && (
-            <div className={styles.menuKm}>
-              {RADIOS_KM.map((km) => (
-                <button
-                  key={km}
-                  type="button"
-                  className={styles.opcionKm}
-                  aria-pressed={ubicacionLista.radioKm === km}
-                  onClick={() => elegirKm(km)}
-                >
-                  {km} km
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       )}
     </nav>
   );

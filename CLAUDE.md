@@ -144,27 +144,33 @@ del MVP. El precio todavía no está definido.
 ## Las pantallas
 
 **Usuario (sin registro, nunca ve un login):**
-1. `/` — mapa con pines, geolocalización. Radio de búsqueda **fijo en
-   1.5 km** (`RADIO_INICIAL_KM` en `lib/eventos.ts`), ya sin selector de
-   km. Filtros: tiempo (Próximamente / Esta noche / Este finde), precio
+1. `/` — mapa con pines, geolocalización. Radio de búsqueda elegible con
+   `components/SelectorRadio` (rediseño sesión 3: botón cian "3 km" debajo
+   de los chips, abre un deslizador de 1,5 a 7 km en pasos de 0,5;
+   `RADIO_MIN_KM`/`RADIO_MAX_KM`/`RADIO_PASO_KM`/`RADIO_INICIAL_KM` = 1,5 en
+   `lib/eventos.ts`). El círculo del mapa se redibuja en vivo. El radio es
+   **el mismo en `/` y `/lista`** (viaja en `?km=`); ya no existe la opción
+   "Todo" (sin límite). Filtros: tiempo (Próximamente / Esta noche / Este finde), precio
    (Todo / Gratis / Cover), edad (`FiltroEdad`, por `restriccion_edad`) y
    chips de categoría de selección múltiple (`FiltroTipos` — Música en
    vivo, Clase o taller, Recreativo, Cultural, Deportivo, Espiritual).
    Zoom y encuadre estilo Google Maps: al activar un filtro de contenido
    (no el radio) el mapa encuadra los pines resultantes.
-2. `/lista` — los mismos eventos en lista
+2. `/lista` — los mismos eventos en lista, con el mismo `SelectorRadio`
+   en el encabezado. Las tarjetas (`TarjetaEvento`) dicen "X km desde tu
+   punto de referencia" y la categoría con su nombre legible
+   (`etiquetaTipo()`).
 
 **Barra de pestañas** (`components/BarraPestanas`, rediseño sesión 1,
 estilo de la skill `envivo-ui`): Inicio `/` · Listas `/lista` · Seguidos
 `/siguiendo` · Perfil `/yo`. Fija abajo, translúcida con blur, activa en
 coral; en ≥768px dentro de la columna de 480px. Está en esas cuatro
-pantallas. Inicio/Listas conservan los filtros (`?t=&p=`) entre sí.
+pantallas. Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
 Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
 marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
 `--barra-inf` (sin safe-area). `components/BarraFlotante` quedó reducida
-a un solo círculo encima de la barra: "volver a mi ubicación" en `/` y
-selector de radio en `/lista` (lo reemplazan las sesiones de radio y
-ubicación). El "+ Publicar evento" del publicador pasó a una fila de
+a un solo círculo encima de la barra: "volver a mi ubicación", solo en
+`/` (lo reemplaza la sesión de ubicación). El "+ Publicar evento" del publicador pasó a una fila de
 `/yo`. `EnlaceCuenta` (avatar arriba a la derecha) se borró: la pestaña
 Perfil lo reemplaza.
 3. `/evento/[id]` — detalle. Si el evento tiene `perfil_id`, la tarjeta

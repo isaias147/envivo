@@ -380,9 +380,11 @@ export default function Mapa({
       <Circle
         center={[centro.lat, centro.lng]}
         radius={radioKm * 1000}
+        // El color lo pone .radio-busqueda (globals.css): cian = ubicación.
+        // Va como prop directa: dentro de pathOptions react-leaflet solo lo
+        // pasa a setStyle(), que ignora className.
+        className="radio-busqueda"
         pathOptions={{
-          // El color lo pone .radio-busqueda (globals.css): cian = ubicación.
-          className: "radio-busqueda",
           weight: 1,
           opacity: 0.5,
           fillOpacity: 0.05,

@@ -28,7 +28,7 @@ import {
 import type { ResultadoBusqueda } from "@/lib/busqueda";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
-import BarraFlotante from "@/components/BarraFlotante";
+import SelectorRadio from "@/components/SelectorRadio";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
 import FiltroEdad from "@/components/FiltroEdad";
@@ -70,11 +70,10 @@ function ListaPantalla() {
   const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
   // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
   // toda la fila de filtros para que el menú no quede tapado por lo que
-  // hay debajo (BarraFlotante, etc.).
+  // hay debajo.
   const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
-  const [radioKm, setRadioKm] = useState<RadioKm | "todo">(() =>
-    leerRadio(sp.get("km")),
-  );
+  // Radio compartido con el mapa (?km=), se elige con SelectorRadio.
+  const [radioKm, setRadioKm] = useState<RadioKm>(() => leerRadio(sp.get("km")));
   // Punto de referencia para el filtro de distancia. Si venimos del mapa
   // con ?lat=&lng=, arrancamos ahí en vez de en Granada — así el radio no
   // salta al cambiar de vista. Solo se pide geolocalización si se elige un
@@ -94,9 +93,9 @@ function ListaPantalla() {
 
   // Al elegir un radio por primera vez, pedir ubicación (mismo patrón que
   // app/page.tsx); si la niegan o falla, se queda en Granada.
-  function elegirRadio(km: RadioKm | "todo") {
+  function elegirRadio(km: RadioKm) {
     setRadioKm(km);
-    if (km === "todo" || geoPedidaRef.current) return;
+    if (geoPedidaRef.current) return;
     geoPedidaRef.current = true;
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
@@ -139,11 +138,8 @@ function ListaPantalla() {
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
-      if (radioKm !== "todo") {
-        if (ev.latitude == null || ev.longitude == null) return false;
-        if (!dentroDeCaja(ev, centro, radioKm)) return false;
-      }
-      return true;
+      if (ev.latitude == null || ev.longitude == null) return false;
+      return dentroDeCaja(ev, centro, radioKm);
     });
 
     const porDia: { fecha: string; eventos: EventoPublico[] }[] = [];
@@ -171,14 +167,12 @@ function ListaPantalla() {
   }, [grupos]);
 
   // El buscador recentra la lista en el resultado en vez de mandar al
-  // mapa: mueve `centro` ahí (con un radio por defecto si estaba en
-  // "Todo", para que el recentrado tenga efecto visible) y, si es un
-  // evento, scrollea hasta su tarjeta apenas `grupos` lo refleje.
+  // mapa: mueve `centro` ahí y, si es un evento, scrollea hasta su
+  // tarjeta apenas `grupos` lo refleje.
   function irAResultado(resultado: ResultadoBusqueda) {
     if (resultado.latitude != null && resultado.longitude != null) {
       setCentro({ lat: resultado.latitude, lng: resultado.longitude });
     }
-    setRadioKm((r) => (r === "todo" ? 5 : r));
     if (resultado.tipo === "evento") {
       idAEnfocarRef.current = resultado.id;
     }
@@ -199,6 +193,9 @@ function ListaPantalla() {
             propio de FiltroTipos, igual que en el mapa. */}
         <div className={styles.tiposWrap}>
           <FiltroTipos valor={tipos} onCambiar={setTipos} />
+        </div>
+        <div className={styles.radio}>
+          <SelectorRadio radioKm={radioKm} onCambiar={elegirRadio} />
         </div>
       </header>
 
@@ -237,7 +234,7 @@ function ListaPantalla() {
 
       {/* Filtro de precio: cápsula de cristal flotando abajo, centrada,
           igual que en el mapa. Se combina con el filtro de tiempo. El
-          radio ahora se elige desde el círculo flotante (BarraFlotante). */}
+          radio se elige arriba, con SelectorRadio. */}
       <div className={styles.pie}>
         <div
           className={`${styles.grupoFiltros} ${edadMenuAbierto ? styles.grupoFiltrosSubido : ""}`}
@@ -287,7 +284,6 @@ function ListaPantalla() {
         <Logo />
       </div>
 
-      <BarraFlotante ubicacionLista={{ radioKm, onCambiar: elegirRadio }} />
       <BarraPestanas />
     </div>
   );

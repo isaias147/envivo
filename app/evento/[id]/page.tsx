@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import {
   enlaceComoLlegar,
   enlaceWhatsapp,
+  etiquetaTipo,
   fechaLargaCali,
   horaCali,
   sinArroba,
@@ -182,7 +183,7 @@ function Detalle({ evento }: { evento: EventoPublico }) {
           {evento.type && (
             <div className={styles.dato}>
               <b>Tipo</b>
-              <span>{evento.type}</span>
+              <span>{etiquetaTipo(evento.type)}</span>
             </div>
           )}
           <div className={styles.dato}>

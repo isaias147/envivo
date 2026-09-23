@@ -137,7 +137,7 @@ export function queryFiltros(
   filtro: Filtro,
   precio: Precio,
   edad: FiltroEdad,
-  radioKm?: RadioKm | "todo",
+  radioKm?: RadioKm,
   centro?: { lat: number; lng: number },
   tipos?: string[],
 ): string {
@@ -145,12 +145,9 @@ export function queryFiltros(
   if (filtro !== "proximos") p.set("t", filtro);
   if (precio !== "todo") p.set("p", precio);
   if (edad !== "todo") p.set("ed", edad);
-  // "todo" (sin límite de distancia) ya no es el default de /lista —
-  // ahora sí hay que guardarlo en la URL para que sobreviva a una
-  // navegación; RADIO_INICIAL_KM (el nuevo default) es lo único que se
-  // sigue omitiendo.
-  if (radioKm === "todo") p.set("km", "todo");
-  else if (radioKm && radioKm !== RADIO_INICIAL_KM) p.set("km", String(radioKm));
+  // El radio se comparte entre / y /lista por la URL; el default
+  // (RADIO_INICIAL_KM) se omite.
+  if (radioKm && radioKm !== RADIO_INICIAL_KM) p.set("km", String(radioKm));
   if (centro) {
     p.set("lat", centro.lat.toFixed(4));
     p.set("lng", centro.lng.toFixed(4));
@@ -181,26 +178,41 @@ export function leerCentro(sp: {
 /** Barrio Granada, Cali. Fallback cuando el navegador niega la ubicación. */
 export const GRANADA_CALI = { lat: 3.4566, lng: -76.5335 };
 
-/** Opciones del selector de radio en /lista — sin cambios. */
-export const RADIOS_KM = [1, 3, 5] as const;
-// Antes era `(typeof RADIOS_KM)[number]` (1 | 3 | 5): un tipo literal no
-// deja representar el nuevo default de 1.5 km (no es ninguna de las 3
-// opciones del selector, es solo el punto de partida). `number` cubre
-// tanto las opciones del selector como ese default.
-export type RadioKm = number;
-
 /**
- * Radio inicial al cargar, antes de que la persona elija nada: 1.5 km,
- * igual en el mapa (`RADIO_INICIAL_KM` en app/page.tsx, sin selector) y
- * en /lista (aquí, como valor de arranque del selector de km — las
- * opciones del selector en sí, RADIOS_KM, no cambian).
+ * Radio de búsqueda en km, compartido por el mapa (/) y la lista (/lista)
+ * vía `?km=`. Se elige con components/SelectorRadio: de RADIO_MIN_KM a
+ * RADIO_MAX_KM en pasos de RADIO_PASO_KM. Arranca en RADIO_INICIAL_KM.
  */
+export type RadioKm = number;
+export const RADIO_MIN_KM = 1.5;
+export const RADIO_MAX_KM = 7;
+export const RADIO_PASO_KM = 0.5;
 export const RADIO_INICIAL_KM = 1.5;
 
-export function leerRadio(v: string | null | undefined): RadioKm | "todo" {
-  if (v === "todo") return "todo";
+/** Lee `?km=`; cualquier cosa fuera del rango o del paso cae al inicial. */
+export function leerRadio(v: string | null | undefined): RadioKm {
   const n = Number(v);
-  return (RADIOS_KM as readonly number[]).includes(n) ? n : RADIO_INICIAL_KM;
+  const valido =
+    v != null &&
+    n >= RADIO_MIN_KM &&
+    n <= RADIO_MAX_KM &&
+    Number.isInteger((n - RADIO_MIN_KM) / RADIO_PASO_KM);
+  return valido ? n : RADIO_INICIAL_KM;
+}
+
+/** "1,5 km" / "3 km": 1 decimal (coma, es-CO) bajo los 10 km, entero desde ahí. */
+export function formatoKm(km: number, decimalesSiempre = false): string {
+  const r = Math.round(km * 10) / 10; // así 9,96 → "10 km", no "10,0 km"
+  const dec = r < 10 && (decimalesSiempre || !Number.isInteger(r)) ? 1 : 0;
+  return `${r.toLocaleString("es-CO", {
+    minimumFractionDigits: dec,
+    maximumFractionDigits: dec,
+  })} km`;
+}
+
+/** Nombre legible de la categoría ("musica_en_vivo" → "Música en vivo"). */
+export function etiquetaTipo(valor: string): string {
+  return TIPOS_EVENTO.find((t) => t.valor === valor)?.etiqueta ?? valor;
 }
 
 // Colombia no tiene horario de verano: siempre UTC−5.

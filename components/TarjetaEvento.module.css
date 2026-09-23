@@ -66,6 +66,15 @@
   color: var(--texto-secundario);
 }
 
+/* "1,2 km desde tu punto de referencia" */
+.distancia {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--texto-secundario);
+  font-variant-numeric: tabular-nums;
+}
+
 .tiras {
   display: flex;
   flex-wrap: wrap;

@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { fechaCorta, horaCali, type EventoPublico } from "@/lib/eventos";
+import {
+  etiquetaTipo,
+  fechaCorta,
+  formatoKm,
+  horaCali,
+  type EventoPublico,
+} from "@/lib/eventos";
 import styles from "./TarjetaEvento.module.css";
-
-/** "3.2 km" bajo los 10 km, entero de ahí en adelante ("14 km"). */
-function formatoDistancia(km: number): string {
-  return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
-}
 
 /**
  * Texto y color del badge de edad. Siempre hay uno (incluido
@@ -74,21 +75,23 @@ export default function TarjetaEvento({
         </div>
         <h3 className={styles.nombre}>{evento.title}</h3>
         {evento.venue_name && <p className={styles.sede}>{evento.venue_name}</p>}
+        {distanciaKm != null && (
+          <p className={styles.distancia}>
+            {formatoKm(distanciaKm, true)} desde tu punto de referencia
+          </p>
+        )}
         <div className={styles.tiras}>
           <span
             className={`${styles.tira} ${evento.is_free ? styles.libre : ""}`}
           >
             {precio}
           </span>
-          {distanciaKm != null && (
-            <span className={styles.tira}>{formatoDistancia(distanciaKm)}</span>
-          )}
           {evento.es_serie && (
             <span className={`${styles.tira} ${styles.serie}`}>Serie</span>
           )}
           {evento.type && (
             <span className={`${styles.tira} ${styles.cat}`} data-cat={evento.type}>
-              {evento.type}
+              {etiquetaTipo(evento.type)}
             </span>
           )}
           <span className={`${styles.tira} ${styles[edad.clase]}`}>

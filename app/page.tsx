@@ -23,17 +23,19 @@ import {
   pasaFiltroEdad,
   pasaPrecio,
   pasaTipos,
+  leerRadio,
   queryFiltros,
-  RADIO_INICIAL_KM,
   rangoFiltro,
   type EventoPublico,
   type Filtro,
   type FiltroEdad as FiltroEdadValor,
   type Precio,
+  type RadioKm,
 } from "@/lib/eventos";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
+import SelectorRadio from "@/components/SelectorRadio";
 import BarraFlotante from "@/components/BarraFlotante";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
@@ -62,10 +64,6 @@ const PRECIOS: { id: Precio; etiqueta: string }[] = [
   { id: "cover", etiqueta: "Cover" },
 ];
 
-// Radio del mapa: fijo, ya no hay selector de km. RADIO_INICIAL_KM (1.5)
-// vive en lib/eventos.ts para compartirlo con el default de /lista.
-const RADIO_FIJO_KM = RADIO_INICIAL_KM;
-
 // `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Home() {
   return (
@@ -79,14 +77,15 @@ function MapaPantalla() {
   const sp = useSearchParams();
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
   const [error, setError] = useState<string | null>(null);
-  // Filtros iniciales desde la URL (?t=&p=), para conservarlos al venir
-  // de /lista. El radio es propio del mapa y no se comparte.
+  // Filtros iniciales desde la URL (?t=&p=&km=…), para conservarlos al
+  // venir de /lista. El radio (?km=) es el mismo en las dos pantallas.
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
   // Chips de categoría (Música en vivo, Cultural, ...), selección múltiple;
   // [] = todas. Filtro independiente de Todo/Gratis/Cover y de Edad.
   const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
+  const [radioKm, setRadioKm] = useState<RadioKm>(() => leerRadio(sp.get("km")));
   // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
   // toda la fila de filtros para que el menú no quede tapado por lo que
   // hay debajo (BarraFlotante, barra de atribución, etc.).
@@ -167,9 +166,9 @@ function MapaPantalla() {
   // lista" y el botón atrás del navegador los conserven — así /lista
   // arranca del mismo punto en vez de saltar a Granada.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, edad, undefined, centro, tipos);
+    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, edad, centro, tipos]);
+  }, [filtro, precio, edad, radioKm, centro, tipos]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -202,12 +201,12 @@ function MapaPantalla() {
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
-      return dentroDeCaja(ev, centro, RADIO_FIJO_KM);
+      return dentroDeCaja(ev, centro, radioKm);
     });
-  }, [eventos, filtro, precio, edad, tipos, centro]);
+  }, [eventos, filtro, precio, edad, tipos, centro, radioKm]);
 
   // ¿Hay algún filtro de contenido puesto (tiempo/precio/edad/categorías),
-  // aparte del radio fijo de búsqueda? Con eso el mapa decide si debe
+  // aparte del radio de búsqueda? Con eso el mapa decide si debe
   // encuadrar los pines resultantes o volver a la vista original (ver
   // EncuadreFiltro en components/Mapa.tsx). `filtroFirma` es la señal que
   // dispara ese encuadre — cambia solo cuando cambia el contenido del
@@ -254,6 +253,11 @@ function MapaPantalla() {
   }
   function cambiarTipos(t: string[]) {
     setTipos(t);
+    setSeleccionadoId(null);
+    setPerfilSeleccionado(null);
+  }
+  function cambiarRadio(km: RadioKm) {
+    setRadioKm(km);
     setSeleccionadoId(null);
     setPerfilSeleccionado(null);
   }
@@ -355,7 +359,7 @@ function MapaPantalla() {
           eventos={visibles}
           totalCargado={eventos.length}
           centro={centro}
-          radioKm={RADIO_FIJO_KM}
+          radioKm={radioKm}
           anclado={!movido}
           volarId={volarId}
           seleccionadoId={seleccionadoId}
@@ -386,6 +390,11 @@ function MapaPantalla() {
           activo = todas. */}
       <div className={styles.tipos}>
         <FiltroTipos valor={tipos} onCambiar={cambiarTipos} />
+      </div>
+
+      {/* Radio de búsqueda: debajo de los chips, a la derecha. */}
+      <div className={styles.radio}>
+        <SelectorRadio radioKm={radioKm} onCambiar={cambiarRadio} />
       </div>
 
       {error && (

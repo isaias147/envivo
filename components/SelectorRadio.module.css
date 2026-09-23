@@ -1,0 +1,65 @@
+/* ===== EnVivo · selector de radio (cian = ubicación, envivo-ui) ===== */
+
+.raiz {
+  position: relative;
+  display: inline-block;
+}
+
+.boton {
+  composes: cristal from global;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px 6px 9px;
+  border-radius: 100px;
+  color: var(--cian);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.boton svg {
+  width: 16px;
+  height: 16px;
+}
+.boton[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 1px var(--cian);
+}
+.boton:focus-visible {
+  outline: 2px solid var(--cian);
+  outline-offset: 2px;
+}
+
+/* Panel del deslizador: se abre hacia abajo, pegado al borde derecho. */
+.panel {
+  composes: cristal from global;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 620;
+  width: 232px;
+  padding: 14px 16px 10px;
+  border-radius: 16px;
+  pointer-events: auto;
+}
+
+.deslizador {
+  display: block;
+  width: 100%;
+  height: 28px; /* área táctil cómoda alrededor del riel */
+  margin: 0;
+  accent-color: var(--cian);
+  cursor: pointer;
+}
+
+.extremos {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  color: var(--texto-secundario);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
