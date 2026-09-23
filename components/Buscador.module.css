@@ -80,16 +80,14 @@
 
 /* ---------- dropdown de resultados ---------- */
 .dropdown {
+  composes: cristal from global;
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   right: 0;
   max-height: 60dvh;
   overflow-y: auto;
-  border: 1px solid var(--separador);
   border-radius: 14px;
-  background: var(--superficie);
-  box-shadow: var(--sombra);
 }
 
 .mensaje {

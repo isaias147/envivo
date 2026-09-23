@@ -71,32 +71,80 @@
     calc(env(safe-area-inset-bottom) + var(--barra-inf) + 84px);
 }
 
+/* Encabezado de día: título grande (envivo-ui). */
 .dia {
-  margin-bottom: 10px;
-  padding: 16px 0 9px;
-  border-bottom: 1px solid var(--separador);
+  padding: 22px 2px 10px;
   font-family: var(--fuente-titulo);
   font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: var(--texto-secundario);
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  color: var(--texto);
 }
 
-.renglones {
+/* Lista agrupada estilo "Cerca de ti": una tarjeta por día, apoyada en el
+   fondo (sin sombra), renglones separados por una línea fina. */
+.grupo {
+  list-style: none;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--superficie);
+}
+.grupo li + li .renglon {
+  border-top: 0.5px solid var(--separador);
+}
+.renglon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 14px;
+}
+.renglon:active {
+  background: var(--separador);
+}
+.renglon:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: -2px;
+}
+/* Punto de color de categoría (--cat de globals.css). */
+.punto {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cat);
+}
+.textos {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 4px;
+  gap: 2px;
 }
-/* Cada renglón es una TarjetaEvento: fondo cristal en vez de un simple
-   divisor. `composes` no aplica a `> *`, así que se usan las variables. */
-.renglones > * {
-  background: var(--cristal-fondo);
-  backdrop-filter: var(--cristal-blur);
-  border: var(--cristal-borde);
-  box-shadow: var(--cristal-sombra);
-  padding: 14px;
-  border-radius: 14px;
+.nombre {
+  overflow: hidden;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detalle {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--texto-secundario);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gratis {
+  color: var(--exito);
+  font-weight: 600;
+}
+.distancia {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--texto-secundario);
+  font-variant-numeric: tabular-nums;
 }
 
 .vacio {

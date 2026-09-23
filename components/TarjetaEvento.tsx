@@ -32,9 +32,8 @@ function datosRestriccionEdad(
 
 /**
  * La tarjeta de un evento: mini flyer, hora en latón, título, sede y
- * etiquetas. Es el mismo componente en la ficha inferior del mapa (`/`)
- * y en cada renglón de la lista (`/lista`). Toda la tarjeta es un enlace
- * al detalle.
+ * etiquetas. Es la ficha inferior del mapa (`/`); /lista usa renglones
+ * propios. Toda la tarjeta es un enlace al detalle.
  */
 export default function TarjetaEvento({
   evento,
@@ -43,7 +42,7 @@ export default function TarjetaEvento({
   mostrarFecha,
 }: {
   evento: EventoPublico;
-  /** Distancia al centro actual, en km. Solo la calcula /lista. */
+  /** Distancia al centro actual, en km. */
   distanciaKm?: number;
   /** Id del elemento raíz — lo usa /lista para enfocar la tarjeta desde el buscador. */
   id?: string;

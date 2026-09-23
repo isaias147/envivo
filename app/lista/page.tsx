@@ -7,6 +7,8 @@ import {
   dentroDeCaja,
   distanciaMetros,
   fechaLargaCali,
+  formatoKm,
+  horaCali,
   GRANADA_CALI,
   leerCentro,
   leerEdad,
@@ -28,7 +30,7 @@ import {
   type RadioKm,
 } from "@/lib/eventos";
 import type { ResultadoBusqueda } from "@/lib/busqueda";
-import TarjetaEvento from "@/components/TarjetaEvento";
+import Link from "next/link";
 import Buscador from "@/components/Buscador";
 import SelectorRadio from "@/components/SelectorRadio";
 import BotonUbicacion from "@/components/BotonUbicacion";
@@ -248,23 +250,43 @@ function ListaPantalla() {
           grupos.map((g) => (
             <section key={g.fecha}>
               <h2 className={styles.dia}>{g.fecha}</h2>
-              <div className={styles.renglones}>
-                {g.eventos.map((ev) => (
-                  <TarjetaEvento
-                    key={ev.id}
-                    id={`evento-${ev.id}`}
-                    evento={ev}
-                    distanciaKm={
-                      ev.latitude != null && ev.longitude != null
-                        ? distanciaMetros(centro, {
-                            lat: ev.latitude,
-                            lng: ev.longitude,
-                          }) / 1000
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
+              <ul className={styles.grupo}>
+                {g.eventos.map((ev) => {
+                  const { hhmm, periodo } = horaCali(ev.starts_at);
+                  return (
+                    <li key={ev.id}>
+                      <Link
+                        id={`evento-${ev.id}`}
+                        href={`/evento/${ev.id}`}
+                        className={styles.renglon}
+                      >
+                        <span className={styles.punto} data-cat={ev.type ?? ""} aria-hidden="true" />
+                        <span className={styles.textos}>
+                          <span className={styles.nombre}>{ev.title}</span>
+                          <span className={styles.detalle}>
+                            {ev.venue_name && `${ev.venue_name} · `}
+                            {hhmm} {periodo.toUpperCase()}
+                            {ev.is_free && (
+                              <>
+                                {" · "}
+                                <span className={styles.gratis}>Gratis</span>
+                              </>
+                            )}
+                          </span>
+                        </span>
+                        {ev.latitude != null && ev.longitude != null && (
+                          <span className={styles.distancia}>
+                            {formatoKm(
+                              distanciaMetros(centro, { lat: ev.latitude, lng: ev.longitude }) / 1000,
+                              true,
+                            )}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           ))
         )}

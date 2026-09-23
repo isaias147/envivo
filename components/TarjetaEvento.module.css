@@ -1,5 +1,5 @@
 /* ===== EnVivo · tarjeta de evento ===== */
-/* Compartida por la ficha del mapa (/) y la lista (/lista). */
+/* La ficha del mapa (/). /lista usa sus propios renglones. */
 
 .tarjeta {
   display: flex;

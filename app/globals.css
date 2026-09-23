@@ -225,3 +225,33 @@ a {
   stroke: var(--cian);
   fill: var(--cian);
 }
+
+/* Menú de los <select>: cristal donde el navegador deja pintarlo
+   (appearance: base-select, Chrome/Android). Safari muestra el nativo. */
+@supports (appearance: base-select) {
+  select,
+  ::picker(select) {
+    appearance: base-select;
+  }
+  select {
+    align-items: center;
+  }
+  select::picker-icon {
+    color: var(--texto-secundario);
+    font-size: 0.7em;
+  }
+  ::picker(select) {
+    margin-top: 6px;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--cristal-fondo);
+    backdrop-filter: var(--cristal-blur);
+    border: var(--cristal-borde);
+    box-shadow: var(--cristal-sombra);
+    color: var(--texto);
+  }
+  option {
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+}
