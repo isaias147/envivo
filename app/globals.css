@@ -70,8 +70,8 @@
     --separador: rgba(0, 0, 0, 0.08);
     --barra: rgba(250, 250, 252, 0.78);
     --sombra: 0 8px 24px rgba(0, 0, 0, 0.12);
-    --coral-texto: #c8243f;
-    --cian: #0a7ea0;
+    --coral-texto: #c0233d; /* ≥ 4,5:1 también sobre su tinte */
+    --cian: #096e8c; /* ≥ 4,5:1 sobre blanco y --fondo */
 
     --cat-musica: #b83aa6;
     --cat-deportivo: #1e9a5e;

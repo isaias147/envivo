@@ -69,8 +69,8 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --separador: rgba(0,0,0,0.08);
   --barra: rgba(250,250,252,0.78); /* + backdrop-filter: blur(20px) */
   --sombra: 0 8px 24px rgba(0,0,0,0.12);
-  --coral-texto: #C8243F;
-  --cian: #0A7EA0;
+  --coral-texto: #C0233D;         /* ≥ 4.5:1 también sobre su tinte */
+  --cian: #096E8C;                /* ≥ 4.5:1 sobre #FFFFFF y --fondo */
 
   --cat-musica: #B83AA6;
   --cat-deportivo: #1E9A5E;

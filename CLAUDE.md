@@ -168,14 +168,20 @@ del MVP. El precio todavía no está definido.
    Zoom y encuadre estilo Google Maps: al activar un filtro de contenido
    (no el radio) el mapa encuadra los pines resultantes.
 2. `/lista` — los mismos eventos en lista, con el mismo `SelectorRadio`
-   en el encabezado. Las tarjetas (`TarjetaEvento`) dicen "X km desde tu
-   punto de referencia" y la categoría con su nombre legible
-   (`etiquetaTipo()`).
+   en el encabezado. Lista agrupada (rediseño sesión 7): una tarjeta
+   redondeada por día con título grande, renglones separados por una
+   línea fina — punto del color de la categoría, nombre en negrita,
+   "Lugar · 9:00 PM" en gris (+ " · Gratis" en `--exito` si es gratis) y
+   la distancia a la derecha. Sin flyer ni etiquetas; ya no usa
+   `TarjetaEvento` (esa queda solo para la ficha del mapa).
 
 **Barra de pestañas** (`components/BarraPestanas`, rediseño sesión 1,
 estilo de la skill `envivo-ui`): Inicio `/` · Listas `/lista` · Seguidos
-`/siguiendo` · Perfil `/yo`. Fija abajo, translúcida con blur, activa en
-coral; en ≥768px dentro de la columna de 480px. Está en esas cuatro
+`/siguiendo` · Perfil `/yo`. Fija abajo, translúcida con blur y línea
+fina arriba. Estilo Instagram (sesión 7): solo íconos, el nombre va en
+`aria-label`; activa = ícono relleno en `--texto`, inactivas en contorno.
+**Sin coral** (el badge va invertido: `--texto` de fondo, `--fondo` de
+número). En ≥768px dentro de la columna de 480px. Está en esas cuatro
 pantallas. Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
 Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
 marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
