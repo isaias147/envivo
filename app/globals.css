@@ -7,7 +7,7 @@
   --coral-boton: #dc2a4a; /* fondo del botón primario (un solo coral fuerte por pantalla) */
   --sobre-coral: #ffffff; /* texto sobre --coral-boton */
 
-  /* Modo oscuro */
+  /* Modo oscuro (por defecto; el claro va en el @media de abajo) */
   color-scheme: dark; /* controles nativos (desplegables) en oscuro */
   --fondo: #000000;
   --superficie: #161618;
@@ -59,30 +59,34 @@
   --fuente-logo: var(--font-jakarta), var(--fuente-sistema);
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-  --fondo: #f5f5f7;
-  --superficie: #ffffff;
-  --texto: #1d1d1f;
-  --texto-secundario: #6e6e73;
-  --separador: rgba(0, 0, 0, 0.08);
-  --barra: rgba(250, 250, 252, 0.78);
-  --sombra: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --coral-texto: #c8243f;
-  --cian: #0a7ea0;
+/* Modo claro automático: sigue la preferencia del sistema. */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --fondo: #f5f5f7;
+    --superficie: #ffffff;
+    --texto: #1d1d1f;
+    --texto-secundario: #6e6e73;
+    --separador: rgba(0, 0, 0, 0.08);
+    --barra: rgba(250, 250, 252, 0.78);
+    --sombra: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --coral-texto: #c8243f;
+    --cian: #0a7ea0;
 
-  --cat-musica: #b83aa6;
-  --cat-deportivo: #1e9a5e;
-  --cat-clase: #b87a10;
-  --cat-cultural: #7a55e0;
-  --cat-recreativo: #2f66e0;
-  --cat-espiritual: #d0611f;
-  --tinte-alfa: 0.12;
+    --cat-musica: #b83aa6;
+    --cat-deportivo: #1e9a5e;
+    --cat-clase: #b87a10;
+    --cat-cultural: #7a55e0;
+    --cat-recreativo: #2f66e0;
+    --cat-espiritual: #d0611f;
+    --tinte-alfa: 0.12;
 
-  /* Estados en claro: propuestos, verificar contraste ≥ 4.5:1 sobre #FFFFFF */
-  --exito: #177a4f;
-  --advertencia: #a15c00;
-  --error: #d23f12;
+    /* Estados en claro: ≥ 4,5:1 también sobre su propio tinte en --fondo
+       (etiquetas de edad, avisos). */
+    --exito: #157149;
+    --advertencia: #925300;
+    --error: #b3360f;
+  }
 }
 
 * {

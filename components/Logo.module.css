@@ -3,6 +3,9 @@
   align-items: center;
   gap: 0.35em;
 }
+.picture {
+  display: contents; /* el <img> sigue siendo el hijo flex de .logo */
+}
 .simbolo {
   height: 1.2em;
   width: auto;

@@ -25,6 +25,7 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
 - **Estados** (éxito/advertencia/error) siempre con ícono + texto, nunca solo color. Error y la categoría Espiritual son tonos cercanos: el ícono es obligatorio para distinguirlos.
 - Superficies agrupadas (listas dentro de tarjetas redondeadas). Barras translúcidas con desenfoque.
 - **Texto sobre coral** = `--sobre-coral` (blanco en ambos modos), nunca `--texto`: en modo claro `--texto` es oscuro.
+- **Modo claro/oscuro** = automático por `prefers-color-scheme`, sin interruptor. En claro: tiles `alidade_smooth` (en oscuro `alidade_smooth_dark`), logo `simbolo-color-claro`, `theme-color` `#F5F5F7`. Nada de colores escritos a mano: todo sale de los tokens para que cambie solo.
 - **Sombras** = solo `--sombra`, y solo en lo que flota sobre otra cosa (fichas y hojas, desplegables, pines del mapa, botones flotantes). Las superficies apoyadas en el fondo no llevan sombra: las separa `--separador`.
 
 ## Tokens (CSS)
@@ -59,7 +60,8 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --error: #FF6A3D;
 }
 
-[data-theme="light"] {
+/* Modo claro: automático, sigue al sistema */
+@media (prefers-color-scheme: light) { :root {
   --fondo: #F5F5F7;
   --superficie: #FFFFFF;
   --texto: #1D1D1F;
@@ -78,11 +80,12 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --cat-espiritual: #D0611F;
   --tinte-alfa: 0.12;
 
-  /* Estados en claro: propuestos, verificar contraste ≥ 4.5:1 sobre #FFFFFF */
-  --exito: #177A4F;
-  --advertencia: #A15C00;
-  --error: #D23F12;
-}
+  /* Estados en claro: verificados ≥ 4.5:1 sobre #FFFFFF, --fondo y su
+     propio tinte (peor caso ~4.7:1) */
+  --exito: #157149;
+  --advertencia: #925300;
+  --error: #B3360F;
+} }
 ```
 
 ## Tipografía

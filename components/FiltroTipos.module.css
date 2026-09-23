@@ -6,8 +6,14 @@
 .fila {
   display: flex;
   gap: 8px;
-  padding: 10px 16px;
-  margin: -8px 0;
+  /* El scroll recorta lo que sobresale: el padding deja sitio a la
+     --sombra de los chips (24px de blur, 8 hacia abajo) y el margen
+     negativo lo devuelve, sin mover nada. Sin esto, en modo claro se ve
+     una franja gris con bordes duros. Los toques pasan a lo de abajo
+     salvo sobre los chips (pointer-events: auto en .chip). */
+  padding: 18px 16px 34px;
+  margin: -16px 0 -32px;
+  pointer-events: none;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -21,6 +27,7 @@
   padding: 0;
   margin: 0;
   overflow: visible;
+  pointer-events: auto;
 }
 .envuelta .chip {
   min-height: 44px;

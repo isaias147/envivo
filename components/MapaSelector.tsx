@@ -14,7 +14,7 @@ import {
   TILES_ATRIBUCION,
   TILES_MAX_NATIVE_ZOOM,
   TILES_MAX_ZOOM,
-  TILES_URL,
+  useTilesUrl,
 } from "@/lib/mapaTiles";
 
 type Props = {
@@ -172,7 +172,7 @@ export default function MapaSelector({
       style={{ position: "absolute", inset: 0 }}
     >
       <TileLayer
-        url={TILES_URL}
+        url={useTilesUrl()}
         attribution={TILES_ATRIBUCION}
         maxNativeZoom={TILES_MAX_NATIVE_ZOOM}
         maxZoom={TILES_MAX_ZOOM}
