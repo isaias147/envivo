@@ -101,6 +101,7 @@
 
 /* ---------- aviso de error ---------- */
 .aviso {
+  composes: estado-error from global;
   padding: 10px 18px;
   background: var(--error-tinte);
   color: var(--error);

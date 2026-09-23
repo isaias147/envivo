@@ -339,6 +339,9 @@
   padding: 13px;
   margin-top: 14px;
 }
+.avisoConfirmTexto {
+  composes: estado-advertencia from global;
+}
 .avisoConfirm p {
   font-size: 12.5px;
   color: var(--advertencia);
@@ -414,6 +417,7 @@
 }
 
 .avisoFlyer {
+  composes: estado-advertencia from global;
   background: var(--advertencia-tinte);
   border-left: 2px solid var(--advertencia);
   padding: 9px 11px;
@@ -478,6 +482,7 @@
   border-color: var(--texto-secundario);
 }
 .error {
+  composes: estado-error from global;
   font-size: 13px;
   color: var(--error);
   margin-top: 9px;
@@ -592,6 +597,7 @@
   margin-bottom: 16px;
 }
 .chocaHora {
+  composes: estado-advertencia from global;
   flex-shrink: 0;
   font-family: var(--fuente-titulo);
   font-weight: 700;

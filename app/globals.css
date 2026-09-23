@@ -167,6 +167,43 @@ a {
   font-weight: 600;
 }
 
+/* Estados con ícono + texto (envivo-ui: nunca solo color). Cualquier
+   mensaje o pastilla de estado compone una de estas clases
+   (`composes: estado-error from global`) y recibe su ícono antes del texto,
+   pintado con el color del propio texto (currentColor). El SVG es solo una
+   máscara: su trazo (%23000) define la forma, no un color visible. */
+.estado-error::before,
+.estado-advertencia::before,
+.estado-exito::before,
+.estado-pendiente::before {
+  content: "";
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.35em;
+  vertical-align: -0.2em;
+  background-color: currentColor;
+  -webkit-mask: var(--icono-estado) center / contain no-repeat;
+  mask: var(--icono-estado) center / contain no-repeat;
+}
+/* exclamationmark.circle */
+.estado-error {
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7.5v5.5M12 16.5h.01'/%3E%3C/svg%3E");
+}
+/* exclamationmark.triangle */
+.estado-advertencia {
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E");
+}
+/* checkmark.circle */
+.estado-exito {
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m8 12.5 2.7 2.7L16 9.5'/%3E%3C/svg%3E");
+}
+/* clock */
+.estado-pendiente {
+  --icono-estado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E");
+}
+
 /* Color de categoría: cualquier elemento con data-cat="<valor de
    events.type>" recibe --cat (sólido) y --cat-tinte (fondo suave). Lo usan
    los chips de FiltroTipos y la etiqueta de TarjetaEvento. */

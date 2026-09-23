@@ -107,7 +107,7 @@
   display: block;
 }
 .sinFlyer {
-  font-size: 9px;
+  font-size: 11px; /* mínimo legible (HIG: 11 pt) */
   color: var(--texto-secundario);
   text-align: center;
   line-height: 1.2;
@@ -142,14 +142,17 @@
   line-height: 1.4;
 }
 .ok {
+  composes: estado-exito from global;
   background: var(--exito-tinte);
   color: var(--exito);
 }
 .esp {
+  composes: estado-pendiente from global;
   background: var(--advertencia-tinte);
   color: var(--advertencia);
 }
 .no {
+  composes: estado-error from global;
   background: var(--error-tinte);
   color: var(--error);
 }

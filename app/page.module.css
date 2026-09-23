@@ -155,6 +155,7 @@
 
 /* ---------- aviso de error ---------- */
 .aviso {
+  composes: estado-error from global;
   composes: cristal from global;
   position: absolute;
   top: calc(env(safe-area-inset-top) + 150px);

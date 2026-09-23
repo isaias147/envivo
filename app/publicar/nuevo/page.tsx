@@ -1389,7 +1389,7 @@ export default function PublicarNuevo() {
 
         {confirmarN !== null ? (
           <div className={styles.avisoConfirm}>
-            <p>
+            <p className={styles.avisoConfirmTexto}>
               Vas a crear <b>{confirmarN} fechas</b> de una vez. Revisa los días
               y la fecha final; si está bien, confírmalo.
             </p>

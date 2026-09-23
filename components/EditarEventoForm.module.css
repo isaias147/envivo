@@ -144,6 +144,7 @@
 }
 
 .error {
+  composes: estado-error from global;
   color: var(--error);
   font-size: 13px;
   line-height: 1.5;
@@ -164,6 +165,7 @@
   letter-spacing: -0.02em;
 }
 .reubi {
+  composes: estado-advertencia from global;
   margin-top: 10px;
   font-size: 12.5px;
   line-height: 1.6;
