@@ -16,6 +16,7 @@ import Link from "next/link";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { formatearWhatsapp, horaCali, normalizarWhatsapp } from "@/lib/eventos";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -188,7 +189,7 @@ export default async function MisEventos({
           Volver
         </Link>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
 
         <h1 className={styles.tit}>Tus eventos</h1>

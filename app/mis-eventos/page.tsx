@@ -29,6 +29,7 @@ import MisEventosLista, {
   type FilaMisEventos,
 } from "@/components/MisEventosLista";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 export default function MisEventos() {
   const { cargandoUsuario, perfil, cargandoPerfil } = useCuentaPublicador();
@@ -65,7 +66,7 @@ export default function MisEventos() {
       <div className={styles.pantalla}>
         <div className={styles.marco}>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
           <p className={styles.bajada}>Cargando…</p>
         </div>
@@ -79,7 +80,7 @@ export default function MisEventos() {
       <div className={styles.pantalla}>
         <div className={styles.marco}>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
 
           <h1 className={styles.tit}>Tus eventos</h1>
@@ -119,7 +120,7 @@ export default function MisEventos() {
     <div className={styles.pantalla}>
       <div className={styles.marco}>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
 
         <h1 className={styles.tit}>Abre tu link personal</h1>

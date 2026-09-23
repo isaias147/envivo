@@ -17,6 +17,7 @@ import Link from "next/link";
 import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 type FilaMetrica = { id: string; titulo: string; vistas: number; denuncias: number };
 
@@ -76,7 +77,7 @@ export default async function Panel() {
           Volver
         </Link>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
 
         <h1 className={styles.tit}>Hola, {sesion.nombre ?? "publicador"}</h1>

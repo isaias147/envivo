@@ -13,6 +13,7 @@ import { supabaseServidor } from "@/lib/supabaseServidor";
 import { leerSesionPublicador } from "@/lib/sesionPublicador";
 import EditarEventoForm from "@/components/EditarEventoForm";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ export default async function EditarEvento({
           Volver
         </Link>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
 
         <h1 className={styles.tit}>Editar evento</h1>

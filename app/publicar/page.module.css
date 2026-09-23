@@ -71,11 +71,6 @@
     0 0 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
-.marca i {
-  color: var(--texto);
-  font-style: normal;
-}
-
 /* ---------- Volver + "Mis eventos": cápsulas de cristal arriba a la
    derecha, en fila (así no chocan con la marca de la izquierda) ---------- */
 .accionesTop {

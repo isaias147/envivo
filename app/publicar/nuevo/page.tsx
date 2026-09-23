@@ -29,6 +29,7 @@ import {
 } from "@/lib/eventos";
 import type { TipoPerfil } from "@/lib/tiposPerfil";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 const MapaSelector = dynamic(() => import("@/components/MapaSelector"), {
   ssr: false,
@@ -792,7 +793,7 @@ export default function PublicarNuevo() {
             Volver
           </button>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
           <h1 className={styles.tit}>Publica tu evento</h1>
           <p className={styles.bajada}>
@@ -827,7 +828,7 @@ export default function PublicarNuevo() {
             Volver
           </button>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
           <p className={styles.bajada}>Cargando…</p>
         </div>
@@ -841,7 +842,7 @@ export default function PublicarNuevo() {
       <div className={styles.pantalla}>
         <div className={styles.marco}>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
 
           <div className={styles.marcaOk} aria-hidden="true">
@@ -891,7 +892,7 @@ export default function PublicarNuevo() {
           Volver
         </button>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
         <h1 className={styles.tit}>Publica tu evento</h1>
         <p className={styles.bajada}>

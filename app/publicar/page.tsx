@@ -18,6 +18,7 @@ import {
 } from "@/lib/eventos";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 const Mapa = dynamic(() => import("@/components/Mapa"), {
   ssr: false,
@@ -104,7 +105,7 @@ export default function Publicar() {
 
       {/* Marca: directamente sobre el mapa, arriba a la izquierda. */}
       <div className={styles.marca}>
-        En<i>Vivo</i>
+        <Logo />
       </div>
 
       {/* Volver + "Mis eventos": cápsulas de cristal, arriba a la derecha. */}

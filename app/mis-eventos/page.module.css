@@ -18,11 +18,6 @@
   letter-spacing: -0.025em;
   margin-bottom: 20px;
 }
-.marca i {
-  color: var(--texto);
-  font-style: normal;
-}
-
 .tit {
   font-family: var(--fuente-titulo);
   font-weight: 700;

@@ -30,6 +30,7 @@ import { normalizarWhatsapp } from "@/lib/eventos";
 import { candadoContacto } from "@/lib/candadoContacto";
 import EditarPerfilForm from "@/components/EditarPerfilForm";
 import styles from "./page.module.css";
+import Logo from "@/components/Logo";
 
 const SEGUIDORES_MIN_PUBLICO = 25;
 
@@ -99,7 +100,7 @@ export default function MiPerfil() {
       <div className={styles.pantalla}>
         <div className={styles.marco}>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
           <p>Cargando…</p>
         </div>
@@ -112,7 +113,7 @@ export default function MiPerfil() {
       <div className={styles.pantalla}>
         <div className={styles.marco}>
           <div className={styles.marca}>
-            En<i>Vivo</i>
+            <Logo />
           </div>
           <p>No pudimos cargar tu perfil. Intenta de nuevo más tarde.</p>
         </div>
@@ -134,7 +135,7 @@ export default function MiPerfil() {
     <div className={styles.pantalla}>
       <div className={styles.marco}>
         <div className={styles.marca}>
-          En<i>Vivo</i>
+          <Logo />
         </div>
 
         <h1 className={styles.tit}>Tu perfil</h1>
