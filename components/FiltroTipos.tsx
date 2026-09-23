@@ -72,9 +72,12 @@ const ICONOS: Record<string, () => React.JSX.Element> = {
 export default function FiltroTipos({
   valor,
   onCambiar,
+  envolver = false,
 }: {
   valor: string[];
   onCambiar: (v: string[]) => void;
+  /** En varias filas (dentro de la hoja de filtros) en vez de una fila con scroll. */
+  envolver?: boolean;
 }) {
   function alternar(tipo: string) {
     onCambiar(
@@ -83,7 +86,7 @@ export default function FiltroTipos({
   }
 
   return (
-    <div className={styles.fila}>
+    <div className={`${styles.fila} ${envolver ? styles.envuelta : ""}`}>
       {TIPOS_EVENTO.map((t) => {
         const Icono = ICONOS[t.valor];
         const activo = valor.includes(t.valor);

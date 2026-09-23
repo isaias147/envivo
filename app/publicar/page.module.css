@@ -51,9 +51,8 @@
 .cristal {
   background: var(--barra);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--separador);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--sombra);
 }
 
 /* ---------- marca: sobre el mapa, sin fondo ---------- */
@@ -171,7 +170,7 @@
   font-size: 15px;
   letter-spacing: -0.01em;
   text-align: center;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--sombra);
 }
 
 /* ---------- atribución de Leaflet ---------- */
@@ -184,7 +183,6 @@
   border-radius: 8px;
   background: var(--barra);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   white-space: nowrap;
   text-align: right;
   font-size: 9px;

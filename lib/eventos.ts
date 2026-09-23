@@ -42,7 +42,7 @@ export type EventoPublico = {
   pet_friendly: boolean | null;
 };
 
-export type Filtro = "hoy" | "finde" | "proximos";
+export type Filtro = "hoy" | "finde" | "proximos" | "fechas";
 
 /** Filtro de precio. Se combina con el de tiempo. "todo" no filtra nada. */
 export type Precio = "todo" | "gratis" | "cover";
@@ -94,7 +94,7 @@ export function pasaFiltroEdad(
 // por defecto para que la URL quede limpia mientras no se toque nada.
 
 export function leerFiltro(v: string | null | undefined): Filtro {
-  return v === "hoy" || v === "finde" ? v : "proximos";
+  return v === "hoy" || v === "finde" || v === "fechas" ? v : "proximos";
 }
 
 export function leerPrecio(v: string | null | undefined): Precio {
@@ -140,9 +140,14 @@ export function queryFiltros(
   radioKm?: RadioKm,
   centro?: { lat: number; lng: number },
   tipos?: string[],
+  fechas?: Fechas,
 ): string {
   const p = new URLSearchParams();
   if (filtro !== "proximos") p.set("t", filtro);
+  if (filtro === "fechas" && fechas) {
+    if (fechas.desde) p.set("fd", escribirFecha(fechas.desde));
+    if (fechas.hasta) p.set("fh", escribirFecha(fechas.hasta));
+  }
   if (precio !== "todo") p.set("p", precio);
   if (edad !== "todo") p.set("ed", edad);
   // El radio se comparte entre / y /lista por la URL; el default
@@ -264,9 +269,17 @@ function sumarDias(ymd: string, dias: number): string {
 export function rangoFiltro(
   filtro: Filtro,
   ahora: Date = new Date(),
+  fechas?: Fechas,
 ): { desde: Date; hasta: Date | null } {
   const desde = new Date(ahora.getTime() - 3 * 60 * 60 * 1000);
   const { ymd, dow } = fechaCali(ahora);
+
+  // "Fechas": el rango elegido (hora de Cali). Si está incompleto o es
+  // inválido, no filtra (igual que "Próximos") hasta que se corrija.
+  if (filtro === "fechas") {
+    const r = fechas ? rangoFechas(fechas) : null;
+    if (r) return { desde: r.desde > desde ? r.desde : desde, hasta: r.hasta };
+  }
 
   if (filtro === "hoy") {
     return { desde, hasta: instanteCali(ymd, "23:59:59") };
@@ -496,3 +509,95 @@ export function enlaceComoLlegar(lat: number, lng: number): string {
   const destino = encodeURIComponent(`${lat},${lng}`);
   return `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
 }
+
+// ---------------------------------------------------------------------------
+// Filtro "Fechas" (hoja de filtros): Desde / Hasta con día, mes y año.
+// El día es opcional: sin día, "Desde" arranca el 1 del mes y "Hasta"
+// termina el último día del mes. Sin "Hasta", se usa el mismo periodo que
+// "Desde" (ese día, o ese mes entero). Todo en hora de Cali.
+// Los eventos recurrentes son filas reales (una por fecha): cada fecha de
+// la serie que cae en el rango aparece sola, sin lógica extra.
+// ---------------------------------------------------------------------------
+
+/** Mes de 1 a 12; `dia` null = el mes completo. */
+export type FechaParcial = { anio: number; mes: number; dia: number | null };
+export type Fechas = { desde: FechaParcial | null; hasta: FechaParcial | null };
+export const FECHAS_VACIAS: Fechas = { desde: null, hasta: null };
+
+const dos = (n: number) => String(n).padStart(2, "0");
+const diasDelMes = (anio: number, mes: number) =>
+  new Date(Date.UTC(anio, mes, 0)).getUTCDate();
+
+/** "2026-10" (mes completo) o "2026-10-03". */
+export function escribirFecha(f: FechaParcial): string {
+  return f.dia == null ? `${f.anio}-${dos(f.mes)}` : `${f.anio}-${dos(f.mes)}-${dos(f.dia)}`;
+}
+
+/** Lee "2026-10" o "2026-10-03" de la URL; null si no tiene esa forma. */
+export function leerFecha(v: string | null | undefined): FechaParcial | null {
+  const m = v?.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+  if (!m) return null;
+  const mes = Number(m[2]);
+  if (mes < 1 || mes > 12) return null;
+  return { anio: Number(m[1]), mes, dia: m[3] ? Number(m[3]) : null };
+}
+
+export function leerFechas(sp: { get(key: string): string | null }): Fechas {
+  return { desde: leerFecha(sp.get("fd")), hasta: leerFecha(sp.get("fh")) };
+}
+
+/** Año actual en Cali y el siguiente: las opciones del desplegable de año. */
+export function aniosFiltro(ahora: Date = new Date()): number[] {
+  const anio = Number(fechaCali(ahora).ymd.slice(0, 4));
+  return [anio, anio + 1];
+}
+
+/**
+ * Qué impide aplicar el rango, en texto para la persona (se muestra con un
+ * ícono), o null si el rango es válido.
+ */
+export function errorFechas(f: Fechas): string | null {
+  if (!f.desde) return "Elige al menos el mes y el año de “Desde”.";
+  for (const [etiqueta, x] of [["Desde", f.desde], ["Hasta", f.hasta]] as const) {
+    if (x && x.dia != null && x.dia > diasDelMes(x.anio, x.mes)) {
+      return `“${etiqueta}”: ese mes no tiene día ${x.dia}.`;
+    }
+  }
+  const r = rangoSinValidar(f.desde, f.hasta ?? f.desde);
+  if (r.hasta < r.desde) return "“Hasta” es anterior a “Desde”.";
+  return null;
+}
+
+function rangoSinValidar(d: FechaParcial, h: FechaParcial): { desde: Date; hasta: Date } {
+  const ymdDesde = `${d.anio}-${dos(d.mes)}-${dos(d.dia ?? 1)}`;
+  const ymdHasta = `${h.anio}-${dos(h.mes)}-${dos(h.dia ?? diasDelMes(h.anio, h.mes))}`;
+  return {
+    desde: instanteCali(ymdDesde, "00:00:00"),
+    hasta: instanteCali(ymdHasta, "23:59:59"),
+  };
+}
+
+/** Rango [desde, hasta] en hora de Cali, o null si no es válido. */
+export function rangoFechas(f: Fechas): { desde: Date; hasta: Date } | null {
+  if (errorFechas(f) || !f.desde) return null;
+  return rangoSinValidar(f.desde, f.hasta ?? f.desde);
+}
+
+/**
+ * Nº de grupos de filtros activos (para el globito del botón): Cuándo,
+ * Precio, Edad y Categorías cuentan 1 cada uno si no están en su valor por
+ * defecto. "Fechas" solo cuenta si el rango es válido (si no, no filtra).
+ */
+export function contarFiltrosActivos(f: {
+  filtro: Filtro;
+  fechas: Fechas;
+  precio: Precio;
+  edad: FiltroEdad;
+  tipos: string[];
+}): number {
+  const cuando =
+    f.filtro === "fechas" ? rangoFechas(f.fechas) != null : f.filtro !== "proximos";
+  return [cuando, f.precio !== "todo", f.edad !== "todo", f.tipos.length > 0].filter(Boolean)
+    .length;
+}
+

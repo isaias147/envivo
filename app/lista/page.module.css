@@ -34,13 +34,10 @@
   margin: 0 -18px;
 }
 
-/* Marca: fija abajo a la izquierda, por encima de la barra de tiempo (que
-   vive pegada arriba de Todo/Gratis/Cover, en .pie — la distancia es algo
-   menor que en app/page.module.css porque el padding-bottom de este .pie
-   es más chico, 16px en vez de 22px). */
+/* Marca: fija abajo a la izquierda, a la altura del botón de ubicación. */
 .marca {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 107px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 28px);
   left: 16px;
   z-index: 40;
   font-family: var(--fuente-titulo);
@@ -54,69 +51,17 @@
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
-/* Con el desplegable de Edad abierto, el grupo de filtros sube hasta la
-   altura de la marca (no hay espacio para las dos a la vez): se
-   desvanece mientras tanto y vuelve al cerrar. */
-.marcaOculta {
-  opacity: 0;
-}
-
-/* Radio de búsqueda: debajo de los chips, a la derecha. */
-.radio {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-}
-
 .buscador {
   position: relative;
   flex: 1;
   min-width: 0;
 }
 
-/* Movido al pie (junto a Todo/Gratis/Cover): ya no vive en el header, así
-   que necesita su propio fondo de cristal y volver a ser clicable (el pie
-   tiene pointer-events: none). */
-.reel {
-  composes: cristal from global;
-  pointer-events: auto;
-  display: inline-flex;
-  gap: 4px;
-  max-width: calc(100vw - 32px);
-  padding: 3px;
-  border-radius: 100px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.reel::-webkit-scrollbar {
-  display: none;
-}
-
-.filtro {
-  border: none;
-  background: transparent;
-  color: var(--texto);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0;
-  padding: 5px 12px;
-  border-radius: 100px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.filtro[aria-pressed="true"] {
-  background: var(--coral-tinte);
-  color: var(--coral-texto);
-  font-weight: 600;
-}
-
 /* ---------- lista ---------- */
 .lista {
-  /* aire abajo para las cápsulas de distancia + precio flotantes y la
-     barra de tabs */
+  /* aire abajo para la marca, el botón de ubicación y la barra de pestañas */
   padding: 6px 18px
-    calc(env(safe-area-inset-bottom) + var(--barra-inf) + 144px);
+    calc(env(safe-area-inset-bottom) + var(--barra-inf) + 84px);
 }
 
 .dia {
@@ -141,7 +86,6 @@
 .renglones > * {
   background: var(--cristal-fondo);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   border: var(--cristal-borde);
   box-shadow: var(--cristal-sombra);
   padding: 14px;
@@ -164,97 +108,12 @@
   text-align: center;
 }
 
-/* ---------- filtros de tiempo + precio: cápsula flotante abajo (igual que /) ---------- */
-.pie {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
-  pointer-events: none;
-}
-
-/* Barra de tiempo pegada justo encima de Todo/Gratis/Cover. Sube ENTERA
-   (reel + precio, juntas) cuando el desplegable de Edad abre — si solo
-   subiera la barra de precio, chocaría contra la barra de tiempo pegada
-   justo arriba. */
-.grupoFiltros {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  transition: transform 0.2s ease;
-}
-
-/* El desplegable de Edad abre hacia abajo: mientras está abierto, sube el
-   grupo lo necesario para que el menú no quede tapado por el borde de la
-   pantalla. La marca "EnVivo" se desvanece mientras tanto (ver
-   .marcaOculta) porque no hay aire para las dos cosas a la vez. */
-.grupoFiltrosSubido {
-  transform: translateY(-56px);
-}
-
-/* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
-   reserva a la derecha el ancho que ocupa la columna de FABs de
-   BotonUbicacion (círculo de 44px + 16px de margen + un respiro) para que
-   no choquen. */
-.filaFiltros {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  width: 100%;
-  padding-right: 100px;
-  pointer-events: none;
-}
-
-.precioBarra {
-  composes: cristal from global;
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 100px;
-  pointer-events: auto;
-}
-.precio {
-  border: none;
-  background: transparent;
-  color: var(--texto);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0;
-  padding: 8px 16px;
-  border-radius: 100px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.precio[aria-pressed="true"] {
-  background: var(--coral-tinte);
-  color: var(--coral-texto);
-  font-weight: 600;
-}
-
 /* ---------- escritorio (SPEC.md §3) ---------- */
 /* La pantalla se contiene en la misma columna de 480px que el resto de la
-   app. .marca y .pie son position:fixed al viewport real (no heredan el
-   max-width de .pantalla), así que se re-anclan aparte:
+   app. .marca es position:fixed al viewport real (no hereda el max-width
+   de .pantalla), así que se re-ancla aparte:
    - .marca: mismo cálculo que BotonUbicacion, pegada al borde IZQUIERDO de
-     la columna.
-   - .pie: en vez de solo re-anclarse, se capa a los mismos 480px de ancho
-     (en vez de left:0;right:0 = 100vw). Esto hace que .filaFiltros (que
-     mide 100% de .pie) vuelva a medir 480px en vez de 100vw — exactamente
-     la misma relación que ya tenía en móvil, solo que contra el ancho de
-     la columna en vez del viewport completo. Por eso el padding-right:100px
-     de .filaFiltros NO cambia de valor: ya reservaba espacio contra el
-     borde derecho de SU PROPIO contenedor, y ese borde ahora coincide con
-     el borde de la columna, que es justo donde BotonUbicacion se ancla (antes BarraFlotante, Fase 3)
-     la Fase 3. */
+     la columna. */
 @media (min-width: 768px) {
   .pantalla {
     max-width: 480px;
@@ -263,12 +122,5 @@
 
   .marca {
     left: calc((100vw - 480px) / 2 + 16px);
-  }
-
-  .pie {
-    left: 50%;
-    right: auto;
-    width: 480px;
-    transform: translateX(-50%);
   }
 }

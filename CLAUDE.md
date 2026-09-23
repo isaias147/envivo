@@ -150,10 +150,21 @@ del MVP. El precio todavía no está definido.
    `RADIO_MIN_KM`/`RADIO_MAX_KM`/`RADIO_PASO_KM`/`RADIO_INICIAL_KM` = 1,5 en
    `lib/eventos.ts`). El círculo del mapa se redibuja en vivo. El radio es
    **el mismo en `/` y `/lista`** (viaja en `?km=`); ya no existe la opción
-   "Todo" (sin límite). Filtros: tiempo (Próximamente / Esta noche / Este finde), precio
-   (Todo / Gratis / Cover), edad (`FiltroEdad`, por `restriccion_edad`) y
-   chips de categoría de selección múltiple (`FiltroTipos` — Música en
-   vivo, Clase o taller, Recreativo, Cultural, Deportivo, Espiritual).
+   "Todo" (sin límite). **Filtros** (rediseño sesión 5): todos viven en la
+   hoja `components/Filtros` (botón junto al buscador, con el nº de grupos
+   activos; hoja glass que sube desde abajo, se cierra deslizando, tocando
+   fuera o con Escape; aplica al instante, "Ver N eventos" solo cierra,
+   "Limpiar filtros" vuelve a los defaults). Grupos: **Cuándo**
+   (Próximamente / Esta noche / Este finde / **Fechas**), Precio (Todo /
+   Gratis / Cover), Edad (por `restriccion_edad`) y Categorías (`FiltroTipos`
+   — Música en vivo, Clase o taller, Recreativo, Cultural, Deportivo,
+   Espiritual; los chips siguen también arriba, sincronizados). **Fechas**:
+   Desde/Hasta con día (opcional), mes y año (año actual y el siguiente, en
+   Cali); sin día = mes completo; sin Hasta = el mismo día o mes de Desde;
+   todo en hora de Cali (`rangoFechas`, `errorFechas` en `lib/eventos.ts`).
+   Los recurrentes son filas reales, así que cada fecha de la serie que cae
+   en el rango aparece sola. Todo viaja en la URL (`?t=&fd=&fh=&p=&ed=&tipos=`)
+   y se comparte con `/lista`. Ya no hay barras de filtros abajo.
    Zoom y encuadre estilo Google Maps: al activar un filtro de contenido
    (no el radio) el mapa encuadra los pines resultantes.
 2. `/lista` — los mismos eventos en lista, con el mismo `SelectorRadio`

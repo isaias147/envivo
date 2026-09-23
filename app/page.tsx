@@ -23,10 +23,14 @@ import {
   pasaFiltroEdad,
   pasaPrecio,
   pasaTipos,
+  leerFechas,
   leerRadio,
   queryFiltros,
+  contarFiltrosActivos,
+  escribirFecha,
   rangoFiltro,
   type EventoPublico,
+  type Fechas,
   type Filtro,
   type FiltroEdad as FiltroEdadValor,
   type Precio,
@@ -39,7 +43,7 @@ import SelectorRadio from "@/components/SelectorRadio";
 import BotonUbicacion from "@/components/BotonUbicacion";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
-import FiltroEdad from "@/components/FiltroEdad";
+import Filtros, { type EstadoFiltros } from "@/components/Filtros";
 import FiltroTipos from "@/components/FiltroTipos";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import type { ResultadoBusqueda } from "@/lib/busqueda";
@@ -50,19 +54,6 @@ const Mapa = dynamic(() => import("@/components/Mapa"), {
   ssr: false,
   loading: () => <div className={styles.mapaCargando}>Cargando mapa…</div>,
 });
-
-const FILTROS: { id: Filtro; etiqueta: string }[] = [
-  { id: "proximos", etiqueta: "Próximamente" },
-  { id: "hoy", etiqueta: "Esta noche" },
-  { id: "finde", etiqueta: "Este finde" },
-];
-
-// Etiquetas del filtro de precio (el tipo y la lógica viven en lib/eventos).
-const PRECIOS: { id: Precio; etiqueta: string }[] = [
-  { id: "todo", etiqueta: "Todo" },
-  { id: "gratis", etiqueta: "Gratis" },
-  { id: "cover", etiqueta: "Cover" },
-];
 
 // `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Home() {
@@ -82,14 +73,12 @@ function MapaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // Rango de "Fechas" (hoja de filtros): ?fd=&fh=, solo si t=fechas.
+  const [fechas, setFechas] = useState<Fechas>(() => leerFechas(sp));
   // Chips de categoría (Música en vivo, Cultural, ...), selección múltiple;
   // [] = todas. Filtro independiente de Todo/Gratis/Cover y de Edad.
   const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
   const [radioKm, setRadioKm] = useState<RadioKm>(() => leerRadio(sp.get("km")));
-  // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
-  // toda la fila de filtros para que el menú no quede tapado por lo que
-  // hay debajo (botón de ubicación, barra de atribución, etc.).
-  const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
   // ?resaltar=&tipo=, leídos UNA sola vez al montar: el efecto que sincroniza
   // ?t=&p= en la URL (más abajo) reemplaza el historial apenas se monta y
   // los borraría si los leyéramos de `sp` de nuevo cuando `eventos` termine
@@ -177,9 +166,9 @@ function MapaPantalla() {
   // lista" y el botón atrás del navegador los conserven — así /lista
   // arranca del mismo punto en vez de saltar a Granada.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos);
+    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos, fechas);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, edad, radioKm, centro, tipos]);
+  }, [filtro, precio, edad, radioKm, centro, tipos, fechas]);
 
   // Trae de una vez los eventos futuros; el filtro se aplica en el cliente.
   useEffect(() => {
@@ -203,7 +192,7 @@ function MapaPantalla() {
 
   // Eventos que pasan el filtro de fecha + precio y caen dentro del radio.
   const visibles = useMemo(() => {
-    const { desde, hasta } = rangoFiltro(filtro);
+    const { desde, hasta } = rangoFiltro(filtro, new Date(), fechas);
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
       if (!pasaPrecio(ev, precio)) return false;
@@ -214,7 +203,7 @@ function MapaPantalla() {
       if (hasta && t > hasta) return false;
       return dentroDeCaja(ev, centro, radioKm);
     });
-  }, [eventos, filtro, precio, edad, tipos, centro, radioKm]);
+  }, [eventos, filtro, fechas, precio, edad, tipos, centro, radioKm]);
 
   // ¿Hay algún filtro de contenido puesto (tiempo/precio/edad/categorías),
   // aparte del radio de búsqueda? Con eso el mapa decide si debe
@@ -222,9 +211,16 @@ function MapaPantalla() {
   // EncuadreFiltro en components/Mapa.tsx). `filtroFirma` es la señal que
   // dispara ese encuadre — cambia solo cuando cambia el contenido del
   // filtro, nunca por un simple paneo o arrastre del pin.
-  const hayFiltroActivo =
-    filtro !== "proximos" || precio !== "todo" || edad !== "todo" || tipos.length > 0;
-  const filtroFirma = `${filtro}|${precio}|${edad}|${[...tipos].sort().join(",")}`;
+  const estadoFiltros: EstadoFiltros = { filtro, fechas, precio, edad, tipos };
+  const hayFiltroActivo = contarFiltrosActivos(estadoFiltros) > 0;
+  const filtroFirma = [
+    filtro,
+    fechas.desde ? escribirFecha(fechas.desde) : "",
+    fechas.hasta ? escribirFecha(fechas.hasta) : "",
+    precio,
+    edad,
+    [...tipos].sort().join(","),
+  ].join("|");
 
   const seleccionado =
     visibles.find((e) => e.id === seleccionadoId) ?? null;
@@ -247,23 +243,13 @@ function MapaPantalla() {
   }, [fichaAbierta]);
 
   // Cambiar de filtro, precio o radio cierra la ficha abierta.
-  function cambiarFiltro(f: Filtro) {
-    setFiltro(f);
-    setSeleccionadoId(null);
-    setPerfilSeleccionado(null);
-  }
-  function cambiarPrecio(p: Precio) {
-    setPrecio(p);
-    setSeleccionadoId(null);
-    setPerfilSeleccionado(null);
-  }
-  function cambiarEdad(e: FiltroEdadValor) {
-    setEdad(e);
-    setSeleccionadoId(null);
-    setPerfilSeleccionado(null);
-  }
-  function cambiarTipos(t: string[]) {
-    setTipos(t);
+  // Hoja de filtros (y chips de arriba): aplica al instante.
+  function cambiarFiltros(c: Partial<EstadoFiltros>) {
+    if (c.filtro !== undefined) setFiltro(c.filtro);
+    if (c.fechas !== undefined) setFechas(c.fechas);
+    if (c.precio !== undefined) setPrecio(c.precio);
+    if (c.edad !== undefined) setEdad(c.edad);
+    if (c.tipos !== undefined) setTipos(c.tipos);
     setSeleccionadoId(null);
     setPerfilSeleccionado(null);
   }
@@ -291,7 +277,7 @@ function MapaPantalla() {
     setPerfilSeleccionado(null);
     const ev = eventos.find((e) => e.id === resultado.id);
     if (ev) {
-      const { desde, hasta } = rangoFiltro(filtro);
+      const { desde, hasta } = rangoFiltro(filtro, new Date(), fechas);
       const t = new Date(ev.starts_at);
       if (t < desde || (hasta && t > hasta)) setFiltro("proximos");
     } else {
@@ -381,26 +367,25 @@ function MapaPantalla() {
         />
       </div>
 
-      {/* Marca: directamente sobre el mapa, arriba a la izquierda. Se
-          desvanece mientras el desplegable de Edad está abierto (sube
-          hasta su altura, ver grupoFiltrosSubido). */}
-      <div
-        className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
-      >
+      {/* Marca: sobre el mapa, abajo a la izquierda (a la altura del botón
+          de ubicación). */}
+      <div className={styles.marca}>
         <Logo />
       </div>
 
-      {/* Buscador: junto a la marca. Colapsado es solo una lupa; al
-          abrirse ocupa el resto de la fila. */}
+      {/* Buscador + botón de filtros (abre la hoja con todos los filtros). */}
       <div className={styles.buscadorWrap}>
-        <Buscador onSeleccionar={onSeleccionarResultado} />
+        <div className={styles.buscador}>
+          <Buscador onSeleccionar={onSeleccionarResultado} />
+        </div>
+        <Filtros valor={estadoFiltros} onCambiar={cambiarFiltros} total={visibles.length} />
       </div>
 
       {/* Chips de categoría, debajo de la barra de búsqueda. Filtro aparte
           de Todo/Gratis/Cover, Edad y tiempo: selección múltiple, ninguno
           activo = todas. */}
       <div className={styles.tipos}>
-        <FiltroTipos valor={tipos} onCambiar={cambiarTipos} />
+        <FiltroTipos valor={tipos} onCambiar={(t) => cambiarFiltros({ tipos: t })} />
       </div>
 
       {/* Radio de búsqueda: debajo de los chips, a la derecha. */}
@@ -414,46 +399,8 @@ function MapaPantalla() {
         </p>
       )}
 
-      {/* Pie: barra de tiempo + barra de precio, apiladas y centradas;
-          sube cuando aparece la tarjeta. */}
+      {/* Pie: la ficha del evento o lugar elegido. */}
       <div className={styles.pie}>
-        <div
-          className={`${styles.grupoFiltros} ${edadMenuAbierto ? styles.grupoFiltrosSubido : ""}`}
-        >
-          <div className={styles.reel}>
-            {FILTROS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={styles.filtro}
-                aria-pressed={filtro === f.id}
-                onClick={() => cambiarFiltro(f.id)}
-              >
-                {f.etiqueta}
-              </button>
-            ))}
-          </div>
-          <div className={styles.filaFiltros}>
-            <div className={styles.precioBarra}>
-              {PRECIOS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={styles.precio}
-                  aria-pressed={precio === p.id}
-                  onClick={() => cambiarPrecio(p.id)}
-                >
-                  {p.etiqueta}
-                </button>
-              ))}
-            </div>
-            <FiltroEdad
-              valor={edad}
-              onCambiar={cambiarEdad}
-              onAbiertoCambio={setEdadMenuAbierto}
-            />
-          </div>
-        </div>
         {(seleccionado || perfilSeleccionado) && (
           <div className={styles.ficha} ref={fichaRef}>
             {perfilSeleccionado ? (

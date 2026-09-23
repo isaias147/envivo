@@ -75,7 +75,7 @@
   border: 1px solid var(--separador);
   border-radius: 14px;
   background: var(--superficie);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--sombra);
 }
 
 .mensaje {

@@ -119,7 +119,7 @@ function chinche(ev: EventoPublico, activo: boolean): L.DivIcon {
                   color:${texto};padding:${pad};border-radius:5px;display:flex;
                   border:1px solid ${borde};
                   align-items:baseline;gap:6px;max-width:${anchoMax}px;
-                  box-shadow:0 2px 8px rgba(0,0,0,.35);">
+                  box-shadow:var(--sombra);">
         <span>${escaparHtml(hhmm)}</span>
         <span style="font-family:var(--fuente-cuerpo),sans-serif;font-weight:500;
                      font-size:${tamNombre}px;overflow:hidden;text-overflow:ellipsis;

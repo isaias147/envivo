@@ -102,7 +102,6 @@
   z-index: 500;
   background: var(--barra);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--separador);
   border-radius: 100px;
   padding: 5px 11px;

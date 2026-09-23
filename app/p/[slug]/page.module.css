@@ -30,7 +30,6 @@
   border-radius: 50%;
   background: var(--barra);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -12,6 +12,7 @@ import {
   leerEdad,
   leerFiltro,
   leerPrecio,
+  leerFechas,
   leerRadio,
   leerTipos,
   pasaFiltroEdad,
@@ -20,6 +21,7 @@ import {
   queryFiltros,
   rangoFiltro,
   type EventoPublico,
+  type Fechas,
   type Filtro,
   type FiltroEdad as FiltroEdadValor,
   type Precio,
@@ -32,22 +34,9 @@ import SelectorRadio from "@/components/SelectorRadio";
 import BotonUbicacion from "@/components/BotonUbicacion";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
-import FiltroEdad from "@/components/FiltroEdad";
+import Filtros, { type EstadoFiltros } from "@/components/Filtros";
 import FiltroTipos from "@/components/FiltroTipos";
 import styles from "./page.module.css";
-
-const FILTROS: { id: Filtro; etiqueta: string }[] = [
-  { id: "proximos", etiqueta: "Próximamente" },
-  { id: "hoy", etiqueta: "Esta noche" },
-  { id: "finde", etiqueta: "Este finde" },
-];
-
-// Etiquetas del filtro de precio (el tipo y la lógica viven en lib/eventos).
-const PRECIOS: { id: Precio; etiqueta: string }[] = [
-  { id: "todo", etiqueta: "Todo" },
-  { id: "gratis", etiqueta: "Gratis" },
-  { id: "cover", etiqueta: "Cover" },
-];
 
 // `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Lista() {
@@ -66,13 +55,11 @@ function ListaPantalla() {
   const [filtro, setFiltro] = useState<Filtro>(() => leerFiltro(sp.get("t")));
   const [precio, setPrecio] = useState<Precio>(() => leerPrecio(sp.get("p")));
   const [edad, setEdad] = useState<FiltroEdadValor>(() => leerEdad(sp.get("ed")));
+  // Rango de "Fechas" (hoja de filtros): ?fd=&fh=, solo si t=fechas.
+  const [fechas, setFechas] = useState<Fechas>(() => leerFechas(sp));
   // Chips de categoría (Música en vivo, Cultural, ...), selección múltiple;
   // [] = todas. Filtro independiente de Todo/Gratis/Cover y de Edad.
   const [tipos, setTipos] = useState<string[]>(() => leerTipos(sp.get("tipos")));
-  // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
-  // toda la fila de filtros para que el menú no quede tapado por lo que
-  // hay debajo.
-  const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
   // Radio compartido con el mapa (?km=), se elige con SelectorRadio.
   const [radioKm, setRadioKm] = useState<RadioKm>(() => leerRadio(sp.get("km")));
   // Punto de referencia para el filtro de distancia. Si venimos del mapa
@@ -91,9 +78,9 @@ function ListaPantalla() {
   // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
   // mapa" y el botón atrás del navegador los conserven.
   useEffect(() => {
-    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos);
+    const qs = queryFiltros(filtro, precio, edad, radioKm, centro, tipos, fechas);
     window.history.replaceState(null, "", qs || window.location.pathname);
-  }, [filtro, precio, edad, radioKm, centro, tipos]);
+  }, [filtro, precio, edad, radioKm, centro, tipos, fechas]);
 
   // Al elegir un radio por primera vez, pedir ubicación (mismo patrón que
   // app/page.tsx); si la niegan o falla, se queda en Granada.
@@ -169,7 +156,7 @@ function ListaPantalla() {
 
   // Eventos que pasan el filtro de fecha + precio + distancia, agrupados por día.
   const grupos = useMemo(() => {
-    const { desde, hasta } = rangoFiltro(filtro);
+    const { desde, hasta } = rangoFiltro(filtro, new Date(), fechas);
     const visibles = eventos.filter((ev) => {
       if (!pasaPrecio(ev, precio)) return false;
       if (!pasaFiltroEdad(ev, edad)) return false;
@@ -189,7 +176,18 @@ function ListaPantalla() {
       else porDia.push({ fecha, eventos: [ev] });
     }
     return porDia;
-  }, [eventos, filtro, precio, edad, tipos, radioKm, centro]);
+  }, [eventos, filtro, fechas, precio, edad, tipos, radioKm, centro]);
+  const totalVisibles = grupos.reduce((n, g) => n + g.eventos.length, 0);
+
+  // Hoja de filtros (y chips de arriba): aplica al instante.
+  const estadoFiltros: EstadoFiltros = { filtro, fechas, precio, edad, tipos };
+  function cambiarFiltros(c: Partial<EstadoFiltros>) {
+    if (c.filtro !== undefined) setFiltro(c.filtro);
+    if (c.fechas !== undefined) setFechas(c.fechas);
+    if (c.precio !== undefined) setPrecio(c.precio);
+    if (c.edad !== undefined) setEdad(c.edad);
+    if (c.tipos !== undefined) setTipos(c.tipos);
+  }
 
   // Apenas `grupos` se recalcula (por el recentrado de `irAResultado`),
   // si queda un evento pendiente de enfocar y ya está en el DOM, scrollea
@@ -224,6 +222,7 @@ function ListaPantalla() {
           <div className={styles.buscador}>
             <Buscador onSeleccionar={irAResultado} />
           </div>
+          <Filtros valor={estadoFiltros} onCambiar={cambiarFiltros} total={totalVisibles} />
         </div>
         {/* Chips de categoría, debajo del buscador. Filtro aparte de
             Todo/Gratis/Cover, Edad y tiempo: selección múltiple, ninguno
@@ -231,7 +230,7 @@ function ListaPantalla() {
             padding lateral de .top — el gutter real lo da el padding
             propio de FiltroTipos, igual que en el mapa. */}
         <div className={styles.tiposWrap}>
-          <FiltroTipos valor={tipos} onCambiar={setTipos} />
+          <FiltroTipos valor={tipos} onCambiar={(t) => cambiarFiltros({ tipos: t })} />
         </div>
         <div className={styles.radio}>
           <SelectorRadio radioKm={radioKm} onCambiar={elegirRadio} />
@@ -271,55 +270,8 @@ function ListaPantalla() {
         )}
       </div>
 
-      {/* Filtro de precio: cápsula de cristal flotando abajo, centrada,
-          igual que en el mapa. Se combina con el filtro de tiempo. El
-          radio se elige arriba, con SelectorRadio. */}
-      <div className={styles.pie}>
-        <div
-          className={`${styles.grupoFiltros} ${edadMenuAbierto ? styles.grupoFiltrosSubido : ""}`}
-        >
-          <div className={styles.reel}>
-            {FILTROS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={styles.filtro}
-                aria-pressed={filtro === f.id}
-                onClick={() => setFiltro(f.id)}
-              >
-                {f.etiqueta}
-              </button>
-            ))}
-          </div>
-          <div className={styles.filaFiltros}>
-            <div className={styles.precioBarra}>
-              {PRECIOS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={styles.precio}
-                  aria-pressed={precio === p.id}
-                  onClick={() => setPrecio(p.id)}
-                >
-                  {p.etiqueta}
-                </button>
-              ))}
-            </div>
-            <FiltroEdad
-              valor={edad}
-              onCambiar={setEdad}
-              onAbiertoCambio={setEdadMenuAbierto}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Marca: fija abajo a la izquierda, igual que sobre el mapa. Se
-          desvanece mientras el desplegable de Edad está abierto (sube
-          hasta su altura, ver grupoFiltrosSubido). */}
-      <div
-        className={`${styles.marca} ${edadMenuAbierto ? styles.marcaOculta : ""}`}
-      >
+      {/* Marca: fija abajo a la izquierda, igual que sobre el mapa. */}
+      <div className={styles.marca}>
         <Logo />
       </div>
 

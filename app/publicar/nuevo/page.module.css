@@ -106,7 +106,6 @@
   width: 100%;
   background: var(--cristal-fondo);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--separador);
   color: var(--texto);
   font-family: var(--fuente-cuerpo);
@@ -173,7 +172,6 @@
   text-align: center;
   background: var(--cristal-fondo);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   border: 1px solid var(--separador);
   color: var(--texto);
   font-family: var(--fuente-cuerpo);
@@ -213,7 +211,7 @@
   background: var(--separador);
   border: 1px solid var(--separador);
   border-radius: 8px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--sombra);
   max-height: 214px;
   overflow-y: auto;
 }
@@ -320,7 +318,6 @@
   border-radius: 8px;
   background: var(--cristal-fondo);
   backdrop-filter: var(--cristal-blur);
-  -webkit-backdrop-filter: var(--cristal-blur);
   color: var(--texto-secundario);
   font-family: var(--fuente-titulo);
   font-weight: 700;

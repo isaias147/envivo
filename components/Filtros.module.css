@@ -1,0 +1,260 @@
+/* ===== EnVivo · botón + hoja de filtros (glass, envivo-ui) ===== */
+
+/* ---------- botón junto al buscador ---------- */
+.boton {
+  composes: cristal from global;
+  position: relative;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.boton svg {
+  width: 17px;
+  height: 17px;
+}
+.boton:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: 2px;
+}
+/* Nº de filtros activos. */
+.globo {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--coral-boton);
+  color: var(--sobre-coral);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
+/* ---------- velo + hoja ---------- */
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 900; /* bajo el modal de login (1000), sobre todo lo demás */
+  background: var(--velo);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: aparecer 0.18s ease;
+}
+.veloSaliendo {
+  animation: desaparecer 0.2s ease forwards;
+}
+
+.hoja {
+  composes: cristal from global;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  transition: transform 0.2s ease;
+  animation: subir 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: none;
+}
+.hojaSaliendo {
+  animation: bajar 0.2s ease forwards;
+}
+
+/* Agarradera + título: es la zona que se arrastra para cerrar. */
+.cabecera {
+  flex-shrink: 0;
+  padding: 8px 20px 6px;
+  touch-action: none;
+  cursor: grab;
+}
+.asa {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--texto-secundario);
+  opacity: 0.5;
+  margin: 0 auto 12px;
+}
+.titulo {
+  font-size: 20px;
+  color: var(--texto);
+}
+
+.cuerpo {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 20px 16px;
+}
+
+.seccion {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--separador);
+}
+.seccion:last-child {
+  border-bottom: none;
+}
+.subtitulo {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--texto-secundario);
+}
+
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.opcion {
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--separador);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--texto);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.opcion[aria-pressed="true"] {
+  background: var(--coral-tinte);
+  border-color: var(--coral-texto);
+  color: var(--coral-texto);
+  font-weight: 600;
+}
+.opcion:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: 2px;
+}
+
+/* ---------- fechas ---------- */
+.fechas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.filaFecha {
+  display: grid;
+  grid-template-columns: 52px 1fr 1.6fr 1.2fr;
+  align-items: center;
+  gap: 6px;
+}
+.etiquetaFecha {
+  font-size: 13.5px;
+  color: var(--texto);
+}
+.select {
+  min-width: 0;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--separador);
+  border-radius: 10px;
+  background: var(--separador);
+  color: var(--texto);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ayuda,
+.errorFechas {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.ayuda {
+  color: var(--texto-secundario);
+}
+.errorFechas {
+  color: var(--error);
+}
+.ayuda svg,
+.errorFechas svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+/* ---------- pie fijo ---------- */
+.pie {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--separador);
+}
+.limpiar {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.limpiar:disabled {
+  color: var(--texto-secundario);
+  text-decoration: none;
+  cursor: default;
+}
+.ver {
+  min-height: 48px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 12px;
+  background: var(--coral-boton);
+  color: var(--sobre-coral);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.limpiar:focus-visible,
+.ver:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: 2px;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+}
+@keyframes desaparecer {
+  to { opacity: 0; }
+}
+@keyframes subir {
+  from { transform: translateY(100%); }
+}
+@keyframes bajar {
+  to { transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .velo,
+  .veloSaliendo,
+  .hoja,
+  .hojaSaliendo {
+    animation-duration: 0.01s;
+  }
+}

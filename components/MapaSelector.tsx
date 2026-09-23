@@ -42,7 +42,7 @@ const ICONO_AQUI = L.divIcon({
                 display:flex;flex-direction:column;align-items:center;cursor:grab;">
       <span style="font-family:var(--fuente-titulo),sans-serif;font-weight:700;
                    font-size:11px;background:var(--coral-boton);color:var(--sobre-coral);padding:4px 9px;
-                   border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.35);">Aquí</span>
+                   border-radius:5px;box-shadow:var(--sombra);">Aquí</span>
       <span style="display:block;width:1px;height:13px;background:var(--coral-boton);"></span>
     </div>`,
 });
