@@ -201,7 +201,7 @@
 
 /* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
    reserva a la derecha el ancho que ocupa la columna de FABs de
-   BarraFlotante (círculo de 44px + 16px de margen + un respiro) para que
+   BotonUbicacion (círculo de 44px + 16px de margen + un respiro) para que
    no choquen. */
 .filaFiltros {
   display: flex;
@@ -244,7 +244,7 @@
 /* La pantalla se contiene en la misma columna de 480px que el resto de la
    app. .marca y .pie son position:fixed al viewport real (no heredan el
    max-width de .pantalla), así que se re-anclan aparte:
-   - .marca: mismo cálculo que BarraFlotante, pegada al borde IZQUIERDO de
+   - .marca: mismo cálculo que BotonUbicacion, pegada al borde IZQUIERDO de
      la columna.
    - .pie: en vez de solo re-anclarse, se capa a los mismos 480px de ancho
      (en vez de left:0;right:0 = 100vw). Esto hace que .filaFiltros (que
@@ -253,7 +253,7 @@
      la columna en vez del viewport completo. Por eso el padding-right:100px
      de .filaFiltros NO cambia de valor: ya reservaba espacio contra el
      borde derecho de SU PROPIO contenedor, y ese borde ahora coincide con
-     el borde de la columna, que es justo donde BarraFlotante se ancló en
+     el borde de la columna, que es justo donde BotonUbicacion se ancla (antes BarraFlotante, Fase 3)
      la Fase 3. */
 @media (min-width: 768px) {
   .pantalla {

@@ -48,7 +48,7 @@ export default function FiltroEdad({
     [onAbiertoCambio],
   );
 
-  // Cierra el desplegable al tocar afuera (mismo patrón que BarraFlotante).
+  // Cierra el desplegable al tocar afuera (mismo patrón que SelectorRadio).
   useEffect(() => {
     if (!abierto) return;
     function alClicar(e: MouseEvent) {

@@ -11,7 +11,7 @@
 /* Escritorio (SPEC.md §3): la pantalla completa, mapa incluido, se contiene
    en la misma columna centrada que el resto de la app. Los overlays de acá
    son position:absolute sobre .pantalla, así que heredan el límite solos.
-   BarraFlotante es la excepción (position:fixed al viewport real) — se
+   BotonUbicacion es la excepción (position:fixed al viewport real) — se
    corrige aparte en la Fase 3. */
 @media (min-width: 768px) {
   .pantalla {
@@ -183,7 +183,7 @@
 
 /* Fila del grupo de tres + el FAB de Edad, separados entre sí. Se le
    reserva a la derecha el ancho que ocupa la columna de FABs de
-   BarraFlotante (círculo de 44px + 16px de margen + un respiro) para que
+   BotonUbicacion (círculo de 44px + 16px de margen + un respiro) para que
    no choquen. */
 .filaFiltros {
   display: flex;

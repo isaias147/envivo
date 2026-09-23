@@ -29,6 +29,7 @@ import type { ResultadoBusqueda } from "@/lib/busqueda";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
 import SelectorRadio from "@/components/SelectorRadio";
+import BotonUbicacion from "@/components/BotonUbicacion";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
 import FiltroEdad from "@/components/FiltroEdad";
@@ -79,6 +80,9 @@ function ListaPantalla() {
   // salta al cambiar de vista. Solo se pide geolocalización si se elige un
   // radio (ver `elegirRadio`).
   const [centro, setCentro] = useState(() => leerCentro(sp) ?? GRANADA_CALI);
+  // Posición real (GPS), si se conoce: para saber si el punto está "en tu
+  // ubicación" (flecha rellena en BotonUbicacion).
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
   const geoPedidaRef = useRef(false);
   // Id del evento que hay que enfocar apenas `grupos` se recalcule tras
   // elegir un resultado del buscador (ver `irAResultado`).
@@ -100,12 +104,47 @@ function ListaPantalla() {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCentro({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setGps(coords);
+        setCentro(coords);
       },
       () => {}, // permiso negado: se queda en Granada
       { enableHighAccuracy: true, timeout: 8000 },
     );
   }
+
+  // Si el permiso de ubicación YA estaba concedido, leer el GPS en silencio
+  // al abrir (sin mover el punto): solo para pintar bien BotonUbicacion. Si
+  // nunca se concedió, no se pregunta nada hasta que toquen el botón.
+  useEffect(() => {
+    if (!("geolocation" in navigator) || !navigator.permissions) return;
+    let vivo = true;
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((estado) => {
+        if (!vivo || estado.state !== "granted") return;
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (vivo) setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 8000 },
+        );
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  // "Volver a mi ubicación": el punto pasa a la posición real y las
+  // distancias de las tarjetas se recalculan solas (dependen de `centro`).
+  function irAMiUbicacion(coords: { lat: number; lng: number }) {
+    geoPedidaRef.current = true;
+    setGps(coords);
+    setCentro(coords);
+  }
+  const enMiUbicacion = gps != null && distanciaMetros(centro, gps) < 50;
 
   // Mismos eventos que el mapa: futuros, con 3 h de gracia hacia atrás.
   // Los filtros de tiempo y precio se aplican en el cliente.
@@ -284,6 +323,7 @@ function ListaPantalla() {
         <Logo />
       </div>
 
+      <BotonUbicacion activo={enMiUbicacion} onUbicacion={irAMiUbicacion} />
       <BarraPestanas />
     </div>
   );

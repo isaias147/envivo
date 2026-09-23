@@ -1,0 +1,83 @@
+/* ===== EnVivo · botón "volver a mi ubicación" (cian = ubicación) ===== */
+
+/* Abajo a la derecha, justo encima de la barra de pestañas, en el hueco que
+   las filas de filtros reservan a la derecha (padding-right de .filaFiltros). */
+.contenedor {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 18px);
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+/* Escritorio: pegado al borde derecho de la columna de 480px. */
+@media (min-width: 768px) {
+  .contenedor {
+    right: calc((100vw - 480px) / 2 + 16px);
+  }
+}
+
+.boton {
+  composes: cristal from global;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cian);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.boton:focus-visible {
+  outline: 2px solid var(--cian);
+  outline-offset: 2px;
+}
+.boton[aria-busy="true"] .flecha {
+  animation: latido 0.9s ease-in-out infinite alternate;
+}
+
+.flecha {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes latido {
+  to {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boton[aria-busy="true"] .flecha {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ---------- aviso (ícono + texto, nunca solo color) ---------- */
+/* .vivo siempre está en el DOM (región aria-live); vacío no ocupa espacio. */
+.aviso {
+  composes: cristal from global;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: min(280px, calc(100vw - 32px));
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  color: var(--texto);
+  font-size: 12.5px;
+  line-height: 1.45;
+  pointer-events: auto;
+}
+
+.iconoAviso {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--advertencia);
+}

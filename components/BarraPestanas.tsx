@@ -2,7 +2,8 @@
 
 // Barra de pestañas inferior fija: Inicio (/) · Listas (/lista) ·
 // Seguidos (/siguiendo) · Perfil (/yo). Reemplaza la navegación de
-// BarraFlotante (que quedó solo con el círculo de ubicación/radio).
+// BarraFlotante (ya borrada: la ubicación es BotonUbicacion y el radio,
+// SelectorRadio).
 // Estilo de la skill envivo-ui: translúcida con blur, activa en coral.
 
 import { Suspense } from "react";

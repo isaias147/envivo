@@ -168,9 +168,14 @@ coral; en ≥768px dentro de la columna de 480px. Está en esas cuatro
 pantallas. Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
 Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
 marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
-`--barra-inf` (sin safe-area). `components/BarraFlotante` quedó reducida
-a un solo círculo encima de la barra: "volver a mi ubicación", solo en
-`/` (lo reemplaza la sesión de ubicación). El "+ Publicar evento" del publicador pasó a una fila de
+`--barra-inf` (sin safe-area). Encima de la barra, abajo a la derecha,
+`components/BotonUbicacion` (rediseño sesión 4, en `/` y `/lista`, cian):
+pide el GPS al tocarlo y devuelve ahí el punto de referencia (en el mapa
+además centra la cámara vía `volarId`; en la lista recalcula distancias).
+Flecha rellena si el punto está a < 50 m del GPS, en contorno si se movió.
+Permiso negado u otro fallo → aviso con ícono + texto. `/lista` lee el GPS
+en silencio al abrir solo si el permiso ya estaba concedido
+(`navigator.permissions`). `BarraFlotante` se borró. El "+ Publicar evento" del publicador pasó a una fila de
 `/yo`. `EnlaceCuenta` (avatar arriba a la derecha) se borró: la pestaña
 Perfil lo reemplaza.
 3. `/evento/[id]` — detalle. Si el evento tiene `perfil_id`, la tarjeta

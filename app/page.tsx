@@ -36,7 +36,7 @@ import TarjetaEvento from "@/components/TarjetaEvento";
 import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
 import SelectorRadio from "@/components/SelectorRadio";
-import BarraFlotante from "@/components/BarraFlotante";
+import BotonUbicacion from "@/components/BotonUbicacion";
 import BarraPestanas from "@/components/BarraPestanas";
 import Logo from "@/components/Logo";
 import FiltroEdad from "@/components/FiltroEdad";
@@ -88,7 +88,7 @@ function MapaPantalla() {
   const [radioKm, setRadioKm] = useState<RadioKm>(() => leerRadio(sp.get("km")));
   // El desplegable de Edad abre hacia abajo: mientras está abierto, sube
   // toda la fila de filtros para que el menú no quede tapado por lo que
-  // hay debajo (BarraFlotante, barra de atribución, etc.).
+  // hay debajo (botón de ubicación, barra de atribución, etc.).
   const [edadMenuAbierto, setEdadMenuAbierto] = useState(false);
   // ?resaltar=&tipo=, leídos UNA sola vez al montar: el efecto que sincroniza
   // ?t=&p= en la URL (más abajo) reemplaza el historial apenas se monta y
@@ -117,8 +117,8 @@ function MapaPantalla() {
   const [volarId, setVolarId] = useState(0);
   // Evita repetir el flujo de ?resaltar= si el usuario ya interactuó.
   const resaltadoRef = useRef(false);
-  // Alto real de la ficha abierta (evento o perfil): sube la columna de
-  // FABs exactamente esa medida, en vez de que la tarjeta se achique para
+  // Alto real de la ficha abierta (evento o perfil): sube el botón de
+  // ubicación exactamente esa medida, en vez de que la tarjeta se achique para
   // no chocar con ellos. 0 cuando no hay ficha.
   const fichaRef = useRef<HTMLDivElement>(null);
   const [alturaFicha, setAlturaFicha] = useState(0);
@@ -154,13 +154,24 @@ function MapaPantalla() {
     [marcarMovido],
   );
 
-  const volverAMiUbicacion = useCallback(() => {
-    if (!gps) return;
-    setCentro(gps);
-    marcarMovido(false);
-    setSeleccionadoId(null);
-    setPerfilSeleccionado(null);
-  }, [gps, marcarMovido]);
+  // "Volver a mi ubicación" (BotonUbicacion): trae una lectura fresca del
+  // GPS, pone ahí el punto y fuerza a la cámara a volar (volarId), aunque el
+  // punto ya estuviera ahí y el usuario solo haya paneado el mapa.
+  const irAMiUbicacion = useCallback(
+    (coords: { lat: number; lng: number }) => {
+      setGps(coords);
+      setCentro(coords);
+      marcarMovido(false);
+      setVolarId((n) => n + 1);
+      setSeleccionadoId(null);
+      setPerfilSeleccionado(null);
+    },
+    [marcarMovido],
+  );
+  // El punto "está en tu ubicación" si queda a menos de 50 m del GPS (la
+  // URL redondea a 4 decimales, ~11 m, y el GPS varía entre lecturas).
+  const enMiUbicacion =
+    gps != null && distanciaMetros(centro, gps) < 50;
 
   // Refleja los filtros y el centro en la URL (sin recargar) para que "Ver
   // lista" y el botón atrás del navegador los conserven — así /lista
@@ -219,7 +230,7 @@ function MapaPantalla() {
     visibles.find((e) => e.id === seleccionadoId) ?? null;
 
   // Mide el alto real de la ficha mientras está abierta (evento o perfil);
-  // se lo pasamos a BarraFlotante para que suba los FABs esa medida exacta.
+  // se lo pasamos a BotonUbicacion para que suba esa medida exacta.
   const fichaAbierta = Boolean(seleccionado || perfilSeleccionado);
   useEffect(() => {
     if (!fichaAbierta) {
@@ -468,11 +479,9 @@ function MapaPantalla() {
       {/* Atribución de Leaflet: obligatoria, discreta, esquina inferior derecha. */}
       <p className={styles.atribucion}>{TILES_ATRIBUCION}</p>
 
-      <BarraFlotante
-        ubicacionMapa={{
-          disponible: Boolean(gps && movido),
-          onClick: volverAMiUbicacion,
-        }}
+      <BotonUbicacion
+        activo={enMiUbicacion}
+        onUbicacion={irAMiUbicacion}
         alturaExtra={alturaFicha}
       />
 
