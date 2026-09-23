@@ -5,12 +5,12 @@ import RegisterSW from "@/components/RegisterSW";
 import BarraPestanas from "@/components/BarraPestanas";
 import RestaurarScrollLogin from "@/components/RestaurarScrollLogin";
 
-// La interfaz usa la fuente del sistema (globals.css). Plus Jakarta Sans se
-// carga solo para el logotipo (components/Logo), como pide envivo-ui.
+// Plus Jakarta Sans para TODA la interfaz (envivo-ui). Versión variable:
+// un solo archivo con todos los pesos (400–700 en uso). next/font la baja
+// al compilar y la sirve desde el propio servidor, sin CDN externo.
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
-  weight: ["500", "700"],
   display: "swap",
 });
 

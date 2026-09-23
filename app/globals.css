@@ -51,12 +51,13 @@
   --cristal-borde: 1px solid var(--separador);
   --cristal-sombra: var(--sombra);
 
-  /* Tipografía: fuente del sistema. Plus Jakarta Sans solo en el
-     logotipo (components/Logo, la carga next/font en layout.tsx). */
+  /* Tipografía: Plus Jakarta Sans en toda la interfaz (la carga next/font
+     en layout.tsx); la del sistema queda solo de respaldo. Pesos: 400
+     texto, 500 chips y etiquetas, 600 botones, 700 títulos. */
   --fuente-sistema: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto,
     "Segoe UI", sans-serif;
-  --fuente-titulo: var(--fuente-sistema);
-  --fuente-cuerpo: var(--fuente-sistema);
+  --fuente-titulo: var(--font-jakarta), var(--fuente-sistema);
+  --fuente-cuerpo: var(--font-jakarta), var(--fuente-sistema);
   --fuente-logo: var(--font-jakarta), var(--fuente-sistema);
 }
 
@@ -127,6 +128,14 @@ h4 {
 button {
   font-family: var(--fuente-cuerpo);
   font-weight: 600;
+}
+
+/* Los campos no heredan la fuente por defecto; Leaflet pone la suya. */
+input,
+select,
+textarea,
+body .leaflet-container {
+  font-family: var(--fuente-cuerpo);
 }
 
 a {

@@ -89,9 +89,10 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
 ```
 
 ## Tipografía
-- Interfaz: fuente del sistema — `-apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, "Segoe UI", sans-serif`.
+- **Plus Jakarta Sans en toda la interfaz** (títulos, texto, chips, botones, barra), cargada con `next/font/google` (versión variable, se sirve desde el propio servidor, sin CDN en tiempo de ejecución). Tokens `--fuente-titulo` / `--fuente-cuerpo`; la fuente del sistema (`-apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, "Segoe UI", sans-serif`) queda solo de respaldo.
+- Pesos: 400 texto, 500 chips y etiquetas, 600 botones, 700 títulos.
 - Títulos grandes: peso 700, `letter-spacing: -0.025em`.
-- Logotipo: Plus Jakarta Sans. "Envivo" en 700, "App" en 500 con `--texto-secundario`. `letter-spacing: -0.03em`. Plus Jakarta Sans se usa SOLO en el logotipo.
+- Logotipo: "Envivo" en 700, "App" en 500 con `--texto-secundario`. `letter-spacing: -0.03em`.
 
 ## Logo
 Pin de ubicación con arcos de señal. Archivos en `public/brand/` (se usan como `/brand/<archivo>.svg`):
