@@ -229,10 +229,7 @@ function MapaPantalla() {
   // se lo pasamos a BotonUbicacion para que suba esa medida exacta.
   const fichaAbierta = Boolean(seleccionado || perfilSeleccionado);
   useEffect(() => {
-    if (!fichaAbierta) {
-      setAlturaFicha(0);
-      return;
-    }
+    if (!fichaAbierta) return;
     const el = fichaRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
@@ -241,6 +238,9 @@ function MapaPantalla() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [fichaAbierta]);
+  // Sin ficha la altura es 0: se deriva acá en vez de guardarla en el
+  // efecto (un setState síncrono dentro del efecto dispara renders de más).
+  const alturaVisible = fichaAbierta ? alturaFicha : 0;
 
   // Cambiar de filtro, precio o radio cierra la ficha abierta.
   // Hoja de filtros (y chips de arriba): aplica al instante.
@@ -429,7 +429,7 @@ function MapaPantalla() {
       <BotonUbicacion
         activo={enMiUbicacion}
         onUbicacion={irAMiUbicacion}
-        alturaExtra={alturaFicha}
+        alturaExtra={alturaVisible}
       />
 
       <BarraPestanas />
