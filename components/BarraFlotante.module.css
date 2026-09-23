@@ -17,6 +17,16 @@
   gap: 12px;
 }
 
+/* Escritorio (SPEC.md §3): la pantalla ya no llena el viewport, es una
+   columna de 480px centrada — este FAB, que es position:fixed al viewport
+   real, se re-ancla al borde derecho de ESA columna en vez de al de la
+   ventana. (100vw - 480px) / 2 es el margen muerto a cada lado. */
+@media (min-width: 768px) {
+  .columna {
+    right: calc((100vw - 480px) / 2 + 16px);
+  }
+}
+
 .circulo {
   composes: cristal from global;
   position: relative;

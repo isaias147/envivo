@@ -9,6 +9,16 @@
   overflow: hidden;
 }
 
+/* Escritorio (SPEC.md §3): la pantalla completa, mapa incluido, se contiene
+   en la misma columna centrada que el resto de la app. Los overlays de acá
+   son position:absolute sobre .pantalla, así que heredan el límite solos. */
+@media (min-width: 768px) {
+  .pantalla {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
 /* ---------- mapa al fondo ---------- */
 .lienzo {
   position: absolute;

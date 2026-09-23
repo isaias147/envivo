@@ -236,3 +236,36 @@
   color: #231a00;
   font-weight: 600;
 }
+
+/* ---------- escritorio (SPEC.md §3) ---------- */
+/* La pantalla se contiene en la misma columna de 480px que el resto de la
+   app. .marca y .pie son position:fixed al viewport real (no heredan el
+   max-width de .pantalla), así que se re-anclan aparte:
+   - .marca: mismo cálculo que BarraFlotante, pegada al borde IZQUIERDO de
+     la columna.
+   - .pie: en vez de solo re-anclarse, se capa a los mismos 480px de ancho
+     (en vez de left:0;right:0 = 100vw). Esto hace que .filaFiltros (que
+     mide 100% de .pie) vuelva a medir 480px en vez de 100vw — exactamente
+     la misma relación que ya tenía en móvil, solo que contra el ancho de
+     la columna en vez del viewport completo. Por eso el padding-right:100px
+     de .filaFiltros NO cambia de valor: ya reservaba espacio contra el
+     borde derecho de SU PROPIO contenedor, y ese borde ahora coincide con
+     el borde de la columna, que es justo donde BarraFlotante se ancló en
+     la Fase 3. */
+@media (min-width: 768px) {
+  .pantalla {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .marca {
+    left: calc((100vw - 480px) / 2 + 16px);
+  }
+
+  .pie {
+    left: 50%;
+    right: auto;
+    width: 480px;
+    transform: translateX(-50%);
+  }
+}
