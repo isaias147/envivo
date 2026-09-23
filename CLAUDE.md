@@ -177,15 +177,17 @@ del MVP. El precio todavía no está definido.
 
 **Barra de pestañas** (`components/BarraPestanas`, rediseño sesión 1,
 estilo de la skill `envivo-ui`): Inicio `/` · Listas `/lista` · Seguidos
-`/siguiendo` · Perfil `/yo`. Fija abajo, translúcida con blur y línea
-fina arriba. Estilo Instagram (sesión 7): solo íconos, el nombre va en
+`/siguiendo` · Perfil `/yo`. Cápsula flotante de cristal (56px de alto,
+16px a los lados, 8px sobre la zona segura, radio 28, `--sombra`).
+Estilo Instagram (sesión 7): solo íconos, el nombre va en
 `aria-label`; activa = ícono relleno en `--texto`, inactivas en contorno.
 **Sin coral** (el badge va invertido: `--texto` de fondo, `--fondo` de
-número). En ≥768px dentro de la columna de 480px. Está en esas cuatro
+número). En ≥768px, cápsula de 448px dentro de la columna de 480px. Está en esas cuatro
 pantallas. Inicio/Listas conservan los filtros y el radio (`?t=&p=&km=…`) entre sí.
 Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
 marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
-`--barra-inf` (sin safe-area). Encima de la barra, abajo a la derecha,
+`--barra-inf` = 64 (cápsula + aire; sin safe-area): todo lo que va
+encima se calcula con él. Encima de la barra, abajo a la derecha,
 `components/BotonUbicacion` (rediseño sesión 4, en `/` y `/lista`, cian):
 pide el GPS al tocarlo y devuelve ahí el punto de referencia (en el mapa
 además centra la cámara vía `volarId`; en la lista recalcula distancias).

@@ -39,9 +39,10 @@
   --error-tinte: color-mix(in srgb, var(--error) var(--tinte), transparent);
   --velo: color-mix(in srgb, var(--fondo) 65%, transparent); /* detrás de hojas modales */
 
-  /* Alto de la barra de pestañas (components/BarraPestanas). Sin el
-     safe-area: cada pantalla lo suma aparte donde hace falta. */
-  --barra-inf: 56px;
+  /* Espacio que ocupa la barra de pestañas flotante (components/
+     BarraPestanas): cápsula de 56 + 8 de aire. Sin el safe-area: cada
+     pantalla lo suma aparte donde hace falta. */
+  --barra-inf: 64px;
 
   /* Cristal: superficies flotantes translúcidas (barras, paneles, chips
      sobre el mapa). Nunca para botones de acción ni estados activos. */

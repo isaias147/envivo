@@ -1,21 +1,24 @@
 /* ===== EnVivo · barra de pestañas inferior (skill envivo-ui) ===== */
 
 .barra {
+  /* Cápsula flotante (Liquid Glass): 16px a los lados, 8px sobre la zona
+     segura. Alto fijo de 56; --barra-inf (64 = 56 + 8 de aire) es lo que
+     reservan las pantallas para lo que queda encima. */
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 16px;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 8px);
   z-index: 700; /* sobre mapa y filtros; debajo de las hojas modales (1000) */
-  /* Escritorio: dentro de la columna centrada de 480px (en móvil no hace
-     nada, la pantalla es más angosta). */
-  max-width: 480px;
+  /* Escritorio: dentro de la columna de 480px (480 − 2·16). */
+  max-width: 448px;
   margin: 0 auto;
   display: flex;
-  height: calc(var(--barra-inf) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: 56px;
+  border-radius: 28px;
   background: var(--barra);
   backdrop-filter: var(--cristal-blur);
-  border-top: 0.5px solid var(--separador);
+  border: 0.5px solid var(--separador);
+  box-shadow: var(--sombra);
 }
 
 .pestana {
@@ -28,8 +31,8 @@
 }
 .pestana:focus-visible {
   outline: 2px solid var(--coral-texto);
-  outline-offset: -4px;
-  border-radius: 10px;
+  outline-offset: -6px;
+  border-radius: 24px;
 }
 
 .icono {
