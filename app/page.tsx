@@ -35,7 +35,7 @@ import TarjetaEvento from "@/components/TarjetaEvento";
 import TarjetaLugar from "@/components/TarjetaLugar";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
-import EnlaceCuenta from "@/components/EnlaceCuenta";
+import BarraPestanas from "@/components/BarraPestanas";
 import FiltroEdad from "@/components/FiltroEdad";
 import FiltroTipos from "@/components/FiltroTipos";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
@@ -375,14 +375,9 @@ function MapaPantalla() {
       </div>
 
       {/* Buscador: junto a la marca. Colapsado es solo una lupa; al
-          abrirse ocupa el resto de la fila, sin invadir la cuenta. */}
+          abrirse ocupa el resto de la fila. */}
       <div className={styles.buscadorWrap}>
         <Buscador onSeleccionar={onSeleccionarResultado} />
-      </div>
-
-      {/* Mi cuenta (→ /yo): arriba a la derecha. */}
-      <div className={styles.cuenta}>
-        <EnlaceCuenta />
       </div>
 
       {/* Chips de categoría, debajo de la barra de búsqueda. Filtro aparte
@@ -470,6 +465,8 @@ function MapaPantalla() {
         }}
         alturaExtra={alturaFicha}
       />
+
+      <BarraPestanas />
     </div>
   );
 }

@@ -4,7 +4,7 @@
 // Sigue los slots 3 y 3b de envivo-grupo1-publico.html.
 //
 // La lógica de traer seguidos + el flag "Nuevo" vive en lib/siguiendo.ts
-// (compartida con la barra inferior). Acá se marca la visita
+// (compartida con el badge de la barra de pestañas). Acá se marca la visita
 // (`ultima_visita_siguiendo`) al terminar de cargar.
 
 import { useEffect, useRef, useState } from "react";
@@ -13,8 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { horaCali } from "@/lib/eventos";
 import { useSeguidos, type EventoSeguido } from "@/lib/siguiendo";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
-import BarraFlotante from "@/components/BarraFlotante";
-import EnlaceCuenta from "@/components/EnlaceCuenta";
+import BarraPestanas from "@/components/BarraPestanas";
 import styles from "./page.module.css";
 
 const ICONO_TIPO: Record<string, string> = {
@@ -57,7 +56,6 @@ export default function Siguiendo() {
         <div className={styles.marca}>
           En<i>Vivo</i>
         </div>
-        <EnlaceCuenta />
       </header>
 
       <h1 className={styles.titulo}>Siguiendo</h1>
@@ -127,7 +125,7 @@ export default function Siguiendo() {
         descripcion="Con tu cuenta ves acá a los locales, organizadores y artistas que sigues y recibes un aviso cuando publican algo nuevo."
       />
 
-      <BarraFlotante />
+      <BarraPestanas />
     </div>
   );
 }

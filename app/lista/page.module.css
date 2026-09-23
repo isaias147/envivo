@@ -19,7 +19,7 @@
   padding: 16px 18px 12px;
 }
 
-/* Buscador + acceso a la cuenta, en la misma fila. */
+/* Fila del buscador. */
 .filaSuperior {
   display: flex;
   align-items: center;
@@ -40,7 +40,7 @@
    es más chico, 16px en vez de 22px). */
 .marca {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + 107px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 107px);
   left: 16px;
   z-index: 40;
   font-family: var(--fuente-titulo);
@@ -172,7 +172,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--barra-inf) + 16px);
   pointer-events: none;
 }
 

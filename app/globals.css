@@ -18,9 +18,18 @@
   /* Líneas */
   --linea: rgba(244, 241, 232, 0.14);
 
-  /* Alto de la barra inferior de tabs (Mapa · Lista · Siguiendo). Sin el
+  /* Alto de la barra de pestañas (components/BarraPestanas). Sin el
      safe-area: cada pantalla lo suma aparte donde hace falta. */
   --barra-inf: 56px;
+
+  /* Paleta 3a de envivo-ui (skill .claude/skills/envivo-ui). Por ahora solo
+     los tokens que usa la barra de pestañas; el resto de la app sigue en la
+     paleta índigo hasta su rediseño. */
+  --barra: rgba(22, 22, 24, 0.72); /* + backdrop-filter: blur(20px) */
+  --texto-secundario: #9a9aa1;
+  --coral-texto: #ff4d6a;
+  --coral-boton: #dc2a4a;
+  --separador: rgba(255, 255, 255, 0.1);
 
   /* Cristal: superficies flotantes translúcidas (barras, paneles, tarjetas).
      Nunca para botones de acción ni estados activos: esos van en latón sólido. */
@@ -32,6 +41,13 @@
   /* Tipografía (las carga next/font en layout.tsx) */
   --fuente-titulo: var(--font-archivo), system-ui, sans-serif;
   --fuente-cuerpo: var(--font-instrument), system-ui, sans-serif;
+}
+
+[data-theme="light"] {
+  --barra: rgba(250, 250, 252, 0.78);
+  --texto-secundario: #6e6e73;
+  --coral-texto: #c8243f;
+  --separador: rgba(0, 0, 0, 0.08);
 }
 
 * {

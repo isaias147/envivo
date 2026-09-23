@@ -29,7 +29,7 @@ import type { ResultadoBusqueda } from "@/lib/busqueda";
 import TarjetaEvento from "@/components/TarjetaEvento";
 import Buscador from "@/components/Buscador";
 import BarraFlotante from "@/components/BarraFlotante";
-import EnlaceCuenta from "@/components/EnlaceCuenta";
+import BarraPestanas from "@/components/BarraPestanas";
 import FiltroEdad from "@/components/FiltroEdad";
 import FiltroTipos from "@/components/FiltroTipos";
 import styles from "./page.module.css";
@@ -190,7 +190,6 @@ function ListaPantalla() {
           <div className={styles.buscador}>
             <Buscador onSeleccionar={irAResultado} />
           </div>
-          <EnlaceCuenta />
         </div>
         {/* Chips de categoría, debajo del buscador. Filtro aparte de
             Todo/Gratis/Cover, Edad y tiempo: selección múltiple, ninguno
@@ -288,6 +287,7 @@ function ListaPantalla() {
       </div>
 
       <BarraFlotante ubicacionLista={{ radioKm, onCambiar: elegirRadio }} />
+      <BarraPestanas />
     </div>
   );
 }

@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { salir } from "@/lib/authUsuario";
 import { useCuentaPublicador } from "@/lib/cuentaPublicador";
 import ModalEntrarConGoogle from "@/components/ModalEntrarConGoogle";
-import BarraFlotante from "@/components/BarraFlotante";
+import BarraPestanas from "@/components/BarraPestanas";
 import styles from "./page.module.css";
 
 export default function Yo() {
@@ -172,6 +172,10 @@ export default function Yo() {
           {!cargandoPerfilPublicador &&
             (perfilPublicador ? (
               <>
+                <Link href="/publicar/nuevo" className={styles.fila}>
+                  <span>Publicar evento</span>
+                  <span className={styles.flecha}>→</span>
+                </Link>
                 <Link href="/mis-eventos" className={styles.fila}>
                   <span>Mis eventos</span>
                   <span className={styles.flecha}>→</span>
@@ -263,7 +267,7 @@ export default function Yo() {
         descripcion="Con tu cuenta sigues a locales, organizadores y artistas y recibes un aviso cuando publican algo nuevo."
       />
 
-      <BarraFlotante />
+      <BarraPestanas />
     </div>
   );
 }

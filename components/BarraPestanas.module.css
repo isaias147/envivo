@@ -1,0 +1,69 @@
+/* ===== EnVivo · barra de pestañas inferior (skill envivo-ui) ===== */
+
+.barra {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 700; /* sobre mapa y filtros; debajo de las hojas modales (1000) */
+  /* Escritorio: dentro de la columna centrada de 480px (en móvil no hace
+     nada, la pantalla es más angosta). */
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  height: calc(var(--barra-inf) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--barra);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 0.5px solid var(--separador);
+}
+
+.pestana {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--texto-secundario);
+  text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto,
+    "Segoe UI", sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+.pestana[aria-current="page"] {
+  color: var(--coral-texto);
+  font-weight: 600;
+}
+.pestana:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: -4px;
+  border-radius: 10px;
+}
+
+.icono {
+  position: relative;
+  display: flex;
+}
+.icono svg {
+  width: 24px;
+  height: 24px;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -9px;
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--coral-boton);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}

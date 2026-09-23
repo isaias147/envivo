@@ -154,13 +154,19 @@ del MVP. El precio todavía no está definido.
    (no el radio) el mapa encuadra los pines resultantes.
 2. `/lista` — los mismos eventos en lista
 
-**Barra inferior de tabs** (`components/BarraInferior`, Sesión 14 paso 5):
-Mapa `/` · Lista `/lista` · Siguiendo `/siguiendo`. Está en `/`, `/lista`,
-`/siguiendo` y `/yo` (en `/yo` sin tab activo). Mapa/Lista conservan los
-filtros (`?t=&p=`); Siguiendo no. Badge en Siguiendo = nº de perfiles
-seguidos cuyo próximo evento está marcado "Nuevo" (misma `useSeguidos` de
-`lib/siguiendo.ts`). El acceso a `/yo` es `components/EnlaceCuenta` (avatar
-de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
+**Barra de pestañas** (`components/BarraPestanas`, rediseño sesión 1,
+estilo de la skill `envivo-ui`): Inicio `/` · Listas `/lista` · Seguidos
+`/siguiendo` · Perfil `/yo`. Fija abajo, translúcida con blur, activa en
+coral; en ≥768px dentro de la columna de 480px. Está en esas cuatro
+pantallas. Inicio/Listas conservan los filtros (`?t=&p=`) entre sí.
+Badge en Seguidos = nº de perfiles seguidos cuyo próximo evento está
+marcado "Nuevo" (`useSeguidos` de `lib/siguiendo.ts`). Alto en
+`--barra-inf` (sin safe-area). `components/BarraFlotante` quedó reducida
+a un solo círculo encima de la barra: "volver a mi ubicación" en `/` y
+selector de radio en `/lista` (lo reemplazan las sesiones de radio y
+ubicación). El "+ Publicar evento" del publicador pasó a una fila de
+`/yo`. `EnlaceCuenta` (avatar arriba a la derecha) se borró: la pestaña
+Perfil lo reemplaza.
 3. `/evento/[id]` — detalle. Si el evento tiene `perfil_id`, la tarjeta
    "Publicado por" es tocable y lleva a `/p/[slug]` (Sesión 13, paso 2); los
    datos del perfil ya vienen en `eventos_publicos` por LEFT JOIN. Sin
@@ -184,7 +190,7 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
     no tienen evento salen igual con "Sin eventos próximos". Badge **"Nuevo"**
     = el próximo evento se publicó (`events.created_at`) en las últimas 72 h
     y después de `user_metadata.ultima_visita_siguiendo` (que se actualiza al
-    entrar; sin tabla nueva). Es un tab de la barra inferior. La lógica de
+    entrar; sin tabla nueva). Es la pestaña Seguidos. La lógica de
     datos vive en `lib/siguiendo.ts` (`useSeguidos`), compartida con el badge
     de la barra.
 3d. `/yo` — cuenta del **usuario final** (Sesión 14, paso 4). Distinta de
@@ -194,8 +200,9 @@ de Google, arriba a la derecha en `/`, `/lista`, `/siguiendo`).
     eventos" (guarda `user_metadata.avisos`, default true; **no hay sistema
     de envío todavía**), "Perfiles que seguís" → `/siguiendo`, "Cerrar
     sesión" (`signOut` → `/`), "Borrar mi cuenta" (confirmación en dos
-    pasos → `POST /api/yo/eliminar`). Se llega por `EnlaceCuenta` (arriba a
-    la derecha en `/`, `/lista`, `/siguiendo`). No es un tab de la barra.
+    pasos → `POST /api/yo/eliminar`). Con perfil de publicador suma las
+    filas "Publicar evento" (`/publicar/nuevo`), "Mis eventos" y "Mi perfil
+    de publicador". Es la pestaña Perfil.
 - `POST /api/yo/eliminar` — `auth.admin.deleteUser` es solo service_role.
   Valida el Bearer token con `getUser()`, borra `seguimientos` del usuario
   (belt-and-suspenders; la FK ya es `ON DELETE CASCADE`) y luego
