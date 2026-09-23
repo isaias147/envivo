@@ -21,21 +21,10 @@
 .pestana {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  color: var(--texto-secundario);
-  text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto,
-    "Segoe UI", sans-serif;
-  font-size: 10.5px;
-  font-weight: 500;
+  color: var(--texto);
   -webkit-tap-highlight-color: transparent;
-}
-.pestana[aria-current="page"] {
-  color: var(--coral-texto);
-  font-weight: 600;
 }
 .pestana:focus-visible {
   outline: 2px solid var(--coral-texto);
@@ -48,8 +37,8 @@
   display: flex;
 }
 .icono svg {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
 }
 
 .badge {
@@ -59,8 +48,10 @@
   min-width: 18px;
   padding: 1px 5px;
   border-radius: 999px;
-  background: var(--coral-boton);
-  color: var(--sobre-coral);
+  /* Invertido (sin coral en la barra): claro sobre oscuro y al revés. */
+  box-shadow: 0 0 0 2px var(--fondo);
+  background: var(--texto);
+  color: var(--fondo);
   font-size: 11px;
   font-weight: 700;
   line-height: 16px;
