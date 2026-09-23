@@ -20,7 +20,7 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
 ## Reglas de color
 - **Coral = acción principal** (botón primario, pestaña activa, filtro seleccionado). Un solo elemento coral fuerte por pantalla.
 - **Cian = solo ubicación** (tu posición, radio de búsqueda, botón "mi ubicación"). Nunca decoración.
-- **Categorías** = chip con tinte suave de fondo + punto o ícono del color sólido. Nunca círculos llenos.
+- **Categorías** = chip cápsula con el tinte de su categoría SIEMPRE visible + punto sólido de 7px a la izquierda, texto en `--texto` (500), sin ícono ni borde. Sobre el mapa el tinte va encima del cristal (`--barra` + blur) para que se lea. **Seleccionado** = el punto pasa a ✓ en `--cat` + aro interior de 1,5px en `--cat` (se distingue por forma, no solo por color). Nunca círculos llenos.
   Tokens `--cat-*` = las 6 categorías reales de la app (`TIPOS_EVENTO` en `lib/eventos.ts`): musica (Música en vivo), clase (Clase o taller), recreativo, cultural, deportivo, espiritual.
 - **Estados** (éxito/advertencia/error) siempre con ícono + texto, nunca solo color. Error y la categoría Espiritual son tonos cercanos: el ícono es obligatorio para distinguirlos.
 - Superficies agrupadas (listas dentro de tarjetas redondeadas). Barras translúcidas con desenfoque.

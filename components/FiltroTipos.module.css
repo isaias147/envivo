@@ -1,7 +1,7 @@
-/* ===== EnVivo · chips de categoría (estilo Google Maps) ===== */
-/* Fila horizontal con scroll, cada categoría es su propia píldora de
-   cristal (no un control segmentado como .reel/.precioBarra) — así se ven
-   los chips de categoría de Google Maps. Compartida por / y /lista. */
+/* ===== EnVivo · chips de categoría ===== */
+/* Fila horizontal con scroll; cada categoría es una cápsula con el tinte
+   de su color y un punto sólido. Compartida por /, /lista y la hoja de
+   filtros (envuelta). */
 
 .fila {
   display: flex;
@@ -29,23 +29,23 @@
   overflow: visible;
   pointer-events: auto;
 }
-.envuelta .chip {
-  min-height: 44px;
-}
-.envuelta .chip::after {
-  content: none;
-}
-
 .chip {
   composes: cristal from global;
   position: relative;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   border: none;
   border-radius: 100px;
-  padding: 7px 14px 7px 10px;
+  padding: 7px 14px 7px 12px;
+  /* Tinte de la categoría (--cat-tinte, de [data-cat] en globals.css)
+     encima del cristal: igual que en la referencia, y sigue leyéndose
+     sobre el mapa. */
+  background:
+    linear-gradient(var(--cat-tinte), var(--cat-tinte)),
+    var(--cristal-fondo);
+  box-shadow: var(--sombra);
   color: var(--texto);
   font-family: var(--fuente-cuerpo);
   font-weight: 500;
@@ -55,24 +55,49 @@
   cursor: pointer;
   pointer-events: auto;
 }
-/* Ícono en el color sólido de su categoría (--cat viene de [data-cat] en
-   globals.css). Seleccionado: tinte suave de la categoría + borde del mismo
-   color — nunca un círculo lleno (envivo-ui). */
-/* Área táctil de 44 de alto (HIG) alrededor del chip visible de 29
-   (27 dentro del borde + 2·9 = 45). */
+/* Área táctil de 44 de alto (HIG) alrededor del chip visible de ~29. */
 .chip::after {
   content: "";
   position: absolute;
-  inset: -9px 0;
+  inset: -8px 0;
 }
-.chip svg {
-  width: 15px;
-  height: 15px;
+.chip:focus-visible {
+  outline: 2px solid var(--coral-texto);
+  outline-offset: 2px;
+}
+/* Punto sólido de la categoría; seleccionado, el punto pasa a ✓. */
+.punto,
+.marca {
   flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+}
+.punto {
+  border-radius: 50%;
+  background: var(--cat);
+}
+.marca {
+  width: 12px;
+  height: 12px;
+  margin: 0 -2.5px; /* mismo ancho que el punto: el chip no cambia de tamaño */
   color: var(--cat);
 }
+/* Seleccionado: ✓ + aro interior del color de la categoría (y sin
+   cambiar el peso, para que el ancho no salte). */
 .chip[aria-pressed="true"] {
-  background: var(--cat-tinte);
-  box-shadow: inset 0 0 0 1px var(--cat);
-  font-weight: 600;
+  box-shadow:
+    inset 0 0 0 1.5px var(--cat),
+    var(--sombra);
+}
+
+/* Dentro de la hoja: apoyados en ella (sin sombra), 44 de alto táctil. */
+.envuelta .chip {
+  min-height: 44px;
+  box-shadow: none;
+}
+.envuelta .chip[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1.5px var(--cat);
+}
+.envuelta .chip::after {
+  content: none;
 }
