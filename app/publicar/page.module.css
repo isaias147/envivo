@@ -104,42 +104,13 @@
   letter-spacing: 0;
 }
 
-/* ---------- filtros de tiempo: cápsula de cristal ---------- */
-.reel {
-  composes: cristal from global;
+/* ---------- botón de filtros (abre la hoja, components/Filtros) ---------- */
+/* Debajo de la marca, donde antes iba la barra de tiempo. */
+.filtros {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 58px);
   left: 16px;
   z-index: 500;
-  display: inline-flex;
-  gap: 4px;
-  max-width: calc(100vw - 32px);
-  padding: 4px;
-  border-radius: 100px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.reel::-webkit-scrollbar {
-  display: none;
-}
-
-.filtro {
-  border: none;
-  background: transparent;
-  color: var(--texto);
-  font-family: var(--fuente-cuerpo);
-  font-weight: 500;
-  font-size: 13px;
-  letter-spacing: 0;
-  padding: 7px 14px;
-  border-radius: 100px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.filtro[aria-pressed="true"] {
-  background: var(--coral-tinte);
-  color: var(--coral-texto);
-  font-weight: 600;
 }
 
 /* ---------- pie flotante: botón publicar ---------- */

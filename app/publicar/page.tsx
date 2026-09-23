@@ -5,17 +5,27 @@
 // Sigue el bloque "0 · Inicio del organizador" de
 // envivo-pantallas-organizador.html.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import {
   dentroDeCaja,
   GRANADA_CALI,
+  leerEdad,
+  leerFechas,
+  leerFiltro,
+  leerPrecio,
+  leerTipos,
+  pasaFiltroEdad,
+  pasaPrecio,
+  pasaTipos,
+  queryFiltros,
   rangoFiltro,
   type EventoPublico,
-  type Filtro,
 } from "@/lib/eventos";
+import Filtros, { type EstadoFiltros } from "@/components/Filtros";
 import { TILES_ATRIBUCION } from "@/lib/mapaTiles";
 import styles from "./page.module.css";
 import Logo from "@/components/Logo";
@@ -25,19 +35,31 @@ const Mapa = dynamic(() => import("@/components/Mapa"), {
   loading: () => <div className={styles.mapaCargando}>Cargando mapa…</div>,
 });
 
-const FILTROS: { id: Filtro; etiqueta: string }[] = [
-  { id: "hoy", etiqueta: "Esta noche" },
-  { id: "finde", etiqueta: "Este finde" },
-  { id: "proximos", etiqueta: "Próximos" },
-];
-
 // En esta pantalla no hay control de radio: se fija en 3 km solo para
 // dibujar el aro de referencia alrededor del punto.
 const RADIO_KM = 3;
 
+// `useSearchParams` obliga a un límite de Suspense en la página.
 export default function Publicar() {
+  return (
+    <Suspense fallback={<div className={styles.mapaCargando}>Cargando…</div>}>
+      <PublicarPantalla />
+    </Suspense>
+  );
+}
+
+function PublicarPantalla() {
+  const sp = useSearchParams();
   const [eventos, setEventos] = useState<EventoPublico[]>([]);
-  const [filtro, setFiltro] = useState<Filtro>("hoy");
+  // Mismos filtros que / y /lista (hoja components/Filtros), leídos y
+  // guardados en la URL (?t=&fd=&fh=&p=&ed=&tipos=).
+  const [filtros, setFiltros] = useState<EstadoFiltros>(() => ({
+    filtro: leerFiltro(sp.get("t")),
+    fechas: leerFechas(sp),
+    precio: leerPrecio(sp.get("p")),
+    edad: leerEdad(sp.get("ed")),
+    tipos: leerTipos(sp.get("tipos")),
+  }));
   const [centro, setCentro] = useState(GRANADA_CALI);
   const [movido, setMovido] = useState(false);
   const movidoRef = useRef(false);
@@ -76,16 +98,26 @@ export default function Publicar() {
     };
   }, []);
 
+  useEffect(() => {
+    const { filtro, precio, edad, tipos, fechas } = filtros;
+    const qs = queryFiltros(filtro, precio, edad, undefined, undefined, tipos, fechas);
+    window.history.replaceState(null, "", qs || window.location.pathname);
+  }, [filtros]);
+
   const visibles = useMemo(() => {
-    const { desde, hasta } = rangoFiltro(filtro);
+    const { filtro, fechas, precio, edad, tipos } = filtros;
+    const { desde, hasta } = rangoFiltro(filtro, new Date(), fechas);
     return eventos.filter((ev) => {
       if (ev.latitude == null || ev.longitude == null) return false;
+      if (!pasaPrecio(ev, precio)) return false;
+      if (!pasaFiltroEdad(ev, edad)) return false;
+      if (!pasaTipos(ev, tipos)) return false;
       const t = new Date(ev.starts_at);
       if (t < desde) return false;
       if (hasta && t > hasta) return false;
       return dentroDeCaja(ev, centro, RADIO_KM);
     });
-  }, [eventos, filtro, centro]);
+  }, [eventos, filtros, centro]);
 
   return (
     <div className={styles.pantalla}>
@@ -118,19 +150,13 @@ export default function Publicar() {
         </Link>
       </div>
 
-      {/* Filtros de tiempo: cápsula de cristal bajo la marca. */}
-      <div className={styles.reel}>
-        {FILTROS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            className={styles.filtro}
-            aria-pressed={filtro === f.id}
-            onClick={() => setFiltro(f.id)}
-          >
-            {f.etiqueta}
-          </button>
-        ))}
+      {/* Filtros: el mismo botón y la misma hoja que en / y /lista. */}
+      <div className={styles.filtros}>
+        <Filtros
+          valor={filtros}
+          onCambiar={(c) => setFiltros((f) => ({ ...f, ...c }))}
+          total={visibles.length}
+        />
       </div>
 
       {/* Pie flotante: botón de publicar. */}

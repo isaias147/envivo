@@ -235,7 +235,9 @@ Perfil lo reemplaza.
 
 **Organizador (link entregado por QR o WhatsApp; publicar exige cuenta —
 Google primero, luego SMS + correo, ver "Alta del publicador"):**
-4. `/publicar` — el mapa con botón "Publicar evento"
+4. `/publicar` — el mapa con botón "Publicar evento". Usa la misma hoja
+   de filtros (`components/Filtros`, botón bajo el logo) que `/` y `/lista`,
+   con los filtros en la URL; radio fijo de 3 km, sin selector
 5. `/publicar/nuevo` — el formulario. **Exige sesión de Google** (si no hay,
    puerta + `ModalEntrarConGoogle`) y **perfil de publicador** — resuelto
    por `GET /api/publicador/sesion`, que acepta **dos formas**: con
