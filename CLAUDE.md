@@ -364,20 +364,7 @@ Google primero, luego SMS + correo, ver "Alta del publicador"):**
 
 ## Diseño
 
-Estética de cartelera de conciertos. Fondo índigo, no negro.
-
-```
---noche:#161A3D  --noche-2:#1F2453  --noche-3:#2A3068
---laton:#FFB627  --cana:#5FD6A0  --coral:#FF5E5B
---hueso:#F4F1E8  --hueso-tenue:#A7A9C4
---linea:rgba(244,241,232,.14)
-```
-
-- Tipografía: **Archivo** 700/800 para títulos, horas y botones principales (letter-spacing cerrado, -.02 a -.04em). **Instrument Sans** para cuerpo y datos.
-- El latón se usa con avaricia: horas, CTA principal, estado activo. Nada más.
-- Verde `--cana` = gratis, en toda la app.
-- PWA: color de tema `#161A3D`.
-- Referencia visual: los archivos `envivo-pantallas-*.html` que te voy a pasar. Síguelos.
+El sistema visual vive en `.claude/skills/envivo-ui/SKILL.md` y manda sobre cualquier otra indicación de diseño.
 
 ---
 
