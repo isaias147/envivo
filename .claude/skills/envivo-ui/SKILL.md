@@ -24,13 +24,16 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   Tokens `--cat-*` = las 6 categorías reales de la app (`TIPOS_EVENTO` en `lib/eventos.ts`): musica (Música en vivo), clase (Clase o taller), recreativo, cultural, deportivo, espiritual.
 - **Estados** (éxito/advertencia/error) siempre con ícono + texto, nunca solo color. Error y la categoría Espiritual son tonos cercanos: el ícono es obligatorio para distinguirlos.
 - Superficies agrupadas (listas dentro de tarjetas redondeadas). Barras translúcidas con desenfoque.
+- **Texto sobre coral** = `--sobre-coral` (blanco en ambos modos), nunca `--texto`: en modo claro `--texto` es oscuro.
+- **Sombras** = solo `--sombra`, y solo en lo que flota sobre otra cosa (fichas y hojas, desplegables, pines del mapa, botones flotantes). Las superficies apoyadas en el fondo no llevan sombra: las separa `--separador`.
 
 ## Tokens (CSS)
 
 ```css
 :root {
   /* Marca — igual en ambos modos */
-  --coral-boton: #DC2A4A;          /* fondo botón primario, texto blanco */
+  --coral-boton: #DC2A4A;          /* fondo botón primario */
+  --sobre-coral: #FFFFFF;          /* texto e íconos sobre --coral-boton */
 
   /* Modo oscuro (por defecto) */
   --fondo: #000000;
@@ -39,6 +42,7 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --texto-secundario: #9A9AA1;
   --separador: rgba(255,255,255,0.10);
   --barra: rgba(22,22,24,0.72);    /* + backdrop-filter: blur(20px) */
+  --sombra: 0 8px 24px rgba(0,0,0,0.35); /* superficies flotantes */
   --coral-texto: #FF4D6A;
   --cian: #32C8E8;
 
@@ -62,6 +66,7 @@ App de eventos presenciales en Cali. Estilo sobrio de alto contraste: negro puro
   --texto-secundario: #6E6E73;
   --separador: rgba(0,0,0,0.08);
   --barra: rgba(250,250,252,0.78); /* + backdrop-filter: blur(20px) */
+  --sombra: 0 8px 24px rgba(0,0,0,0.12);
   --coral-texto: #C8243F;
   --cian: #0A7EA0;
 
