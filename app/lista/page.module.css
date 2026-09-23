@@ -51,6 +51,13 @@
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
+/* Radio de búsqueda: debajo de los chips, a la derecha. */
+.radio {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
 .buscador {
   position: relative;
   flex: 1;
